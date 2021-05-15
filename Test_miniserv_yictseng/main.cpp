@@ -31,8 +31,8 @@ int		main()
 	else
 		std::cout << "Socket successfully created..." << std::endl;
 
-	int flags = fcntl(server_fd, F_GETFL);
-	if (flags == -1)
+	int flags = fcntl(server_fd, F_GETFL); // the subject doesn't allow us to use flags other than F_SETFL and O_NONBLOCK
+	if (flags == -1)					   // need to find another way to do it
 	{
 		std::cout << "Could not get flags on TCP listening socket" << std::endl;
 		exit(EXIT_FAILURE);
