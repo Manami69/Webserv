@@ -2,6 +2,7 @@
 #include <netinet/in.h> // sockaddr_in
 #include <cstdlib> // exit() and EXIT_FAILURE
 #include <cstring> // memset
+#include <fcntl.h> // fcntl
 #include <iostream>
 #include <unistd.h>
 
@@ -29,6 +30,20 @@ int		main()
 	}
 	else
 		std::cout << "Socket successfully created..." << std::endl;
+
+	int flags = fcntl(server_fd, F_GETFL);
+	if (flags == -1)
+	{
+		std::cout << "Could not get flags on TCP listening socket" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	// O_NONBLOCK : Non-blocking I/O;
+	// if no data is available to a read call, or if a write operation would block,
+	// the read or write call returns -1 with the error EAGAIN.
+	if (fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		std::cout << "Could not set TCP listening socket to be non-blocking" << std::endl;
+
 
 	// assign IP, Port
 	sockaddr_in	server_addr;
@@ -72,10 +87,19 @@ int		main()
 		// int new_socket = accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 		int addrlen = sizeof(server_addr);
 		int new_socket = accept(server_fd, (struct sockaddr *)&server_addr, (socklen_t *)&addrlen);
-        if (new_socket < 0)
+        if (new_socket == -1)
         {
-            std::cout << "Server acccept failed. errno: " << errno << std::endl;
-            exit(EXIT_FAILURE);
+            if (errno == EWOULDBLOCK)
+			{
+				std::cout << "No pending connections; sleeping for one second." << std::endl;
+        		usleep(1000000);
+			}
+			else
+			{
+				std::cout << "Server acccept failed. errno: " << errno << std::endl;
+            	exit(EXIT_FAILURE);
+			}
+
         }
         else
 			std::cout << GREEN << "Server acccept client..." << RESET << std::endl;
