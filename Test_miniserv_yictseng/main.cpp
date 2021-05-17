@@ -2,7 +2,9 @@
 #include <netinet/in.h> // sockaddr_in
 #include <cstdlib> // exit() and EXIT_FAILURE
 #include <cstring> // memset
-#include <fcntl.h> // fcntl
+#include <fcntl.h>
+#include <sys/select.h>
+#include <sys/time.h> // struct timeval
 #include <iostream>
 #include <unistd.h>
 
@@ -31,18 +33,18 @@ int		main()
 	else
 		std::cout << "Socket successfully created..." << std::endl;
 
-	int flags = fcntl(server_fd, F_GETFL); // the subject doesn't allow us to use flags other than F_SETFL and O_NONBLOCK
-	if (flags == -1)					   // need to find another way to do it
-	{
-		std::cout << "Could not get flags on TCP listening socket" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	// O_NONBLOCK : Non-blocking I/O;
-	// if no data is available to a read call, or if a write operation would block,
-	// the read or write call returns -1 with the error EAGAIN.
-	if (fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1)
-		std::cout << "Could not set TCP listening socket to be non-blocking" << std::endl;
+	// NOT SURE IF WE NEED TO USE FCNTL OR NOT; IF YES HOW TO USE IT WITH SELECT ?
+	// int flags = fcntl(server_fd, F_GETFL); // the subject doesn't allow us to use flags other than F_SETFL and O_NONBLOCK
+	// if (flags == -1)					   	  // need to find another way to do it
+	// {
+	// 	std::cout << "Could not get flags on TCP listening socket" << std::endl;
+	// 	exit(EXIT_FAILURE);
+	// }
+	// // O_NONBLOCK : Non-blocking I/O;
+	// // if no data is available to a read call, or if a write operation would block,
+	// // the read or write call returns -1 with the error EAGAIN.
+	// if (fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	// 	std::cout << "Could not set TCP listening socket to be non-blocking" << std::endl;
 
 
 	// assign IP, Port
@@ -80,36 +82,57 @@ int		main()
 		std::cout << "Socket cannot listen. errno: " << errno << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	
+	fd_set sockSet; // Set of socket descriptors for select()
+	// struct timeval selTimeout; // Timeout for select()
 
 	while(true)
     {
         std::cout << MAGENTA << "+++++++ Waiting for new connection ++++++++" << RESET << std::endl;
-		// int new_socket = accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-		int addrlen = sizeof(server_addr);
-		int new_socket = accept(server_fd, (struct sockaddr *)&server_addr, (socklen_t *)&addrlen);
-        if (new_socket == -1)
-        {
-            if (errno == EWOULDBLOCK)
-			{
-				std::cout << "No pending connections; sleeping for one second." << std::endl;
-        		usleep(1000000);
-			}
-			else
-			{
-				std::cout << "Server acccept failed. errno: " << errno << std::endl;
-            	exit(EXIT_FAILURE);
-			}
+		
+		// Zero socket descriptor vector and set for server sockets
+    	// This must be reset every time select() is called
+		FD_ZERO(&sockSet);
+        FD_SET(server_fd, &sockSet); // if we have a list of clients that we listen to, they all need to be initialized.
 
-        }
-        else
-			std::cout << GREEN << "Server acccept client..." << RESET << std::endl;
-        char buffer[1024]; // limits ?
-       	read(new_socket, buffer, 1024); // here we cannot check errno
-        std::cout << buffer;
-		//ssize_t send(int socket, const void *buffer, size_t length, int flags);
-		std::string msg("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!");
-		send(new_socket, msg.c_str(), msg.size(), 0);
-		close(new_socket);
+		// Timeout specification
+    	// This must be reset every time select() is called
+    	// selTimeout.tv_sec = 0;     // timeout (secs.)
+    	// selTimeout.tv_usec = 0;    // 0 microseconds 
+
+		
+		// int select (int nfds, fd_set *read-fds, fd_set *write-fds, fd_set *except-fds, struct timeval *timeout);
+		int res = select(server_fd + 1, &sockSet, NULL, NULL, NULL);
+		if (res == -1)
+    	{
+    	    std::cout << "Select : an error occurred. errno: " << errno << std::endl;
+			exit(EXIT_FAILURE);
+    	}
+		// if a socket is ready
+		else if (res > 0)
+		{
+			std::cout << res << std::endl;
+			if (FD_ISSET(server_fd, &sockSet)) // need to check also if we have a list of clients
+			{
+				// int new_socket = accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+				int addrlen = sizeof(server_addr);
+				int new_socket = accept(server_fd, (struct sockaddr *)&server_addr, (socklen_t *)&addrlen);
+        		if (new_socket == -1)
+        		{
+					std::cout << "Server acccept failed. errno: " << errno << std::endl;
+            		exit(EXIT_FAILURE);
+       			}
+        		else
+					std::cout << GREEN << "Server acccept client..." << RESET << std::endl;
+				char buffer[1024]; // limits ?
+       			read(new_socket, buffer, 1024); // here we cannot check errno
+        		std::cout << buffer;
+				//ssize_t send(int socket, const void *buffer, size_t length, int flags);
+				std::string msg("HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!");
+				send(new_socket, msg.c_str(), msg.size(), 0);
+				close(new_socket);
+			}
+		}
     }
 	close(server_fd);
     return 0;
