@@ -43,10 +43,12 @@ std::string&	getRequest::operator[] ( const std::string& key ) {
 	return this->_request_tokens[key];
 }
 
+const std::string&	getRequest::operator[] ( const std::string& key ) const {
+	return this->getKeyValue(key);
+}
+
 void			getRequest::fillRequest( std::string request ) {
 	//voir et lister les conditions d'une requete valide avant meme de la tokeniser (au moins une premiere ligne)
-	const std::string method[] = { "GET","HEAD", "POST", "PUT", "DELETE","CONNECT", "OPTIONS", "TRACE" };
-	std::vector<std::string> array(method, method + sizeof(method)/ sizeof(std::string));
 	size_t start = 0;
 	size_t space;
 	std::string token;

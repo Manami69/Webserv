@@ -26,6 +26,8 @@ class getRequest {
 
 		getRequest &	operator=( getRequest const & rhs );
 		std::string&	operator[] ( const std::string& key );
+		const std::string&	operator[] ( const std::string& key ) const;
+
 		// Setters
 		void			fillRequest( std::string buffer );
 		void			setKeyValue( std::string key, std::string val );
