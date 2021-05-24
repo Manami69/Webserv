@@ -1,4 +1,5 @@
 #include "getRequest.hpp"
+#include "getResponse.hpp"
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
 #include <cstdlib> // For exit() and EXIT_FAILURE
@@ -20,8 +21,18 @@ void		send(int connection, const std::string s)
 	::send(connection, s.c_str(), s.size(), 0);
 }
 
+std::map<int, std::string> error_code() {
+	std::map<int, std::string> err;
+	err[200] = "OK";
+	err[400] = "Bad Request";
+	err[404] = "Not Found";
+	err[505] = "HTTP Version Not Supported";
+	return err;
+}
+
 int main() {
 	// Create a socket (IPv4, TCP)
+	const std::map<int, std::string> err = error_code();
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
 		std::cout << "Failed to create socket. errno: " << std::endl;
@@ -32,7 +43,7 @@ int main() {
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_addr.s_addr = INADDR_ANY;
-	sockaddr.sin_port = htons(80); // htons is necessary to convert a number to
+	sockaddr.sin_port = htons(8080); // htons is necessary to convert a number to
 									// network byte order
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0) {
 		std::cout << "Failed to bind to port 80. errno: " << std::endl;
@@ -65,17 +76,9 @@ int main() {
 		static_cast<void>(bytesRead);
 		std::cout << buffer;
 		getRequest a(buffer);
-		std::cout << a;
-		send(connection, "HTTP/1.1 200 OK\n");
-		send(connection, "content returned: <!DOCTYPE html>\n");
-		send(connection, "\n");
-		send(connection, """\
-			<html>\
-			<body>\
-			<h1>Hello World</h1> I'm Terry!\
-			</body>\
-			</html>\
-			""");
+		getResponse response(a);
+		std::cout << a<< response.responsetosend(err);
+		send(connection, response.responsetosend(err));
 		// Close the connections
 		close(connection);
 		std::cout << BLUE << "\nDiconnected" << RESET << std::endl;

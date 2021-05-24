@@ -4,11 +4,35 @@
 # include <string>
 # include <map>
 # include <vector>
+# include <sstream>
 # include <algorithm>
 # include "getRequest.hpp"
 
 # define CRLF "\r\n"
 # define SP " "
+# define CONTENT "Content-Type: text/html\n\
+content returned: <!DOCTYPE html>\n\n\
+<html>\n\
+<head>\n\
+<title>Hellow babezzz</title>\n\
+<style>\n\
+    body {\n\
+        width: 35em;\n\
+        margin: 0 auto;\n\
+        font-family: Tahoma, Verdana, Arial, sans-serif;\n\
+    }\n\
+</style>\n\
+</head>\n\
+<body>\n\
+<h1>Coucou mes concombres des oceans <3</h1>\n\
+<p>Cette page est en construction, elle sera bientot remplacee par nos futures fabuleuses creations seulement diponibles dans nos fichiers de config !!!</p>\n\
+\n\
+<p><em>A tres bientot mes tres chers camarades de labeur.</em></p>\n\
+</body>\n\
+</html>"
+#define ERR "Content-Type: text/html\n\
+content returned: <!DOCTYPE html>\n\n\
+ERROR "
 
 /*
 ** RFC 7230 3.1.2.
@@ -38,14 +62,23 @@ class getResponse {
 		getResponse( getResponse const & src );
 
 		getResponse &	operator=( getResponse const & rhs );
-
+		std::string		responsetosend(const std::map<int, std::string> err);
+		// static std::map<int, std::string>	error_code; // ptet a mettre dans une autre classe unique
+		// static std::map<int, std::string> create_error() {
+		// 	std::map<int, std::string> err;
+		// 	err[200] = "OK";
+		// 	err[400] = "Bad Request";
+		// 	err[404] = "Not Found";
+		// 	err[505] = "HTTP Version Not Supported";
+		// 	return err;
+		// }
 	private:
-		void	_create_keys_map( void );
 		int	_parse_status_line( void );
 		getResponse( void );
 		std::vector<std::string>			_keys;
-		std::map<std::string, std::string>	_res_token;
+		int									_status_code;
 		getRequest							_request;
 };
 
+//std::map<int, std::string> getResponse::error_code = getResponse::create_error();
 #endif
