@@ -32,7 +32,7 @@ int main() {
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_addr.s_addr = INADDR_ANY;
-	sockaddr.sin_port = htons(8080); // htons is necessary to convert a number to
+	sockaddr.sin_port = htons(80); // htons is necessary to convert a number to
 									// network byte order
 	if (bind(sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) < 0) {
 		std::cout << "Failed to bind to port 80. errno: " << std::endl;
@@ -58,8 +58,10 @@ int main() {
 		}
 
 		std::cout << GREEN << "Connected :" << RESET << std::endl;
-		char buffer[10000];
-		size_t bytesRead = read(connection, buffer, 10000);
+		char buffer[1024];
+		for (int i = 0; i < 1024; i++)
+			buffer[i] = 0;
+		size_t bytesRead = read(connection, buffer, 1024);
 		static_cast<void>(bytesRead);
 		std::cout << buffer;
 		getRequest a(buffer);

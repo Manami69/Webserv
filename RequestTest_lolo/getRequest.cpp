@@ -43,9 +43,9 @@ std::string&	getRequest::operator[] ( const std::string& key ) {
 	return this->_request_tokens[key];
 }
 
-const std::string&	getRequest::operator[] ( const std::string& key ) const {
-	return this->getKeyValue(key);
-}
+// const std::string&	getRequest::operator[] ( const std::string& key ) const {
+// 	return this->getKeyValue(key);
+// }
 
 void			getRequest::fillRequest( std::string request ) {
 	//voir et lister les conditions d'une requete valide avant meme de la tokeniser (au moins une premiere ligne)
@@ -55,17 +55,26 @@ void			getRequest::fillRequest( std::string request ) {
 	std::string	key;
 
 	if ((space = request.find(" ")) == std::string::npos)
-		throw getRequest::BadRequestException();
+	{
+		this->_request_tokens["method"] = request;
+		return ;
+	}
 	token = request.substr(start, space - start);
 	this->_request_tokens["method"] = token;
 	start = space + 1;
-	if ((space = request.find(" ", start)) == std::string::npos)
-		throw getRequest::BadRequestException();
+	if ((space = request.find(" H", start)) == std::string::npos)
+	{
+		this->_request_tokens["request-target"] = request.substr(start);
+		return ;
+	}
 	token = request.substr(start, space - start);
 	this->_request_tokens["request-target"] = token;
 	start = space + 1;
 	if ((space = request.find(CRLF, start)) == std::string::npos)
-		throw getRequest::BadRequestException();
+	{
+		this->_request_tokens["http-version"] = request.substr(start);
+		return ;
+	}
 	token = request.substr(start, space - start);
 	this->_request_tokens["http-version"] = token;
 	start = space + 2;

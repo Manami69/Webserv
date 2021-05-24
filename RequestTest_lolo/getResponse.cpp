@@ -39,14 +39,17 @@ void  getResponse::_create_keys_map( void ) {
 ** ATTENTION EBAUCHE CAR COMPORTEMENTS ENCORE A L'ETUDE
 */
 
-bool getResponse::_parse_status_line( void )
+int getResponse::_parse_status_line( void )
 {
 	const std::string method[] = { "GET","HEAD", "POST", "PUT", "DELETE","CONNECT", "OPTIONS", "TRACE" };
 	std::vector<std::string> array(method, method + sizeof(method)/ sizeof(std::string));
 
 	if (std::find(array.begin(), array.end(), this->_request["method"]) == array.end())
-		return false;
+		return 400;
+	if (!this->_request["method"].compare("GET") && this->_request["http-version"].empty())
+		return 0; // ne renvoie que le contenu de la page donnee par localisation (404 si elle n'existe pas)
 	// localisation (y a t'il un truc a checker ?)
-	if (this->_request["http-version"] != "HTTP/1.1")
-		return false; // parfois avec telnet la status line n'apparait pas // a etudier au regard du testeur et de la RFC	
+	if (this->_request["http-version"].compare(0, 5, "HTTP/"))
+		return 400; // A MODIFIER
+	if (this->_request)
 }

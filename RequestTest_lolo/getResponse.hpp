@@ -41,7 +41,7 @@ class getResponse {
 
 	private:
 		void	_create_keys_map( void );
-		bool	_parse_status_line( void );
+		int	_parse_status_line( void );
 		getResponse( void );
 		std::vector<std::string>			_keys;
 		std::map<std::string, std::string>	_res_token;
