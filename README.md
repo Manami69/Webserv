@@ -52,8 +52,15 @@ User-Agent: Go-http-client/1.1
 ```
 >>> 405
 ### test 4
+aleatoire dans directory visiblement
 ```
 GET /directory/oulalala HTTP/1.1
+Host: localhost:8080
+User-Agent: Go-http-client/1.1
+Accept-Encoding: gzip
+```
+```
+GET /directory HTTP/1.1
 Host: localhost:8080
 User-Agent: Go-http-client/1.1
 Accept-Encoding: gzip
