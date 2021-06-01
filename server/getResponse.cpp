@@ -3,8 +3,13 @@
 
 getResponse::getResponse( getRequest const &request ) : _request(request) {
 	this->_status_code = _parse_status_line();
-	if (this->_status_code == 200)
-		;// continue checking with headers;
+	if (this->_status_code == 200) {
+		if (!this->_request["method"].compare("GET"))
+			_content = _method_get();
+		else
+			_content = "nono";
+	}
+	// continue checking with headers;
 	return ;
 }
 
@@ -22,7 +27,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::stringstream ss;
 
 	if (!this->_status_code)
-		return CONTENT;
+		return "pouet";
 	ss << this->_status_code;
 	ss >> str;
 	str.insert(0, "HTTP/1.1 ");
@@ -30,8 +35,8 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	str += err.find(this->_status_code)->second;;
 	str += CRLF;
 	///////////////////// a refaire
-	if (this->_status_code == 200)
-		str += CONTENT;
+	if (this->_status_code == 200 || this->_status_code == 404)
+		str += this->_content;
 	else
 	{
 		str += ERR + ss.str() + "\n";
@@ -66,6 +71,8 @@ int getResponse::_parse_status_line( void )
 		return 0; // ne renvoie que le contenu de la page donnee par localisation (404 si elle n'existe pas)
 	// check localisation (y a t'il un truc a checker ?)
 	/////////////////////////////////////////////////////////////////////////
+	if (this->_request["request-target"][0] != '/')
+		return (400);
 	// check http-version
 	if (http.compare(0, 5, "HTTP/") || http.size() <= 5)
 		return 400; // si different alors 400
@@ -77,4 +84,70 @@ int getResponse::_parse_status_line( void )
 		return 505;
 	else
 		return 400;
+}
+
+
+std::string getResponse::_method_get( void )
+{
+	std::string location = CURRDIR + this->_request["request-target"];
+	std::string response_body;
+	std::ifstream ifs;
+
+	response_body.reserve(10000);
+	if (this->_request["request-target"].size() == 1)
+		location += PAGE;
+	ifs.open(location, std::ifstream::in);
+	if (ifs.fail()) {
+		ifs.clear();
+		ifs.open(ERROR404, std::ifstream::in);
+		this->_status_code = 404;
+	}
+	char c;
+	while (ifs.get(c))          // loop getting single characters
+    	response_body += c;
+	return _get_fill_headers(response_body);
+}
+
+std::string	getResponse::_get_fill_headers( std::string response ) {
+	std::string headers;
+	std::stringstream ss;
+	std::string ext = _get_extension();
+	if (ext.empty() || this->_status_code == 404)
+		ext = "html";
+	// ajouter date et autre
+	headers += "Content-Type: ";
+	if (!ext.compare("png") || !ext.compare("jpg")) {
+		headers += "image/";
+		headers += ext;
+	}
+	else
+	{
+		headers += "text/";
+		headers += ext;
+	}
+	headers += "\nContent-Length: ";
+	ss << response.size();
+	headers += ss.str();
+	headers += "\n\n";
+	headers += response;
+	return headers;
+}
+
+std::string getResponse::_get_extension( void ) {
+	std::string loc = this->_request["request-target"];
+	size_t i = loc.size() - 1;
+	std::string ext;
+	if (loc[i] == '/')
+		return "";
+	while (loc[i] != '/' && loc[i] != '.')
+		i--;
+	if (loc[i] == '/')
+		return "";
+	else
+	{	
+		i++;
+		for (; i != loc.size(); ++i)
+			ext += loc[i];
+	}
+	return ext;
 }

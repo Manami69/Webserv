@@ -5,31 +5,15 @@
 # include <map>
 # include <vector>
 # include <sstream>
+# include <fstream>
 # include <algorithm>
 # include "getRequest.hpp"
 
 # define CRLF "\r\n"
 # define SP " "
-# define CONTENT "Content-Type: text/html\n\
-content returned: <!DOCTYPE html>\n\n\
-<html>\n\
-<head>\n\
-<title>Hellow babezzz</title>\n\
-<style>\n\
-    body {\n\
-        width: 35em;\n\
-        margin: 0 auto;\n\
-        font-family: Tahoma, Verdana, Arial, sans-serif;\n\
-    }\n\
-</style>\n\
-</head>\n\
-<body>\n\
-<h1>Coucou mes concombres des oceans <3</h1>\n\
-<p>Cette page est en construction, elle sera bientot remplacee par nos futures fabuleuses creations seulement diponibles dans nos fichiers de config !!!</p>\n\
-\n\
-<p><em>A tres bientot mes tres chers camarades de labeur.</em></p>\n\
-</body>\n\
-</html>"
+# define CURRDIR "./../www"
+# define PAGE "index.html"
+# define ERROR404 "./../www/404.html"
 #define ERR "Content-Type: text/html\n\
 content returned: <!DOCTYPE html>\n\n\
 ERROR "
@@ -75,9 +59,15 @@ class getResponse {
 	private:
 		int	_parse_status_line( void );
 		getResponse( void );
+		// GET METHOD
+		std::string	_get_fill_headers( std::string response );
+		std::string _method_get( void );
+		std::string	_get_extension( void );
+
 		std::vector<std::string>			_keys;
 		int									_status_code;
 		getRequest							_request;
+		std::string							_content;
 };
 
 //std::map<int, std::string> getResponse::error_code = getResponse::create_error();
