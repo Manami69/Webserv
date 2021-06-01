@@ -116,23 +116,29 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	// ajouter date et autre
 	// CONTENT-TYPE https://www.iana.org/assignments/media-types/media-types.xhtml ;
-	std::string image[] = {"png", "jpg", "jpeg", "gif"};
-	std::vector<std::string> img(image, image + sizeof(image) / sizeof(std::string));
 	headers += "Content-Type: ";
-	if (std::find(img.begin(), img.end(), ext) != img.end()) {
-		headers += "image/";
-		headers += ext;
+	std::ifstream is;
+	is.open("MIMEtypes");
+	char buf[300];
+	std::string buffer;
+	while (buffer.find(ext) == std::string::npos && buffer.compare("END"))
+	{
+		is.getline(buf, 300);
+		buffer = buf;
+	}
+	if (!buffer.compare("END")) {
+		headers += "text/plain";
 	}
 	else
 	{
-		headers += "text/";
-		headers += ext;
+		headers.append(buffer, buffer.find(" ") + 1, buffer.size() - buffer.find(" ") + 1);
 	}
+	is.close();
 	headers += "\nContent-Length: ";
 	ss << response.size();
 	headers += ss.str();
 	headers += "\n\n";
-	std::cout << headers << std::endl;
+	std::cout << YEL << headers << END << std::endl;
 	headers += response;
 	return headers;
 }
