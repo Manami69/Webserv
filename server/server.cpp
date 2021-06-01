@@ -85,6 +85,9 @@ void	Server::process_socket(int fd) {
     }
 	else {
 		// communication socket is readable => read in the data
+		for (size_t i = 0; i < sizeof(_buf); i++)
+			_buf[i] = 0;
+		std::string buffer;
         ssize_t bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
         if (bytesRecv == 0)
         {
@@ -99,8 +102,11 @@ void	Server::process_socket(int fd) {
 		}	
         else
 		{
-			std::cout << _buf;
-			getRequest a(_buf);
+			buffer += _buf;
+			if (!(_buf[bytesRecv - 1] == LF && _buf[bytesRecv - 2] == CR ) || !(bytesRecv == 1 && _buf[0] == LF) )
+				buffer += _read_socket(fd, bytesRecv);
+			std::cout << buffer;
+			getRequest a(buffer);
 			getResponse response(a);
 			this->error_code();
 			std::cout << a << response.responsetosend(_err);
@@ -157,4 +163,35 @@ void	set_server_socket(int server, char **av) {
 	if (server == 2)
 		run_server_socket(sockfd, av[5], av[6]);
 	return ;
+}
+
+
+std::string Server::_read_socket(int fd, ssize_t& bytesRecv)
+{
+	std::string buf;
+
+	if (bytesRecv == 1 && static_cast<int>(_buf[0]) == LF)
+		return "";
+	for (size_t i = 0; i < sizeof(_buf); i++)
+		_buf[i] = 0;
+	bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
+    if (bytesRecv == 0)
+    {
+		std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+		FD_CLR(fd, &_read_set);
+		close(fd);
+		return "";
+    }
+	else if (bytesRecv == -1)
+	{
+		close(fd);
+		throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
+	}	
+    else
+	{
+		buf += _buf;
+		if (!(static_cast<int>(_buf[bytesRecv -  2]) == CR && static_cast<int>(_buf[bytesRecv - 1]) == LF ))
+			buf += _read_socket(fd, bytesRecv);
+	}
+	return buf;
 }
