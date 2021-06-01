@@ -19,6 +19,7 @@
 # include <sys/select.h>
 # include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 # include <list>
+# include <cerrno>
 # include <map>
 # include <vector>
 # include <string>

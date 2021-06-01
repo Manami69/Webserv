@@ -30,7 +30,9 @@ void	Server::binded(void) {
 	if (ret == -1)
 	{
 		close(_serv_data->sockfd);
-		throw std::runtime_error ("Failed to bind to port " + std::to_string(_serv_data->port) + "<" + std::string(strerror(errno)) + ">");
+		std::stringstream ss;
+		ss << _serv_data->port;
+		throw std::runtime_error ("Failed to bind to port " + ss.str() + "<" + std::string(strerror(errno)) + ">");
 	}
 	else
 		std::cout << GREEN << "Socket successfully binded..." << RESET << std::endl;
@@ -109,7 +111,7 @@ void	Server::process_socket(int fd) {
 			getRequest a(buffer);
 			getResponse response(a);
 			this->error_code();
-			std::cout << a << response.responsetosend(_err);
+			//std::cout << a << response.responsetosend(_err);
 			send(fd, response.responsetosend(_err));
 			memset(&_buf, 0, sizeof(_buf));
 		}

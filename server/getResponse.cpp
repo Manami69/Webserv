@@ -96,7 +96,7 @@ std::string getResponse::_method_get( void )
 	response_body.reserve(10000);
 	if (this->_request["request-target"].size() == 1)
 		location += PAGE;
-	ifs.open(location, std::ifstream::in);
+	ifs.open(location.c_str(), std::ifstream::in);
 	if (ifs.fail()) {
 		ifs.clear();
 		ifs.open(ERROR404, std::ifstream::in);
@@ -115,8 +115,11 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	if (ext.empty() || this->_status_code == 404)
 		ext = "html";
 	// ajouter date et autre
+	// CONTENT-TYPE https://www.iana.org/assignments/media-types/media-types.xhtml ;
+	std::string image[] = {"png", "jpg", "jpeg", "gif"};
+	std::vector<std::string> img(image, image + sizeof(image) / sizeof(std::string));
 	headers += "Content-Type: ";
-	if (!ext.compare("png") || !ext.compare("jpg")) {
+	if (std::find(img.begin(), img.end(), ext) != img.end()) {
 		headers += "image/";
 		headers += ext;
 	}
@@ -129,6 +132,7 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	ss << response.size();
 	headers += ss.str();
 	headers += "\n\n";
+	std::cout << headers << std::endl;
 	headers += response;
 	return headers;
 }
@@ -147,7 +151,7 @@ std::string getResponse::_get_extension( void ) {
 	{	
 		i++;
 		for (; i != loc.size(); ++i)
-			ext += loc[i];
+			ext += tolower(loc[i]);
 	}
 	return ext;
 }
