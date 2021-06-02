@@ -26,6 +26,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::string str;
 	std::stringstream ss;
 
+	str.reserve(30);
 	if (!this->_status_code)
 		return "pouet";
 	ss << this->_status_code;
@@ -115,25 +116,8 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	if (ext.empty() || this->_status_code == 404)
 		ext = "html";
 	// ajouter date et autre
-	// CONTENT-TYPE https://www.iana.org/assignments/media-types/media-types.xhtml ;
 	headers += "Content-Type: ";
-	std::ifstream is;
-	is.open("MIMEtypes");
-	char buf[300];
-	std::string buffer;
-	while (buffer.find(ext) == std::string::npos && buffer.compare("END"))
-	{
-		is.getline(buf, 300);
-		buffer = buf;
-	}
-	if (!buffer.compare("END")) {
-		headers += "text/plain";
-	}
-	else
-	{
-		headers.append(buffer, buffer.find(" ") + 1, buffer.size() - buffer.find(" ") + 1);
-	}
-	is.close();
+	headers += _get_MIMEtype(ext);
 	headers += "\nContent-Length: ";
 	ss << response.size();
 	headers += ss.str();
@@ -161,3 +145,36 @@ std::string getResponse::_get_extension( void ) {
 	}
 	return ext;
 }
+
+std::string getResponse::_get_MIMEtype(const std::string &ext) {
+	std::ifstream is;
+	std::string ret;
+	is.open("MIMEtypes");
+	char buf[300];
+	std::string buffer;
+	while (buffer.find(ext) == std::string::npos && buffer.compare("END"))
+	{
+		is.getline(buf, 300);
+		buffer = buf;
+	}
+	if (!buffer.compare("END")) {
+		ret = "text/plain";
+	}
+	else
+	{
+		ret.append(buffer, buffer.find(" ") + 1, buffer.size() - buffer.find(" ") + 1);
+	}
+	is.close();
+	return ret;
+}
+
+
+
+
+/*
+ TO DO :
+ - get MIMEtype
+ - structure par location
+ - autoindex
+*/
+

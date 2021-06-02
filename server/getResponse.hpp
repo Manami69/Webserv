@@ -7,6 +7,7 @@
 # include <sstream>
 # include <fstream>
 # include <algorithm>
+# include <dirent.h>
 # include "getRequest.hpp"
 
 # define CRLF "\r\n"
@@ -62,8 +63,9 @@ class getResponse {
 		// GET METHOD
 		std::string	_get_fill_headers( std::string response );
 		std::string _method_get( void );
+		// GET MIMETYPE
 		std::string	_get_extension( void );
-
+		std::string _get_MIMEtype( const std::string& ext);
 		std::vector<std::string>			_keys;
 		int									_status_code;
 		getRequest							_request;
