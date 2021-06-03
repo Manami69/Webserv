@@ -19,6 +19,9 @@
 </html>"
 #define LOC "/"
 
+#if defined (__APPLE__)
+	# define st_mtim st_mtimespec
+#endif
 
 struct t_index_file
 {

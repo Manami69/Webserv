@@ -91,14 +91,22 @@ int getResponse::_parse_status_line( void )
 std::string getResponse::_method_get( void )
 {
 	std::string location = CURRDIR + this->_request["request-target"];
+	bool	isindex = false;
 	std::string response_body;
 	std::ifstream ifs;
 
 	response_body.reserve(10000);
-	if (this->_request["request-target"].size() == 1)
+	if (*(this->_request["request-target"].end() - 1 ) == '/') {
 		location += PAGE;
+		isindex = true;
+	}
 	ifs.open(location.c_str(), std::ifstream::in);
 	if (ifs.fail()) {
+		if (isindex)
+		{
+			response_body += _get_autoindex(CURRDIR + this->_request["request-target"]);
+			return _get_fill_headers(response_body);
+		}
 		ifs.clear();
 		ifs.open(ERROR404, std::ifstream::in);
 		this->_status_code = 404;
@@ -168,7 +176,87 @@ std::string getResponse::_get_MIMEtype(const std::string &ext) {
 	return ret;
 }
 
+#define INDEX_BODY "<html>\n\
+<head><title>Index of "
+#define INDEX2 "</title></head>\n\
+<body bgcolor=\"white\">\n\
+<h1>Index of "
+#define INDEX3 "</h1><hr><pre><a href=\"../\">../</a>\n"
+#define INDEXEND "</pre><hr></body>\n\
+</html>"
+#define LOC "/"
 
+std::string getResponse::_fill_index_body(std::list<t_index_file> files)
+{
+	std::string ret;
+	ret.reserve(1024);
+	ret.append(INDEX_BODY);
+	ret.append(this->_request["request-target"]);
+	ret.append(INDEX2);
+	ret.append(this->_request["request-target"]);
+	ret.append(INDEX3);
+	for (std::list<t_index_file>::iterator it = files.begin(); it != files.end(); it++) {
+		if ((*it).type == static_cast<unsigned char>(4) && (*it).name.compare(".") != 0 && (*it).name.compare("..") != 0)
+		{
+			std::stringstream ss;
+			ret.append("<a href=\"");
+			ret.append((*it).name);
+			ret.append("/\">");
+			ret.append((*it).name);
+			ret.append("/</a>");
+			ret.append((*it).spaceL - 1, ' ');
+			ret.append((*it).date);
+			ss << std::setfill(' ') << std::setw(20);
+			ss << "-\n";
+			ret.append(ss.str());
+		}
+	}
+	for (std::list<t_index_file>::iterator it = files.begin(); it != files.end(); it++) {
+		if ((*it).type == static_cast<unsigned char>(8))
+		{
+			std::stringstream ss;
+			ret.append("<a href=\"");
+			ret.append((*it).name);
+			ret.append("\">");
+			ret.append((*it).name);
+			ret.append("</a>");
+			ret.append((*it).spaceL, ' ');
+			ret.append((*it).date);
+			ss << std::setfill(' ') << std::setw(20);
+			ss << (*it).size << "\n";
+			ret.append(ss.str());
+		}
+	}
+	ret.append(INDEXEND);
+	return ret;
+}
+
+std::string getResponse::_get_autoindex( std::string location ) {
+	DIR *dir;
+	t_index_file cur;
+	std::list<t_index_file> files;
+	struct dirent	*ent;
+	struct stat		stat;
+
+	if ((dir = opendir(location.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			lstat(ent->d_name, &stat);
+			char strNow[ 19 ];
+    		strftime(strNow, 19, "%d-%b-%Y %H:%M", gmtime( &stat.st_mtim.tv_sec ));
+			cur.name = ent->d_name;
+			cur.spaceL = 51 - cur.name.size();
+			cur.date = strNow;
+			cur.size = stat.st_size;
+			cur.type = ent->d_type;
+			files.push_back(cur);
+  		}
+  		closedir (dir);
+	}
+	else {
+		std::cout << "Errrr" << std::endl; //////////////////////
+	}
+	return _fill_index_body(files);
+}
 
 
 /*
