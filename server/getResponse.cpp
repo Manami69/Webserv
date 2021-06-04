@@ -236,24 +236,27 @@ std::string getResponse::_get_autoindex( std::string location ) {
 	t_index_file cur;
 	std::list<t_index_file> files;
 	struct dirent	*ent;
-	struct stat		stat;
+	struct stat		st;
 
 	if ((dir = opendir(location.c_str())) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
-			lstat(ent->d_name, &stat);
+			memset(&st, 0, sizeof(st));
+			std::string path = ROOT + this->_request["request-target"];
+			path += ent->d_name;
+			stat(path.c_str(), &st);
 			char strNow[ 19 ];
-    		strftime(strNow, 19, "%d-%b-%Y %H:%M", gmtime( &stat.st_mtim.tv_sec ));
+    		strftime(strNow, 19, "%d-%b-%Y %H:%M", gmtime( &st.st_mtim.tv_sec ));
 			cur.name = ent->d_name;
 			cur.spaceL = 51 - cur.name.size();
 			cur.date = strNow;
-			cur.size = stat.st_size;
+			cur.size = st.st_size;
 			cur.type = ent->d_type;
 			files.push_back(cur);
   		}
   		closedir (dir);
 	}
 	else {
-		std::cout << "Errrr" << std::endl; //////////////////////
+		std::cout << "Errrr" << std::endl; ////////////////////// return error 404 si page non existante ???????????????
 	}
 	return _fill_index_body(files);
 }
@@ -261,8 +264,17 @@ std::string getResponse::_get_autoindex( std::string location ) {
 
 /*
  TO DO :
- - get MIMEtype
- - structure par location
- - autoindex
+ - rangement par titre grace a des commentaires visibles
+ - structure par location : boucle qui cherche la location la plus proche de l'URI demandée et qui adapte la reponse selon les options de la config
+ - GET
+	** faire une boucle qui choppe le bon index avec les differents index renseignés dans la config (par defaut index.html)
+ - POST
+	** faire les tests
+ - DELETE
+ - FORBIDDEN METHOD (explicite dans la config et implicite pour les methodes en dehors du sujet)
+ - constructeur par erreur 400 ( qui prend un int uniquement )pour preparer la reponse directe en cas de premiere ligne fausse (lecture ligne par ligne via telnet)
 */
 
+/* METHODES AUTORISEES
+ - All HTTP protocol compliance checks are enabled by default except for GET with body and POST without body. 
+*/

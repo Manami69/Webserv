@@ -20,7 +20,7 @@
 	# define st_mtim st_mtimespec
 #endif
 
-
+# define ROOT "./../www"
 # define CRLF "\r\n"
 # define SP " "
 # define CURRDIR "./../www"

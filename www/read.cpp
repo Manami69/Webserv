@@ -93,6 +93,7 @@ int main () {
 			cur.name = ent->d_name;
 			cur.spaceL = 51 - cur.name.size();
 			cur.date = strNow;
+			std::cout << stat.st_size << std::endl;
 			cur.size = stat.st_size;
 			cur.type = ent->d_type;
 			files.push_back(cur);
