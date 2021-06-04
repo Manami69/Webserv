@@ -2,14 +2,11 @@
 # define SERVER_HPP
 
 # include "header.hpp"
-# include "getRequest.hpp"
-# include "getResponse.hpp"
 
-
-struct Serv
+struct 					Listen
 {
 	int					sockfd;
-	unsigned short		port;
+	short				port;
 	std::string			host;
 	sockaddr_in			addr;
 };
@@ -17,32 +14,24 @@ struct Serv
 class Server
 {
 private:
-	Serv	*_serv_data;
-	char	_buf[256];
-	fd_set	_read_set;
-	fd_set	_read_copy;
-	std::map<int, std::string> _err;
-	std::string _read_socket(int fd, ssize_t& bytesRecv);
-	Server(void);
+	int						_sockfd;
+	short					_port;
+	Listen					*_listen;
+	std::vector<Listen*>	_server_lst;
+	int						_server_nbr;
+	Server(Server const &copy);
+	Server &operator=(Server const &rhs);
 
 public:
-	Server(int sockfd, std::string port, std::string host);
+	Server(void);
 	~Server(void);
+	void	setup_server_socket(std::string const &port);
+	void	get_master_socket_fd(void);
+	void	set_socket_reuse(void);
 	void	binded(void);
 	void	listened(void);
-	void	selected(void);
-	void	process_socket(int fd);
-	std::map<int, std::string> error_code(void);
-	void	send(int connection, const std::string s);
-
-	enum RequestTerminator
-	{
-		CR = 13,
-		LF = 10,	
-	};
+	void	add_server_lst(void);
+	int		get_server_nbr(void) const;
 };
-
-void	set_server_socket(int server, char **av);
-void	run_server_socket(int sockfd, std::string port, std::string host);
 
 #endif

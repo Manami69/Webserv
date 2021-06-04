@@ -1,32 +1,35 @@
-#include "header.hpp"
 #include "server.hpp"
 
-int	main(int ac, char **av)
-{
-	int	count = 0;
+void	run_server(char **av) {
+	Server	server;
 
-	if (ac == 3)
-		count = 1;
-	else if (ac == 5)
-		count = 2;
-	else if (ac == 7)
-		count = 3;
-	else
+	for (int i = 1; av[i]; i++)
 	{
-		std::cout << "Error arguments numbers" << std::endl;
-		return (EXIT_FAILURE);
+		server.setup_server_socket(av[i]);
+		server.set_socket_reuse();
+		server.binded();
+		server.listened();
+		server.add_server_lst();
 	}
-	for (int server = 0; server < count; server++)
-	{
+	std::cout << "Server number: " << server.get_server_nbr() << std::endl;
+}
+
+int	main(int ac, char **av) {
+
+	// Enter arguments to set listening port
+
+	if (ac == 1) {
+		std::cout << "Error: need at least one argument." << std::endl;
+		return (1);
+	}
+	else {
 		try
 		{
-			set_server_socket(server, av);
+			run_server(av);
 		}
 		catch(const std::runtime_error& e)
 		{
 			std::cerr << e.what() << '\n';
 		}
 	}
-		
-	return (0);
 }

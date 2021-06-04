@@ -1,199 +1,84 @@
 #include "server.hpp"
 
-Server::Server(int sockfd, std::string port, std::string host) {
-	
-	_serv_data = new Serv();
-	_serv_data->sockfd = sockfd;
-	_serv_data->port = atoi(port.c_str());
-	_serv_data->host = host;
-	
-	memset(&_serv_data->addr, 0, sizeof(sockaddr_in));
-	_serv_data->addr.sin_family = AF_INET;
-	_serv_data->addr.sin_addr.s_addr = inet_addr(_serv_data->host.c_str());
-	_serv_data->addr.sin_port = htons(_serv_data->port);
-	
-	memset(&_buf, 0, sizeof(_buf));
+Server::Server(void) :
+_sockfd(0),
+_server_nbr(0) {
+	return ;
+}
 
-	FD_ZERO(&_read_set);
-    FD_ZERO(&_read_copy);
-    FD_SET(_serv_data->sockfd, &_read_set);
+Server::~Server(){
+}
+
+void	Server::setup_server_socket(std::string const &port) {
+	get_master_socket_fd();
+	_listen = new Listen();
+	_listen->sockfd = _sockfd;
+	_listen->port = atoi(port.c_str());
+	_listen->host = "127.0.0.1"; // Need to accepter other host later
+	
+	memset(&_listen->addr, 0, sizeof(sockaddr_in));
+	_listen->addr.sin_family = AF_INET;
+	_listen->addr.sin_addr.s_addr = inet_addr(_listen->host.c_str());
+	_listen->addr.sin_port = htons(_listen->port);
 	return;
 }
 
-Server::~Server(void) {
-	return ;
-}
-
-void	Server::binded(void) {
-	// bind the socket to localhost port 8080
-	int	ret = bind(_serv_data->sockfd, (const struct sockaddr*)&_serv_data->addr, sizeof(_serv_data->addr));
-	if (ret == -1)
-	{
-		close(_serv_data->sockfd);
-		std::stringstream ss;
-		ss << _serv_data->port;
-		throw std::runtime_error ("Failed to bind to port " + ss.str() + "<" + std::string(strerror(errno)) + ">");
-	}
-	else
-		std::cout << GREEN << "Socket successfully binded..." << RESET << std::endl;
-	return ;
-}
-
-void	Server::listened(void) {
-	// try to specify maximum of 128 pending connections for the socket
-    int ret = ::listen(_serv_data->sockfd, 128);
-	if (ret == -1)
-	{
-		close(_serv_data->sockfd);
-		throw std::runtime_error ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">");
-	}
-	else
-		std::cout << GREEN << "Socket successfully listened..." << RESET << std::endl << std::endl;
-	return ;
-}
-
-void	Server::selected(void) {
-	while (true) {
-        _read_copy = _read_set;
-        int ret = select(FD_SETSIZE, &_read_copy, 0, 0, 0);
-		if ((ret == -1) && (errno != EINTR))
-    	{
-			close(_serv_data->sockfd);
-			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
-    	}
-        for (int fd = 0; fd <= FD_SETSIZE; ++fd)
-        {
-			if (FD_ISSET(fd, &_read_copy))
-				this->process_socket(fd);
-        }
-    }
-}
-
-void	Server::process_socket(int fd) {
-	if (fd == _serv_data->sockfd) {
-        // listener socket is readable => accept the connection and create communication socket
-        uint32_t addrlen = sizeof(_serv_data->addr);
-		int comm = accept(_serv_data->sockfd, (struct sockaddr *)&_serv_data->addr, (socklen_t *)&addrlen);
-		if (comm == -1)
-        {
-			close(_serv_data->sockfd);
-			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
-       	}
-		else
-		{
-			FD_SET(comm, &_read_set);
-			std::cout << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
-		}
-    }
-	else {
-		// communication socket is readable => read in the data
-		for (size_t i = 0; i < sizeof(_buf); i++)
-			_buf[i] = 0;
-		std::string buffer;
-        ssize_t bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
-        if (bytesRecv == 0)
-        {
-			std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-			FD_CLR(fd, &_read_set);
-			close(fd);
-        }
-		else if (bytesRecv == -1)
-		{
-			close(fd);
-			throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
-		}	
-        else
-		{
-			buffer += _buf;
-			if (!(_buf[bytesRecv - 1] == LF && _buf[bytesRecv - 2] == CR ) || !(bytesRecv == 1 && _buf[0] == LF) )
-				buffer += _read_socket(fd, bytesRecv);
-			std::cout << buffer;
-			getRequest a(buffer);
-			getResponse response(a);
-			this->error_code();
-			//std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
-			memset(&_buf, 0, sizeof(_buf));
-		}
-	}
-}
-
-std::map<int, std::string> Server::error_code(void) {
-	_err[200] = "OK";
-	_err[400] = "Bad Request";
-	_err[404] = "Not Found";
-	_err[505] = "HTTP Version Not Supported";
-	return _err;
-}
-
-void	Server::send(int connection, const std::string s)
-{
-	::send(connection, s.c_str(), s.size(), 0);
-	return ;
-}
-
-void	run_server_socket(int sockfd, std::string port, std::string host) {
-	Server server(sockfd, port, host);
-	server.binded();
-	server.listened();
-	server.selected();
-	return ;
-}
-
-void	set_server_socket(int server, char **av) {
-	int	opt = true;
+void	Server::get_master_socket_fd(void) {
+	// TCP, IPv4
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	std::cout << "Socket FD : " << sockfd << std::endl; // DELETE LATER
 	if (sockfd == -1)
 	{
 		close(sockfd);
 		throw std::runtime_error ("Failed to create socket. <" + std::string(strerror(errno)) + ">");
 	}
-	else
-		std::cout << GREEN << "Socket successfully created..." << RESET << std::endl;
-	
-	// set socket to allow multiple connections
-	int	ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&opt), sizeof(opt));
-	if (ret == -1)
-	{
-		close(sockfd);
-		throw std::runtime_error ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">");
-	}
-	if (server == 0)
-		run_server_socket(sockfd, av[1], av[2]);
-	if (server == 1)
-		run_server_socket(sockfd, av[3], av[4]);
-	if (server == 2)
-		run_server_socket(sockfd, av[5], av[6]);
+	_sockfd = sockfd;
+	std::cout << GREEN << "Socket successfully created... " << RESET << std::endl;
 	return ;
 }
 
-
-std::string Server::_read_socket(int fd, ssize_t& bytesRecv)
-{
-	std::string buf;
-
-	if (bytesRecv == 1 && static_cast<int>(_buf[0]) == LF)
-		return "";
-	for (size_t i = 0; i < sizeof(_buf); i++)
-		_buf[i] = 0;
-	bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
-    if (bytesRecv == 0)
-    {
-		std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-		FD_CLR(fd, &_read_set);
-		close(fd);
-		return "";
-    }
-	else if (bytesRecv == -1)
+void	Server::set_socket_reuse(void) {
+	// set socket to allow multiple connections
+	int opt = true;
+	int	ret = setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&opt), sizeof(opt));
+	if (ret == -1)
 	{
-		close(fd);
-		throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
-	}	
-    else
-	{
-		buf += _buf;
-		if (!(static_cast<int>(_buf[bytesRecv -  2]) == CR && static_cast<int>(_buf[bytesRecv - 1]) == LF ))
-			buf += _read_socket(fd, bytesRecv);
+		close(_sockfd);
+		throw std::runtime_error ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">");
 	}
-	return buf;
+	std::cout << GREEN << "Set socket reuse successfully... " << RESET << std::endl;
+}
+
+void	Server::binded(void) {
+	// bind the socket to localhost port 8080
+	int	ret = bind(_listen->sockfd, (const struct sockaddr*)&_listen->addr, sizeof(_listen->addr));
+	if (ret == -1)
+	{
+		close(_listen->sockfd);
+		throw std::runtime_error ("Failed to bind to port " + std::to_string(_listen->port) + "<" + std::string(strerror(errno)) + ">");
+	}
+	std::cout << GREEN << "Socket successfully binded..." << RESET << std::endl;
+	return ;
+}
+
+void	Server::listened(void) {
+	// try to specify maximum of 128 pending connections for the socket
+    int ret = ::listen(_listen->sockfd, 128);
+	if (ret == -1)
+	{
+		close(_listen->sockfd);
+		throw std::runtime_error ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">");
+	}
+	std::cout << GREEN << "Socket successfully listened..." << RESET << std::endl << std::endl;
+	return ;
+}
+
+void	Server::add_server_lst(void) {
+	_server_lst.push_back(_listen);
+	_server_nbr += 1;
+	return ;
+}
+
+int		Server::get_server_nbr(void) const {
+	return (_server_nbr);
 }
