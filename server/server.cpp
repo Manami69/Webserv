@@ -3,6 +3,7 @@
 Server::Server(void) :
 _sockfd(0),
 _server_nbr(0) {
+	memset(&_buf, 0, sizeof(_buf));
 	return ;
 }
 
@@ -20,7 +21,7 @@ void	Server::setup_server_socket(std::string const &port) {
 	_listen->addr.sin_family = AF_INET;
 	_listen->addr.sin_addr.s_addr = inet_addr(_listen->host.c_str());
 	_listen->addr.sin_port = htons(_listen->port);
-	return;
+	return ;
 }
 
 void	Server::get_master_socket_fd(void) {
@@ -75,10 +76,102 @@ void	Server::listened(void) {
 
 void	Server::add_server_lst(void) {
 	_server_lst.push_back(_listen);
-	_server_nbr += 1;
+	_server_nbr = this->get_server_nbr();
 	return ;
 }
 
 int		Server::get_server_nbr(void) const {
-	return (_server_nbr);
+	return (_server_lst.size());
+}
+
+std::vector<Listen*>	Server::get_server_lst(void) const {
+	return (_server_lst);
+}
+
+void	Server::selected(void) {
+	while (true) {
+		FD_ZERO(&_read_set);
+    	FD_ZERO(&_read_copy);
+		
+		std::vector<Listen*>::iterator it;
+		for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
+			FD_SET((*it)->sockfd, &_read_set);
+			_max_fd = (*it)->sockfd;
+		}
+
+		// set client socket
+		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
+			int sd = *_iter;
+			if(sd > 0)  
+                FD_SET(sd , &_read_set);  
+			if(sd > _max_fd) {
+				_max_fd = sd;
+				std::cout << "max_fd : " << _max_fd << std::endl;
+			}
+		}
+		_read_copy = _read_set;
+		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
+		if ((ret == -1) && (errno != EINTR))
+		{
+			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
+		}
+		for (int fd = 0; fd <= _max_fd; ++fd) {
+            if (FD_ISSET(fd, &_read_copy))
+				this->process_socket(fd);
+        }
+	}
+}
+
+void	Server::process_socket(int fd) {
+	if (this->is_sockfd_found(fd))
+    {
+        // listener socket is readable => accept the connection and create communication socket
+        int comm = accept(fd, NULL, NULL); // add 2nd and 3rd arguments
+		if (comm == -1)
+			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
+		else
+		{
+			FD_SET(comm, &_read_set);
+			//send new connection greeting message 
+            if (send(comm, "Hello, world!\n", 13, 0) != 13)
+            {  
+                throw std::runtime_error ("Failed to send msg. <" + std::string(strerror(errno)) + ">");
+            }
+			std::cout << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
+			_client_lst.push_back(comm);
+		}
+    }
+	else {
+		ssize_t bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
+        if (bytesRecv == 0)
+        {
+			std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+			_iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
+			if (_iter != _client_lst.cend()) {
+        		int index = std::distance(_client_lst.begin(), _iter);
+				_client_lst.erase(_client_lst.begin() + index);
+    		}
+			FD_CLR(fd, &_read_set);
+			close(fd);
+        }
+		else if (bytesRecv == -1)
+		{
+			throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
+		}
+		else
+			std::cout << _buf;
+	}
+}
+
+bool	Server::is_sockfd_found(int fd) {
+	std::vector<Listen*>::iterator it;
+	for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
+		if (fd == (*it)->sockfd)
+			return (true);
+	}
+	return (false);
+}
+
+int		Server::get_client_socket_size() const {
+	return (_client_lst.size());
 }

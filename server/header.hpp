@@ -28,5 +28,6 @@
 # include <fcntl.h>
 # include <stdexcept> 
 # include <stdlib.h> //DELETE LATER
+#include <iterator> // distance
 
 #endif

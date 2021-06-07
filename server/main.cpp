@@ -12,6 +12,7 @@ void	run_server(char **av) {
 		server.add_server_lst();
 	}
 	std::cout << "Server number: " << server.get_server_nbr() << std::endl;
+	server.selected();
 }
 
 int	main(int ac, char **av) {
