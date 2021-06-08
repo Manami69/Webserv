@@ -18,8 +18,13 @@ void	Server::setup_server_socket(std::string const &port) {
 	_listen->host = "127.0.0.1"; // Need to accepter other host later
 	
 	memset(&_listen->addr, 0, sizeof(sockaddr_in));
+	in_addr_t address = inet_addr(_listen->host.c_str());
+	if (address == INADDR_NONE)
+	{
+		throw std::runtime_error ("Bad ip address. <" + std::string(strerror(errno)) + ">");
+	}
 	_listen->addr.sin_family = AF_INET;
-	_listen->addr.sin_addr.s_addr = inet_addr(_listen->host.c_str());
+	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
 	return ;
 }
@@ -99,14 +104,13 @@ void	Server::selected(void) {
 			_max_fd = (*it)->sockfd;
 		}
 
-		// set client socket
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
+			std::cout << "client socket : " << *_iter << std::endl;
 			int sd = *_iter;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
 			if(sd > _max_fd) {
 				_max_fd = sd;
-				std::cout << "max_fd : " << _max_fd << std::endl;
 			}
 		}
 		_read_copy = _read_set;
@@ -123,10 +127,12 @@ void	Server::selected(void) {
 }
 
 void	Server::process_socket(int fd) {
-	if (this->is_sockfd_found(fd))
+	int	server_order = this->is_sockfd_found(fd);
+	if (server_order > 0)
     {
         // listener socket is readable => accept the connection and create communication socket
-        int comm = accept(fd, NULL, NULL); // add 2nd and 3rd arguments
+        uint32_t addrlen = sizeof(_server_lst[server_order - 1]->addr);
+		int comm = accept(fd, (struct sockaddr *)&_server_lst[server_order - 1]->addr, (socklen_t *)&addrlen); // add 2nd and 3rd arguments
 		if (comm == -1)
 			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
 		else
@@ -163,11 +169,13 @@ void	Server::process_socket(int fd) {
 	}
 }
 
-bool	Server::is_sockfd_found(int fd) {
+int	Server::is_sockfd_found(int fd) {
+	int i = 1;
 	std::vector<Listen*>::iterator it;
 	for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
 		if (fd == (*it)->sockfd)
-			return (true);
+			return (i);
+		i++;
 	}
 	return (false);
 }

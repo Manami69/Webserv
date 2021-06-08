@@ -41,7 +41,7 @@ public:
 	std::vector<Listen*>	get_server_lst(void) const;
 	void					selected(void);
 	void 					process_socket(int fd);
-	bool					is_sockfd_found(int fd);
+	int						is_sockfd_found(int fd);
 	int						get_client_socket_size() const;
 };
 
