@@ -28,7 +28,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 
 	str.reserve(30);
 	if (!this->_status_code)
-		return "pouet";
+		return "pouet";/////////////////////
 	ss << this->_status_code;
 	ss >> str;
 	str.insert(0, "HTTP/1.1 ");
@@ -62,15 +62,16 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 
 int getResponse::_parse_status_line( void )
 {
-	const std::string method[] = { "GET","HEAD", "POST", "PUT", "DELETE","CONNECT", "OPTIONS", "TRACE" };
+	const std::string method[] = { "GET", "POST", "DELETE", "HEAD", "PUT", "CONNECT", "OPTIONS", "TRACE" };
 	std::vector<std::string> array(method, method + sizeof(method)/ sizeof(std::string));
 	std::string http = this->_request["http-version"];
 	// check method
 	if (std::find(array.begin(), array.end(), this->_request["method"]) == array.end())
 		return 400;
+	if (std::find(array.begin(), array.begin() + 3, this->_request["method"]) == array.begin() + 3)
+		return 405;
 	if (!this->_request["method"].compare("GET") && this->_request["http-version"].empty())
 		return 0; // ne renvoie que le contenu de la page donnee par localisation (404 si elle n'existe pas)
-	// check localisation (y a t'il un truc a checker ?)
 	/////////////////////////////////////////////////////////////////////////
 	if (this->_request["request-target"][0] != '/')
 		return (400);
@@ -87,7 +88,7 @@ int getResponse::_parse_status_line( void )
 		return 400;
 }
 
-
+#define PHP_CONTENT "./srcs/php_content"
 std::string getResponse::_method_get( void )
 {
 	std::string location = CURRDIR + this->_request["request-target"];
@@ -99,6 +100,21 @@ std::string getResponse::_method_get( void )
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
 		location += PAGE;
 		isindex = true;
+	}
+	else if (!_get_extension().compare("php"))
+	{
+		// if cgi is on
+		CGI cgi("127.0.0.1", "7000", ROOT, this->_request["request-target"]);
+		try {
+			cgi.cgi_exec();
+		}
+		catch (std::exception &e)
+		{
+			this->_status_code = 503;
+			response_body += "BADGATEWQY"; //a changer
+			return _get_fill_headers(response_body);
+		}
+		location = PHP_CONTENT;
 	}
 	ifs.open(location.c_str(), std::ifstream::in);
 	if (ifs.fail()) {
@@ -117,6 +133,8 @@ std::string getResponse::_method_get( void )
 	return _get_fill_headers(response_body);
 }
 
+
+// ptet revoir la gestion des headers via une map ???????????
 std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string headers;
 	std::stringstream ss;
@@ -124,6 +142,10 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	if (ext.empty() || this->_status_code == 404)
 		ext = "html";
 	// ajouter date et autre
+	if (!ext.compare("php") /* et cgi on */) {
+		response += EOF;
+		return response;
+	}
 	headers += "Content-Type: ";
 	headers += _get_MIMEtype(ext);
 	headers += "\nContent-Length: ";

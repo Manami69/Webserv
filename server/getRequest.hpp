@@ -1,10 +1,6 @@
 #ifndef GETREQUEST_H
 # define GETREQUEST_H
-# include <iostream>
-# include <string>
-# include <map>
-# include <vector>
-# include <algorithm>
+# include "header.hpp"
 # define BLK "\e[0;30m"
 # define GRN "\e[0;32m"
 # define YEL "\e[0;33m"

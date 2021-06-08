@@ -1,26 +1,14 @@
 #ifndef GETRESPONSE_H
 # define GETRESPONSE_H
-# include <iostream>
-# include <string>
-# include <map>
-# include <vector>
-# include <sstream>
-# include <fstream>
-# include <algorithm>
-# include <dirent.h>
-# include <algorithm>
-# include <iomanip>
-# include <list>
-# include <fcntl.h>           /* Definition of AT_* constants */
-# include <sys/stat.h>
-# include <ctime>
+# include "header.hpp"
 # include "getRequest.hpp"
+# include "CGI.hpp"
 
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
 #endif
 
-# define ROOT "./../www"
+# define ROOT "/Users/lolopez/Documents/Webserv/www"
 # define CRLF "\r\n"
 # define SP " "
 # define CURRDIR "./../www"
@@ -67,15 +55,7 @@ class getResponse {
 
 		getResponse &	operator=( getResponse const & rhs );
 		std::string		responsetosend(const std::map<int, std::string> err);
-		// static std::map<int, std::string>	error_code; // ptet a mettre dans une autre classe unique
-		// static std::map<int, std::string> create_error() {
-		// 	std::map<int, std::string> err;
-		// 	err[200] = "OK";
-		// 	err[400] = "Bad Request";
-		// 	err[404] = "Not Found";
-		// 	err[505] = "HTTP Version Not Supported";
-		// 	return err;
-		// }
+
 	private:
 		int	_parse_status_line( void );
 		getResponse( void );
@@ -88,6 +68,9 @@ class getResponse {
 		// GET MIMETYPE
 		std::string	_get_extension( void );
 		std::string _get_MIMEtype( const std::string& ext);
+		// USE PHP-CGI (if enabled)
+		std::string _use_php();
+
 
 		std::vector<std::string>			_keys;
 		int									_status_code;

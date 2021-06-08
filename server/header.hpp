@@ -27,6 +27,15 @@
 # include <cstdlib> // exit() and EXIT_FAILURE
 # include <fcntl.h>
 # include <stdexcept> 
-# include <stdlib.h> //DELETE LATER
+# include <stdlib.h> 
+# include <algorithm>
+# include <sstream>
+# include <fstream>
+# include <dirent.h>
+# include <iomanip>
+# include <sys/stat.h>
+# include <ctime>
+# include <sys/types.h>
+# include <sys/wait.h>
 
 #endif
