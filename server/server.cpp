@@ -105,7 +105,6 @@ void	Server::selected(void) {
 		}
 
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
-			std::cout << "client socket : " << *_iter << std::endl;
 			int sd = *_iter;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
@@ -137,13 +136,9 @@ void	Server::process_socket(int fd) {
 			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
 		else
 		{
+			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
+			fcntl(comm, F_SETFL, O_NONBLOCK);
 			FD_SET(comm, &_read_set);
-			//send new connection greeting message 
-            if (send(comm, "Hello, world!\n", 13, 0) != 13)
-            {  
-                throw std::runtime_error ("Failed to send msg. <" + std::string(strerror(errno)) + ">");
-            }
-			std::cout << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			_client_lst.push_back(comm);
 		}
     }
@@ -151,7 +146,7 @@ void	Server::process_socket(int fd) {
 		ssize_t bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
         if (bytesRecv == 0)
         {
-			std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 			_iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
 			if (_iter != _client_lst.cend()) {
         		int index = std::distance(_client_lst.begin(), _iter);
@@ -165,7 +160,10 @@ void	Server::process_socket(int fd) {
 			throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
 		}
 		else
+		{
 			std::cout << _buf;
+			memset(&_buf, 0, sizeof(_buf));
+		}
 	}
 }
 
