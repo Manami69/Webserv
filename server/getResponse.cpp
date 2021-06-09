@@ -111,7 +111,7 @@ std::string getResponse::_method_get( void )
 		catch (std::exception &e)
 		{
 			this->_status_code = 503;
-			response_body += "BADGATEWQY"; //a changer
+			response_body += "BADGATEWQY"; // a changer
 			return _get_fill_headers(response_body);
 		}
 		location = PHP_CONTENT;
@@ -130,6 +130,7 @@ std::string getResponse::_method_get( void )
 	char c;
 	while (ifs.get(c))          // loop getting single characters
     	response_body += c;
+	ifs.close();
 	return _get_fill_headers(response_body);
 }
 
@@ -143,16 +144,24 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	// ajouter date et autre
 	if (!ext.compare("php") /* et cgi on */) {
-		response += EOF;
-		return response;
+		headers += "Connection: keep-alive\r\n";
+		headers += "Content-Length: ";
+		size_t headend = response.find("\r\n\r\n") + 4;
+		ss << response.size() - headend;
+		headers += ss.str();
+		headers += "\r\n";
+		headers += response;
+		return headers;
 	}
 	headers += "Content-Type: ";
 	headers += _get_MIMEtype(ext);
 	headers += "\nContent-Length: ";
 	ss << response.size();
 	headers += ss.str();
-	headers += "\n\n";
-	std::cout << YEL << headers << END << std::endl;
+	if (response.find("\r\n\r\n") != response.npos)
+		headers += "\r\n";
+	else
+		headers += "\r\n\r\n";
 	headers += response;
 	return headers;
 }
@@ -285,16 +294,15 @@ std::string getResponse::_get_autoindex( std::string location ) {
 
 
 /*
- TO DO :
- - rangement par titre grace a des commentaires visibles
- - structure par location : boucle qui cherche la location la plus proche de l'URI demandée et qui adapte la reponse selon les options de la config
- - GET
-	** faire une boucle qui choppe le bon index avec les differents index renseignés dans la config (par defaut index.html)
- - POST
-	** faire les tests
- - DELETE
- - FORBIDDEN METHOD (explicite dans la config et implicite pour les methodes en dehors du sujet)
- - constructeur par erreur 400 ( qui prend un int uniquement )pour preparer la reponse directe en cas de premiere ligne fausse (lecture ligne par ligne via telnet)
+ TODO- rangement par titre grace a des commentaires visibles
+ TODO- structure par location : boucle qui cherche la location la plus proche de l'URI demandée et qui adapte la reponse selon les options de la config
+ 	 - GET
+ TODO	** faire une boucle qui choppe le bon index avec les differents index renseignés dans la config (par defaut index.html)
+ 	 - POST
+ TODO	** faire les tests
+ 	 - DELETE
+ TODO- FORBIDDEN METHOD (explicite dans la config)
+ TODO- constructeur par erreur 400 ( qui prend un int uniquement ) pour preparer la reponse directe en cas de premiere ligne fausse (lecture ligne par ligne via telnet)
 */
 
 /* METHODES AUTORISEES

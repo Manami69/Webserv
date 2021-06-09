@@ -151,7 +151,7 @@ char **CGI::_get_action() {
 // C type shell
 void	CGI::cgi_exec()
 {
-	int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT);
+	int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
 	pid_t pid;
 	char **env = _get_env();
 	if (!env)
