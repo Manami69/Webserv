@@ -30,7 +30,6 @@ private:
 	Server(Server const &copy);
 	Server &operator=(Server const &rhs);
 	std::map<int, std::string>	_err;
-	//std::string 				_read_socket(int fd, ssize_t& bytesRecv);
 
 public:
 	Server(void);
@@ -49,12 +48,6 @@ public:
 	int						get_client_socket_size() const;
 	std::map<int, std::string> 	error_code(void);
 	void					send(int connection, const std::string s);
-
-	enum RequestTerminator
-	{
-		CR = 13,
-		LF = 10,	
-	};
 };
 
 #endif

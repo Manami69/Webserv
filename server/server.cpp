@@ -105,6 +105,7 @@ void	Server::selected(void) {
 
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
 			int sd = *_iter;
+			std::cout << "client sd : " << *_iter << std::endl;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
 			if(sd > _max_fd) {
@@ -157,10 +158,12 @@ void	Server::process_socket(int fd) {
 		if (size_recv == 0) {
 			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 			_iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
-			if (_iter != _client_lst.cend()) {
+			if (_iter != _client_lst.end()) {
         		int index = std::distance(_client_lst.begin(), _iter);
 				_client_lst.erase(_client_lst.begin() + index);
 			}
+			FD_CLR(fd, &_read_set);
+			close(fd);
 		}
 	}
 }
@@ -193,33 +196,3 @@ void	Server::send(int connection, const std::string s)
 	::send(connection, s.c_str(), s.size(), 0);
 	return ;
 }
-
-// std::string Server::_read_socket(int fd, ssize_t& bytesRecv)
-// {
-// 	std::string buf;
-
-// 	if (bytesRecv == 1 && static_cast<int>(_buf[0]) == LF)
-// 		return "";
-// 	for (size_t i = 0; i < sizeof(_buf); i++)
-// 		_buf[i] = 0;
-// 	bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
-//     if (bytesRecv == 0)
-//     {
-// 		std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-// 		FD_CLR(fd, &_read_set);
-// 		close(fd);
-// 		return "";
-//     }
-// 	else if (bytesRecv == -1)
-// 	{
-// 		close(fd);
-// 		throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
-// 	}	
-//     else
-// 	{
-// 		buf += _buf;
-// 		if (!(static_cast<int>(_buf[bytesRecv -  2]) == CR && static_cast<int>(_buf[bytesRecv - 1]) == LF ))
-// 			buf += _read_socket(fd, bytesRecv);
-// 	}
-// 	return buf;
-// }
