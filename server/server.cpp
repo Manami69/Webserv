@@ -162,6 +162,11 @@ void	Server::process_socket(int fd) {
 		else
 		{
 			std::cout << _buf;
+			getRequest a(_buf);
+			getResponse response(a);
+			this->error_code();
+			std::cout << a << response.responsetosend(_err);
+			send(fd, response.responsetosend(_err));
 			memset(&_buf, 0, sizeof(_buf));
 		}
 	}
@@ -180,4 +185,48 @@ int	Server::is_sockfd_found(int fd) {
 
 int		Server::get_client_socket_size() const {
 	return (_client_lst.size());
+}
+
+std::map<int, std::string> Server::error_code(void) {
+	_err[200] = "OK";
+	_err[400] = "Bad Request";
+	_err[404] = "Not Found";
+	_err[505] = "HTTP Version Not Supported";
+	return _err;
+}
+
+void	Server::send(int connection, const std::string s)
+{
+	::send(connection, s.c_str(), s.size(), 0);
+	return ;
+}
+
+std::string Server::_read_socket(int fd, ssize_t& bytesRecv)
+{
+	std::string buf;
+
+	if (bytesRecv == 1 && static_cast<int>(_buf[0]) == LF)
+		return "";
+	for (size_t i = 0; i < sizeof(_buf); i++)
+		_buf[i] = 0;
+	bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
+    if (bytesRecv == 0)
+    {
+		std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+		FD_CLR(fd, &_read_set);
+		close(fd);
+		return "";
+    }
+	else if (bytesRecv == -1)
+	{
+		close(fd);
+		throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
+	}	
+    else
+	{
+		buf += _buf;
+		if (!(static_cast<int>(_buf[bytesRecv -  2]) == CR && static_cast<int>(_buf[bytesRecv - 1]) == LF ))
+			buf += _read_socket(fd, bytesRecv);
+	}
+	return buf;
 }

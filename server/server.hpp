@@ -2,6 +2,8 @@
 # define SERVER_HPP
 
 # include "header.hpp"
+# include "getRequest.hpp"
+# include "getResponse.hpp"
 
 struct 					Listen
 {
@@ -27,6 +29,8 @@ private:
 	char 						_buf[256];
 	Server(Server const &copy);
 	Server &operator=(Server const &rhs);
+	std::map<int, std::string>	_err;
+	std::string 				_read_socket(int fd, ssize_t& bytesRecv);
 
 public:
 	Server(void);
@@ -43,6 +47,14 @@ public:
 	void 					process_socket(int fd);
 	int						is_sockfd_found(int fd);
 	int						get_client_socket_size() const;
+	std::map<int, std::string> 	error_code(void);
+	void					send(int connection, const std::string s);
+
+	enum RequestTerminator
+	{
+		CR = 13,
+		LF = 10,	
+	};
 };
 
 #endif
