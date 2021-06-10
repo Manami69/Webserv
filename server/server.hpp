@@ -5,6 +5,7 @@
 # include "getRequest.hpp"
 # include "getResponse.hpp"
 
+# define BUFSIZE 2048
 struct 					Listen
 {
 	int					sockfd;
@@ -26,11 +27,10 @@ private:
 	int							_max_fd;
 	std::vector<int>			_client_lst;
 	std::vector<int>::iterator	_iter;
-	char 						_buf[256];
 	Server(Server const &copy);
 	Server &operator=(Server const &rhs);
 	std::map<int, std::string>	_err;
-	std::string 				_read_socket(int fd, ssize_t& bytesRecv);
+	//std::string 				_read_socket(int fd, ssize_t& bytesRecv);
 
 public:
 	Server(void);

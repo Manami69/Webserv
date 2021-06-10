@@ -3,7 +3,6 @@
 Server::Server(void) :
 _sockfd(0),
 _server_nbr(0) {
-	memset(&_buf, 0, sizeof(_buf));
 	return ;
 }
 
@@ -127,15 +126,13 @@ void	Server::selected(void) {
 
 void	Server::process_socket(int fd) {
 	int	server_order = this->is_sockfd_found(fd);
-	if (server_order > 0)
-    {
+	if (server_order > 0) {
         // listener socket is readable => accept the connection and create communication socket
         uint32_t addrlen = sizeof(_server_lst[server_order - 1]->addr);
 		int comm = accept(fd, (struct sockaddr *)&_server_lst[server_order - 1]->addr, (socklen_t *)&addrlen); // add 2nd and 3rd arguments
 		if (comm == -1)
 			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
-		else
-		{
+		else {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			fcntl(comm, F_SETFL, O_NONBLOCK);
 			FD_SET(comm, &_read_set);
@@ -143,31 +140,27 @@ void	Server::process_socket(int fd) {
 		}
     }
 	else {
-		ssize_t bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
-        if (bytesRecv == 0)
-        {
+		ssize_t size_recv;
+		ssize_t total = 0;
+		char	buf[BUFSIZE + 1];
+		memset(&buf, 0, sizeof(buf));
+		while ((size_recv = recv(fd, buf, sizeof(buf), 0)) > 0) {
+			std::cout << YELLOW << buf;
+			total += size_recv;
+			getRequest a(buf);
+			getResponse response(a);
+			this->error_code();
+			std::cout << a << response.responsetosend(_err);
+			send(fd, response.responsetosend(_err));
+			memset(&buf, 0, sizeof(buf));
+		}
+		if (size_recv == 0) {
 			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 			_iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
 			if (_iter != _client_lst.cend()) {
         		int index = std::distance(_client_lst.begin(), _iter);
 				_client_lst.erase(_client_lst.begin() + index);
-    		}
-			FD_CLR(fd, &_read_set);
-			close(fd);
-        }
-		else if (bytesRecv == -1)
-		{
-			throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
-		}
-		else
-		{
-			std::cout << _buf;
-			getRequest a(_buf);
-			getResponse response(a);
-			this->error_code();
-			std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
-			memset(&_buf, 0, sizeof(_buf));
+			}
 		}
 	}
 }
@@ -201,32 +194,32 @@ void	Server::send(int connection, const std::string s)
 	return ;
 }
 
-std::string Server::_read_socket(int fd, ssize_t& bytesRecv)
-{
-	std::string buf;
+// std::string Server::_read_socket(int fd, ssize_t& bytesRecv)
+// {
+// 	std::string buf;
 
-	if (bytesRecv == 1 && static_cast<int>(_buf[0]) == LF)
-		return "";
-	for (size_t i = 0; i < sizeof(_buf); i++)
-		_buf[i] = 0;
-	bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
-    if (bytesRecv == 0)
-    {
-		std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-		FD_CLR(fd, &_read_set);
-		close(fd);
-		return "";
-    }
-	else if (bytesRecv == -1)
-	{
-		close(fd);
-		throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
-	}	
-    else
-	{
-		buf += _buf;
-		if (!(static_cast<int>(_buf[bytesRecv -  2]) == CR && static_cast<int>(_buf[bytesRecv - 1]) == LF ))
-			buf += _read_socket(fd, bytesRecv);
-	}
-	return buf;
-}
+// 	if (bytesRecv == 1 && static_cast<int>(_buf[0]) == LF)
+// 		return "";
+// 	for (size_t i = 0; i < sizeof(_buf); i++)
+// 		_buf[i] = 0;
+// 	bytesRecv = recv(fd, _buf, sizeof(_buf), 0);
+//     if (bytesRecv == 0)
+//     {
+// 		std::cout << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+// 		FD_CLR(fd, &_read_set);
+// 		close(fd);
+// 		return "";
+//     }
+// 	else if (bytesRecv == -1)
+// 	{
+// 		close(fd);
+// 		throw std::runtime_error ("Failed to receive connection. <" + std::string(strerror(errno)) + ">");
+// 	}	
+//     else
+// 	{
+// 		buf += _buf;
+// 		if (!(static_cast<int>(_buf[bytesRecv -  2]) == CR && static_cast<int>(_buf[bytesRecv - 1]) == LF ))
+// 			buf += _read_socket(fd, bytesRecv);
+// 	}
+// 	return buf;
+// }
