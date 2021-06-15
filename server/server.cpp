@@ -105,7 +105,7 @@ void	Server::selected(void) {
 
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
 			int sd = *_iter;
-			std::cout << "client sd : " << *_iter << std::endl;
+			std::cout << std::endl << "client sd : " << *_iter << std::endl;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
 			if(sd > _max_fd) {
