@@ -41,7 +41,7 @@ void	Server::binded(void) {
 
 void	Server::listened(void) {
 	// try to specify maximum of 128 pending connections for the socket
-    int ret = ::listen(_serv_data->sockfd, 128);
+    int ret = ::listen(_serv_data->sockfd, 4096);
 	if (ret == -1)
 	{
 		close(_serv_data->sockfd);
@@ -54,8 +54,12 @@ void	Server::listened(void) {
 
 void	Server::selected(void) {
 	while (true) {
+
+			std::cout << "\e[91;1mtest 4\e[0m" << std::endl;
         _read_copy = _read_set;
         int ret = select(FD_SETSIZE, &_read_copy, 0, 0, 0);
+
+			std::cout << "\e[91;1mtest 5\e[0m" << std::endl;
 		if ((ret == -1) && (errno != EINTR))
     	{
 			close(_serv_data->sockfd);
@@ -111,15 +115,21 @@ void	Server::process_socket(int fd) {
 			getRequest a(buffer);
 			getResponse response(a);
 			this->error_code();
-			//std::cout << a << response.responsetosend(_err);
+			std::cout << a << response.responsetosend(_err);
+
+			std::cout << "\e[91;1mtest1\e[0m" << std::endl;
 			send(fd, response.responsetosend(_err));
+
+			std::cout << "\e[91;1mtest2\e[0m" << std::endl;
 			memset(&_buf, 0, sizeof(_buf));
+			std::cout << "\e[91;1mtest 3\e[0m" << std::endl;
 		}
 	}
 }
 
 std::map<int, std::string> Server::error_code(void) {
 	_err[200] = "OK";
+	_err[204] = "No Content";
 	_err[400] = "Bad Request";
 	_err[404] = "Not Found";
 	_err[505] = "HTTP Version Not Supported";

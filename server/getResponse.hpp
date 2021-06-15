@@ -50,28 +50,45 @@ struct t_index_file
 class getResponse {
 	public:
 		~getResponse( void );
+		//getResponse(); TODO constructeur qui prend uniquement la status line et renvoie directement 400 si besoin
 		getResponse( getRequest const &request);
 		getResponse( getResponse const & src );
 
 		getResponse &	operator=( getResponse const & rhs );
 		std::string		responsetosend(const std::map<int, std::string> err);
-
 	private:
+
+		// 🅤🅣🅘🅛🅢
 		int	_parse_status_line( void );
 		getResponse( void );
-		// GET METHOD
-		std::string	_get_fill_headers( std::string response );
-		std::string _method_get( void );
-		// AUTOINDEX PAGE GENERATOR
-		std::string _get_autoindex( std::string location );
-		std::string _fill_index_body(std::list<t_index_file> files);
-		// GET MIMETYPE
+		std::string		_error_response(const std::map<int, std::string> err);
+		// // GET MIMETYPE
 		std::string	_get_extension( void );
 		std::string _get_MIMEtype( const std::string& ext);
-		// USE PHP-CGI (if enabled)
+		// // GET HEADERS LINE
+		std::string	_get_date_line( void );
+		//TODO std::string _get_serv_line( void );
+		// // USE PHP-CGI (if enabled)
 		std::string _use_php();
 
 
+		// 🅜🅔🅣🅗🅞🅓🅢
+		// // GET METHOD
+		std::string	_get_fill_headers( std::string response );
+		std::string _method_get( void );
+		// // // AUTOINDEX PAGE GENERATOR
+		std::string _get_autoindex( std::string location );
+		std::string _fill_index_body(std::list<t_index_file> files);
+
+		// // POST METHOD ;TODO
+		std::string	_method_post( void );
+
+		// // DELETE METHOD
+		std::string _delete_fill_header( void );
+		int			_delete_file( void );
+		std::string	_method_delete( void );
+
+		// 🅥🅐🅡🅘🅐🅑🅛🅔🅢
 		std::vector<std::string>			_keys;
 		int									_status_code;
 		getRequest							_request;
