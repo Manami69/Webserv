@@ -31,19 +31,14 @@ class getRequest {
 		std::string		getKeyValue( std::string key ) const;
 		std::map<std::string, std::string>	getMap( void ) const;
 		static const std::string headers[];
-		class BadRequestException : public std::exception {
-			public:
-				virtual const char* what() const throw() {
-					return ("Error: Bad Request");
-				}
-		};
 	private:
 		std::map<std::string, std::string>	_request_tokens;
 		std::vector<std::string>			_array;
 		void	_construct_array( void );
 		void	_construct_empty_map( void );
+		void	_fill_body(std::string buffer);
 		bool	_is_used_key(std::string key) const;
-		bool	_check_request(std::string request);
+		std::string	_new_file();
 };
 
 std::ostream & operator<<( std::ostream & o, getRequest const & rhs );

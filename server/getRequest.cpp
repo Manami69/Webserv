@@ -7,7 +7,7 @@
 
 const std::string getRequest::headers[] = {"method", "request-target", "http-version", \
 	"Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", \
-	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate"};
+	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body"};
 
 
 getRequest::getRequest( void ) {
@@ -46,6 +46,7 @@ std::string&	getRequest::operator[] ( const std::string& key ) {
 // const std::string&	getRequest::operator[] ( const std::string& key ) const {
 // 	return this->getKeyValue(key);
 // }
+// TODO verifier si les headers sont case sensitive et agir en fonction
 
 void			getRequest::fillRequest( std::string request ) {
 	//voir et lister les conditions d'une requete valide avant meme de la tokeniser (au moins une premiere ligne)
@@ -91,6 +92,8 @@ void			getRequest::fillRequest( std::string request ) {
 		this->setKeyValue(key, token);
 		start = space + 1;
 	}
+	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
+		_fill_body(request);
 }
 
 void			getRequest::setKeyValue( std::string key, std::string val ) {
@@ -113,9 +116,51 @@ void	getRequest::_construct_array( void ) {
 	std::vector<std::string> array(this->headers, this->headers + sizeof(this->headers)/ sizeof(std::string));
 	this->_array = array;
 }
+
 void	getRequest::_construct_empty_map( void ) {
 	for (size_t i = 0; i < sizeof(headers)/sizeof(std::string); i++)
 		this->_request_tokens[this->headers[i]] = "";
+}
+
+void	getRequest::_fill_body(std::string buffer) {
+	size_t start;
+	std::string filename;
+	std::fstream fs;
+	if ((start = buffer.find("\r\n\r\n")) != std::string::npos)
+	{
+		start += 4;
+		try {
+			this->_request_tokens["body"] = buffer.substr(start);
+		}
+		catch (const std::out_of_range& oor)
+		{
+			this->_request_tokens["body"] = "";
+			return;
+		}
+		filename = _new_file();
+		fs.open(filename, std::fstream::out);
+		fs << this->_request_tokens["body"];
+		fs.close();
+		this->_request_tokens["body"] = filename;
+	}
+}
+
+std::string getRequest::_new_file()
+{
+	std::fstream fs;
+	int		num = 0;
+	std::stringstream ss;
+	bool t = true;
+	while (t)
+	{
+		ss.str("");
+		ss << num;
+		fs.open("./srcs/body" + ss.str(), std::fstream::in);
+		t = fs.is_open();
+		fs.close();
+		num++;
+	}
+	return "./srcs/body" + ss.str();
 }
 
 bool	getRequest::_is_used_key(std::string key) const {

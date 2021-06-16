@@ -250,8 +250,9 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string ext = _get_extension();
 	if (ext.empty() || (this->_status_code < 200 && this->_status_code > 299))
 		ext = "html";
+	// TODO ajouter serv name
+	headers += _get_date_line();
 	if (!ext.compare("php") /* et cgi on */) {
-		headers += "Connection: keep-alive\r\n";
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n") + 4;
 		ss << response.size() - headend;
@@ -260,9 +261,6 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		headers += response;
 		return headers;
 	}
-
-	// TODO ajouter serv name
-	headers += _get_date_line();
 	headers += "Content-Type: ";
 	headers += _get_MIMEtype(ext);
 	headers += "\nContent-Length: ";
@@ -357,7 +355,7 @@ std::string getResponse::_get_autoindex( std::string location ) {
   		closedir (dir);
 	}
 	else {
-		std::cout << "Errrr" << std::endl; ////////////////////// return error 404 si page non existante ???????????????
+		std::cout << "Errrr" << std::endl; //////////////////////TODO return error 404 si page non existante ???????????????
 	}
 	return _fill_index_body(files);
 }
@@ -380,6 +378,7 @@ std::string	getResponse::_method_post( void ) {
 		this->_status_code = 405;
 		return "";
 	}
+	return ""; //
 }
 
 
@@ -440,9 +439,6 @@ std::string getResponse::_method_delete( void )
 		return _delete_fill_header();
 }
 
-
-
-}
 
 /*
  TODO- structure par location : boucle qui cherche la location la plus proche de l'URI demandée et qui adapte la reponse selon les options de la config
