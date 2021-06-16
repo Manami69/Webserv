@@ -1,5 +1,28 @@
 #include "../includes/config.hpp"
 
+void	display_help(Config conf) // temporary
+{
+	for (int i = 1; i <= conf.get_nb_server(); i++)
+	{
+		std::cout << MAGENTA << "SERVER : " << i << std::endl;
+		std::cout << BLUE << "host : " << RESET;
+		std::cout << conf.get_config(i)->host << std::endl;
+		std::cout << BLUE << "port : " << RESET;
+		std::cout << conf.get_config(i)->port << std::endl;
+		std::cout << BLUE << "server_name : " << RESET;
+		std::cout << conf.get_config(i)->server_name << std::endl;
+		std::cout << BLUE << "root : " << RESET;
+		std::cout << conf.get_config(i)->root << std::endl;
+		std::cout << BLUE << "client_max_body_size : " << RESET;
+		std::cout << conf.get_config(i)->client_max_body_size << std::endl;
+		std::cout << BLUE << "index : " << RESET;
+		std::list<std::string>::iterator	it = conf.get_config(i)->index.begin();
+		while (it != conf.get_config(i)->index.end())
+			std::cout << *it++ << " ";
+		std::cout << std::endl;
+	}
+}
+
 void	parsing(int ac, char **av)
 {
 	std::string	file;
@@ -14,13 +37,7 @@ void	parsing(int ac, char **av)
 	conf.check_brackets();
 	conf.parse_config();
 	std::cout << GREEN << "Parsing Good" << RESET << std::endl;
-/////////////////////////////////////////////////////////////////////////////////
-	// std::cout << conf.get_nb_server() << std::endl;
-	// std::cout << conf.get_config(1)->host << std::endl;
-	// std::cout << conf.get_config(2)->host << std::endl;
-	// std::cout << conf.get_config(3)->host << std::endl;
-	// std::cout << conf.get_config(4)->host << std::endl;
-/////////////////////////////////////////////////////////////////////////////////
+	display_help(conf); // temporary
 }
 
 int		main(int ac, char **av)
@@ -35,7 +52,7 @@ int		main(int ac, char **av)
 		parsing(ac, av);
 	}
 	catch(const std::exception& e) {
-		std::cerr << RED << e.what() << std::endl;
+		std::cerr << RED << e.what() << RESET << std::endl;
 	}
 	return (0);
 }

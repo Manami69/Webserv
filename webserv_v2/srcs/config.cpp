@@ -108,28 +108,38 @@ void	Config::parse_config(void)
 			this->init_serv_config();
 			while (i < this->_tokens.size() && this->_tokens[i] != "}")
 			{
-				if (check_line(this->_tokens[i], "listen"))
-					this->_serv_config.back().host = this->_tokens[++i];
-				else if (check_line(this->_tokens[i], "server_name"))
-					this->_serv_config.back().server_name = this->_tokens[++i];
-				else if (check_line(this->_tokens[i], "root"))
-					this->_serv_config.back().root = this->_tokens[++i];
-				else if (check_line(this->_tokens[i], "client_max_body_size"))
-					this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[++i].c_str());
-				else if (check_line(this->_tokens[i], "error_page"))
-					this->_serv_config.back().error_page = this->_tokens[++i];
-				else if (check_line(this->_tokens[i], "location"))
+				if (check_line(this->_tokens[i], "listen") && check_semicolon(++i))
+				{
+					int		find = _tokens[i].find(":");
+					this->_serv_config.back().host = this->_tokens[i].substr(0, find);
+					this->_serv_config.back().port = this->_tokens[i].substr(find + 1, _tokens[i].size() - (find + 2));
+				}
+				else if (check_line(this->_tokens[i], "server_name") && check_semicolon(++i))
+					this->_serv_config.back().server_name = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+				else if (check_line(this->_tokens[i], "root") && check_semicolon(++i))
+					this->_serv_config.back().root = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+				else if (check_line(this->_tokens[i], "client_max_body_size") && check_semicolon(++i))
+					this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[i].substr(0, this->_tokens[i].size() - 1).c_str());
+				else if (check_line(this->_tokens[i], "index") && check_semicolon(++i))
+				{
+					while (this->_tokens[i].find(";") > this->_tokens[i].size())
+						this->_serv_config.back().index.push_back(_tokens[i++]);
+					this->_serv_config.back().index.push_back(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
+				}
+				// else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
+				// 	this->_serv_config.back().error_page = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+				else if (check_line(this->_tokens[i], "location") && check_semicolon(++i))
 					while (i < this->_tokens.size() && this->_tokens[i] != "}")
 						i++;
 				i++;
 			}
 		}
 	}
-	std::cout << BLUE << this->_serv_config.back().host << RESET << std::endl;
-	std::cout << BLUE << this->_serv_config.back().port << RESET << std::endl;
-	std::cout << BLUE << this->_serv_config.back().server_name << RESET << std::endl;
-	std::cout << BLUE << this->_serv_config.back().root << RESET << std::endl;
-	std::cout << BLUE << this->_serv_config.back().error_page << RESET << std::endl;
+	// std::cout << BLUE << this->_serv_config.back().host << RESET << std::endl;
+	// std::cout << BLUE << this->_serv_config.back().port << RESET << std::endl;
+	// std::cout << BLUE << this->_serv_config.back().server_name << RESET << std::endl;
+	// std::cout << BLUE << this->_serv_config.back().root << RESET << std::endl;
+	// std::cout << BLUE << this->_serv_config.back().error_page << RESET << std::endl;
 }
 
 bool	Config::check_line(std::string const &line, std::string const &comp)
@@ -142,16 +152,34 @@ bool	Config::check_line(std::string const &line, std::string const &comp)
 	return false;
 }
 
+bool	Config::check_semicolon(unsigned long i)
+{
+	while (this->_tokens[i].find(";") > this->_tokens[i].size())
+	{
+		if (check_line(this->_tokens[i], "listen")
+			|| check_line(this->_tokens[i], "server_name")
+			|| check_line(this->_tokens[i], "root")
+			|| check_line(this->_tokens[i], "client_max_body_size")
+			|| check_line(this->_tokens[i], "error_page")
+			|| check_line(this->_tokens[i], "location")
+			|| check_line(this->_tokens[i], "error_page"))
+			throw ( WrongConfig() );
+		i++;
+	}
+	return true;
+}
+
 int		Config::get_nb_server( void ) const {
 	return (this->_nb_server);
 }
 
-// std::list<Serv_config>::iterator	Config::get_config( unsigned int idx ) const
-// {
-// 	if (idx > this->_nb_server) // add error idx ?
-// 		idx = this->_nb_server;
-// 	std::list<Serv_config>::iterator it = this->_serv_config.begin();
-// 	while (--idx > 0)
-// 		*it++;
-// 	return (it);
-// };
+std::list<Serv_config>::iterator	Config::get_config( unsigned int idx )
+{
+	//	if idx too high, security which reviews the last config
+	if (idx > this->_nb_server)
+		idx = this->_nb_server;
+	std::list<Serv_config>::iterator it = this->_serv_config.begin();
+	while (--idx > 0)
+		*it++;
+	return (it);
+};

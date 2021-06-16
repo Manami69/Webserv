@@ -20,7 +20,7 @@ class Config
 private:
 	std::string					_filename;
 	std::vector<std::string>	_tokens;
-	int							_nb_server;
+	unsigned	int				_nb_server;
 	std::list<Serv_config>		_serv_config;
 	Config( void );
 	// Config(Config const &copy);
@@ -43,11 +43,12 @@ public:
 	void						init_serv_config(void);
 	void						parse_config(void);
 	bool						check_line(std::string const &line, std::string const &comp);
+	bool						check_semicolon(unsigned long i);
 	/////////		GETTERS		/////////
 	std::string							get_filename( void ) const;
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_nb_server(void) const;
-	//std::list<Serv_config>::iterator	get_config( unsigned int idx ) const;
+	std::list<Serv_config>::iterator	get_config( unsigned int idx );
 };
 
 #endif
