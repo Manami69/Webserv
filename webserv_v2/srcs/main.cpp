@@ -15,11 +15,11 @@ void	parsing(int ac, char **av)
 	conf.parse_config();
 	std::cout << GREEN << "Parsing Good" << RESET << std::endl;
 /////////////////////////////////////////////////////////////////////////////////
-	std::cout << conf.get_nb_server() << std::endl;
-	std::cout << conf.get_config(1)->host << std::endl;
-	std::cout << conf.get_config(2)->host << std::endl;
-	std::cout << conf.get_config(3)->host << std::endl;
-	std::cout << conf.get_config(4)->host << std::endl;
+	// std::cout << conf.get_nb_server() << std::endl;
+	// std::cout << conf.get_config(1)->host << std::endl;
+	// std::cout << conf.get_config(2)->host << std::endl;
+	// std::cout << conf.get_config(3)->host << std::endl;
+	// std::cout << conf.get_config(4)->host << std::endl;
 /////////////////////////////////////////////////////////////////////////////////
 }
 

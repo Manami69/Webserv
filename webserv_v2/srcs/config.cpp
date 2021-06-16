@@ -62,6 +62,7 @@ void	Config::tokenize( std::string line ) {
 		if ( _tokens[i].empty() )
 			_tokens.erase( _tokens.begin() + i );
 	}
+	// find ; and insert it to be an element
 }
 
 std::vector<std::string>	Config::get_tokens( void ) const {
@@ -91,8 +92,8 @@ void	Config::init_serv_config( void )
 	serv_config.port = "80";
 	serv_config.server_name = "Default";
 	serv_config.root = "";
-	serv_config.default_error_page = "";
-	serv_config.body_size_limit = 1;
+	serv_config.error_page = "";
+	serv_config.client_max_body_size = 1;
 	_serv_config.push_back(serv_config);
 	return ;
 }
@@ -113,10 +114,10 @@ void	Config::parse_config(void)
 					this->_serv_config.back().server_name = this->_tokens[++i];
 				else if (check_line(this->_tokens[i], "root"))
 					this->_serv_config.back().root = this->_tokens[++i];
-				else if (check_line(this->_tokens[i], "body_size_limit"))
-					this->_serv_config.back().body_size_limit = std::atoi(this->_tokens[++i].c_str());
-				else if (check_line(this->_tokens[i], "default_error_page"))
-					this->_serv_config.back().default_error_page = this->_tokens[++i];
+				else if (check_line(this->_tokens[i], "client_max_body_size"))
+					this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[++i].c_str());
+				else if (check_line(this->_tokens[i], "error_page"))
+					this->_serv_config.back().error_page = this->_tokens[++i];
 				else if (check_line(this->_tokens[i], "location"))
 					while (i < this->_tokens.size() && this->_tokens[i] != "}")
 						i++;
@@ -128,8 +129,7 @@ void	Config::parse_config(void)
 	std::cout << BLUE << this->_serv_config.back().port << RESET << std::endl;
 	std::cout << BLUE << this->_serv_config.back().server_name << RESET << std::endl;
 	std::cout << BLUE << this->_serv_config.back().root << RESET << std::endl;
-	std::cout << BLUE << this->_serv_config.back().default_error_page << RESET << std::endl;
-	std::cout << BLUE << this->_serv_config.back().body_size_limit << RESET << std::endl;
+	std::cout << BLUE << this->_serv_config.back().error_page << RESET << std::endl;
 }
 
 bool	Config::check_line(std::string const &line, std::string const &comp)
@@ -142,17 +142,16 @@ bool	Config::check_line(std::string const &line, std::string const &comp)
 	return false;
 }
 
-int		Config::get_nb_server(void)
-{
+int		Config::get_nb_server( void ) const {
 	return (this->_nb_server);
 }
 
-std::list<Serv_config>::iterator	Config::get_config(int i)
-{
-	if (i > this->_nb_server)
-		i = this->_nb_server;
-	std::list<Serv_config>::iterator it = this->_serv_config.begin();
-	while (--i > 0)
-		*it++;
-	return (it);
-};
+// std::list<Serv_config>::iterator	Config::get_config( unsigned int idx ) const
+// {
+// 	if (idx > this->_nb_server) // add error idx ?
+// 		idx = this->_nb_server;
+// 	std::list<Serv_config>::iterator it = this->_serv_config.begin();
+// 	while (--idx > 0)
+// 		*it++;
+// 	return (it);
+// };

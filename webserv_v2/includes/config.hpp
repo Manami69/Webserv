@@ -9,8 +9,8 @@ struct						Serv_config
 	std::string				port;
 	std::string				server_name;
 	std::string				root;
-	std::string				default_error_page;
-	size_t					body_size_limit;
+	std::string				error_page; // serveral error pages possible
+	size_t					client_max_body_size;
 	std::list<std::string>	index;
 	// std::list<t_location>	locations;
 };
@@ -44,10 +44,10 @@ public:
 	void						parse_config(void);
 	bool						check_line(std::string const &line, std::string const &comp);
 	/////////		GETTERS		/////////
-	std::string					get_filename( void ) const;
-	std::vector<std::string>	get_tokens( void ) const;
-	int							get_nb_server(void);
-	std::list<Serv_config>::iterator	get_config(int i);
+	std::string							get_filename( void ) const;
+	std::vector<std::string>			get_tokens( void ) const;
+	int									get_nb_server(void) const;
+	//std::list<Serv_config>::iterator	get_config( unsigned int idx ) const;
 };
 
 #endif
