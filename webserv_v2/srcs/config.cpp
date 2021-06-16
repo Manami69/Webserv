@@ -141,3 +141,18 @@ bool	Config::check_line(std::string const &line, std::string const &comp)
 		return true;
 	return false;
 }
+
+int		Config::get_nb_server(void)
+{
+	return (this->_nb_server);
+}
+
+std::list<Serv_config>::iterator	Config::get_config(int i)
+{
+	if (i > this->_nb_server)
+		i = this->_nb_server;
+	std::list<Serv_config>::iterator it = this->_serv_config.begin();
+	while (--i > 0)
+		*it++;
+	return (it);
+};

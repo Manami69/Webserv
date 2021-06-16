@@ -37,14 +37,17 @@ public:
 	};
 	Config( std::string filename );
 	~Config( void );
-	std::string					get_filename( void ) const;
 	void						scan_file( void );
 	void						tokenize( std::string line );
-	std::vector<std::string>	get_tokens( void ) const;
 	void						check_brackets( void );
 	void						init_serv_config(void);
 	void						parse_config(void);
 	bool						check_line(std::string const &line, std::string const &comp);
+	/////////		GETTERS		/////////
+	std::string					get_filename( void ) const;
+	std::vector<std::string>	get_tokens( void ) const;
+	int							get_nb_server(void);
+	std::list<Serv_config>::iterator	get_config(int i);
 };
 
 #endif
