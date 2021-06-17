@@ -6,7 +6,7 @@
 **/
 
 const std::string getRequest::headers[] = {"method", "request-target", "http-version", \
-	"Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", \
+	"Accept", "Accept-Encoding", "Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", \
 	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body"};
 
 
@@ -175,6 +175,6 @@ std::ostream & operator<<( std::ostream & o, getRequest const & rhs ) {
 		if (!rhs.getKeyValue(rhs.headers[i]).empty())
 			o << rhs.headers[i] << ": " << rhs.getKeyValue(rhs.headers[i]) << std::endl;
 	}
-	o << END;
+	o << END << std::endl;;
 	return o;
 }

@@ -9,9 +9,10 @@ const std::string CGI::arr[] = {"HTTP_CACHE_CONTROL", "HTTP_UPGRADE_INSECURE_REQ
     "DOCUMENT_URI", "REQUEST_URI", "SCRIPT_NAME", "CONTENT_LENGTH", "CONTENT_TYPE", "REQUEST_METHOD", "QUERY_STRING",\
     "SCRIPT_FILENAME", "PATH_TRANSLATED", "PATH_INFO", "FCGI_ROLE", "PHP_SELF"};
 
-CGI::CGI( std::string host, std::string port, std::string root, std::string location ) {
+CGI::CGI( getRequest req, std::string port, std::string root) : _req(req) {
+
     _init_map();
-    _fill_values(host, port, root, location);
+    _fill_values( port, root);
 }
 
 CGI::~CGI() {}
@@ -23,7 +24,7 @@ void CGI::_init_map() {
 
 void CGI::_fill_map_key( std::string key , std::string value) {
     std::vector<std::string> vect(arr, arr + sizeof(arr) / sizeof(std::string));
-
+	std::cout << value << std::endl;
     if (std::find(vect.begin(), vect.end(), key) != vect.end())
         this->_SERVER[key] = value;
 }
@@ -71,57 +72,83 @@ void CGI::_fill_map_key( std::string key , std::string value) {
 # endif
 
 
-void    CGI::_fill_values(std::string host, std::string port, std::string root, std::string location) {
+void    CGI::_fill_values( std::string port, std::string root) {
     ////// A REFAIRE AVEC LA CONF
-
    _fill_map_key("HTTP_CACHE_CONTROL", HTTP_CACHE_CONTROL);
    _fill_map_key("HTTP_UPGRADE_INSECURE_REQUESTS", HTTP_UPGRADE_INSECURE_REQUESTS);
    _fill_map_key("HTTP_CONNECTION", HTTP_CONNECTION);
-   _fill_map_key("HTTP_ORIGIN", "http://" + host + ":" + port);
-   _fill_map_key("HTTP_CONTENT_LENGTH", HTTP_CONTENT_LENGTH);
-   _fill_map_key("HTTP_CONTENT_TYPE" , HTTP_CONTENT_TYPE);
-   _fill_map_key("HTTP_REFERER", "http://" + host + ":" + port + location);
-   _fill_map_key("HTTP_ACCEPT_ENCODING", HTTP_ACCEPT_ENCODING);
-   _fill_map_key("HTTP_ACCEPT_LANGUAGE", HTTP_ACCEPT_LANGUAGE);
-   _fill_map_key("HTTP_ACCEPT", HTTP_ACCEPT);
-   _fill_map_key("HTTP_USER_AGENT", HTTP_USER_AGENT);
-   _fill_map_key("HTTP_HOST", host); // a changer pour le resultat du requestHeader "host"
+   _fill_map_key("HTTP_ORIGIN", "http://" + _req["Host"]);
+   _fill_map_key("HTTP_CONTENT_LENGTH", _req["Content-Length"]);
+   _fill_map_key("HTTP_CONTENT_TYPE" , _req["Content-Type"]);
+   _fill_map_key("HTTP_REFERER", _req["Referer"]);
+   _fill_map_key("HTTP_ACCEPT_ENCODING", _req["Accept-Encoding"]);
+   _fill_map_key("HTTP_ACCEPT_LANGUAGE", _req["Accept-Language"]);
+   _fill_map_key("HTTP_ACCEPT", _req["Accept"]);
+   _fill_map_key("HTTP_USER_AGENT", _req["User-Agent"]);
+   _fill_map_key("HTTP_HOST", _req["Host"]); // a changer pour le resultat du requestHeader "_req["Host""
    _fill_map_key("REDIRECT_STATUS", REDIRECT_STATUS); // a changer pour le retour de getResponse mais globalement c'est 200 a ce stade
    _fill_map_key("SERVER_NAME", SERVER_NAME); // a changer selon la conf
    _fill_map_key("SERVER_PORT", port);
-   _fill_map_key("SERVER_ADDR", host);
+   _fill_map_key("SERVER_ADDR", _req["Host"]);
    _fill_map_key("GATEWAY_INTERFACE", GATEWAY_INTERFACE); // ne changera pas
    _fill_map_key("REQUEST_SCHEME", REQUEST_SCHEME); // ne changera pas
    _fill_map_key("SERVER_PROTOCOL", SERVER_PROTOCOL); // ne changera pas
    _fill_map_key("DOCUMENT_ROOT", root);
-   _fill_map_key("DOCUMENT_URI", location);
-   _fill_map_key("REQUEST_URI", location);
-   _fill_map_key("SCRIPT_NAME", location);
-   _fill_map_key("CONTENT_LENGTH", CONTENT_LENGTH); // a changer pour method POST
-   _fill_map_key("CONTENT_TYPE", CONTENT_TYPE);	// a remplir pour POST CONTENT_TYPE=application/x-www-form-urlencoded
-   _fill_map_key("REQUEST_METHOD", REQUEST_METHOD); // GET POUR L'instant a changer (getRequest)
+   _fill_map_key("DOCUMENT_URI", _req["request-target"]);
+   _fill_map_key("REQUEST_URI", _req["request-target"]);
+   _fill_map_key("SCRIPT_NAME", _req["request-target"]);
+   _fill_map_key("CONTENT_LENGTH", _req["Content-Length"]); // a changer pour method POST
+   _fill_map_key("CONTENT_TYPE", _req["Content-Type"]);	// a remplir pour POST CONTENT_TYPE=application/x-www-form-urlencoded
+   _fill_map_key("REQUEST_METHOD", _req["method"]); // GET POUR L'instant a changer (getRequest)
    _fill_map_key("QUERY_STRING", QUERY_STRING); // ?
-   _fill_map_key("SCRIPT_FILENAME", root + location);
+   _fill_map_key("SCRIPT_FILENAME", root + _req["request-target"]);
    _fill_map_key("PATH_TRANSLATED", PATH_TRANSLATED);
    _fill_map_key("PATH_INFO", PATH_INFO);
    _fill_map_key("FCGI_ROLE", FCGI_ROLE);
-   _fill_map_key("PHP_SELF", location);
+   _fill_map_key("PHP_SELF", _req["request-target"]);
+}
+
+static char	*ft_strjoin(char const *s1, char const *s2)
+{
+	unsigned long	i;
+	unsigned long	len;
+	char			*str;
+
+	if (!s1 && !s2)
+		return (0);
+	len = (strlen(s1) + strlen(s2));
+	i = strlen(s1);
+	if (!(str = (char *)malloc((len + 1) * sizeof(char))))
+		return (NULL);
+	memcpy(str, s1, strlen(s1));
+	memcpy(&str[i], s2, strlen(s2));
+	str[len] = '\0';
+	return (str);
 }
 
 char    **CGI::_get_env() {
     char **env = (char **) malloc((sizeof(arr) / sizeof(std::string) + 1) * sizeof(char*));
-    if (!env)
+    std::string next;
+	std::cout << std::endl; // TODO
+	if (!env)
     	return NULL;// MALLOC ERROR, return une erreur a envoyer au serv;
     for (size_t i = 0; i < sizeof(arr) / sizeof(std::string); i++)
     {
-        env[i] = strdup((arr[i] + "=" + _SERVER[arr[i]]).c_str());
+		std::cout << RED << arr[i] << END << std::endl;
+		next = "";
+		next.append(arr[i]);
+		next += "=";
+		std::cout << BLU << _SERVER[arr[i]]<<  END << std::endl;
+		//next.append(_SERVER[arr[i]]);
+		std::cout << RED << next << END << std::endl;
+        env[i] = ft_strjoin((next).c_str(), _SERVER[arr[i]].c_str());
         if (!env[i])
         {
 			_dstrfree(env);
 			return NULL;
 		}
 		// MALLOC ERROR, return une erreur a envoyer au serv;
-        std::cout << env[i] << std::endl;
+        std::cout << env[i] << std::endl; ///// TODO
     }
 	env[sizeof(arr) / sizeof(std::string)] = NULL;
 	return env;
@@ -131,8 +158,10 @@ char **CGI::env() {
     return _get_env();
 }
 
-char **CGI::_get_action() {
-	std::string ret[] = {PHP_CGI};
+char **CGI::_get_action(bool act) {
+	std::string ret[2];// = (act ? {"/bin/cat", _req["body"]} : {PHP_CGI, _SERVER["SCRIPT_FILENAME"]});
+	ret[0] = act ? "/bin/cat" : PHP_CGI;
+	ret[1] = act ? _req["body"] : _SERVER["SCRIPT_FILENAME"];
 	char **action = (char **)malloc((sizeof(ret) / sizeof(std::string) + 1) * sizeof(char *));
 	if (!action)
 		return NULL;// MALLOC ERROR, return une erreur a envoyer au serv;
@@ -148,15 +177,71 @@ char **CGI::_get_action() {
 	action[sizeof(ret) / sizeof(std::string)] = NULL;
 	return action;
 }
-// C type shell
-void	CGI::cgi_exec()
-{
+
+void	CGI::_exec_body( void ) {
+	int pipefd[2];
 	int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
 	pid_t pid;
 	char **env = _get_env();
 	if (!env)
 		throw CGI::Error();
-	char **action = _get_action();
+	
+	char **action = _get_action(true);
+	if (!action)
+	{
+		_dstrfree(env);
+		throw CGI::Error();
+	}
+	pipe(pipefd);
+	if ((pid = fork()) == 0)
+	{
+		std::cout << RED << action[0] << " " << action[1] << std::endl;
+		dup2(pipefd[1], 1);
+		close(pipefd[1]);
+		close(fd);
+		close(pipefd[0]);
+		execve(action[0], action, env);
+		exit(0);
+	}
+	else {
+		waitpid(pid, NULL, 0);
+		std::cout << "HOOOO" << END << std::endl;
+		close(pipefd[1]);
+		_dstrfree(action);
+		char **action = _get_action(false);
+		if (!action)
+		{
+			_dstrfree(env);
+			throw CGI::Error();
+		}
+		if ((pid = fork()) == 0)
+		{
+			dup2(pipefd[0], 0);
+			dup2(fd, 1);
+			close(pipefd[0]);
+			close(fd);
+			execve(action[0], action, env);
+			exit(0);
+		}
+		else {
+			waitpid(pid, NULL, 0);
+			close(pipefd[0]);
+			close(fd);
+			_dstrfree(action);
+			_dstrfree(env);
+			//remove(_req["body"].c_str());
+		}
+	}
+}
+
+void	CGI::_exec_nobody( void ) {
+	int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
+	pid_t pid;
+	char **env = _get_env();
+	if (!env)
+		throw CGI::Error();
+	std::string ret[] = {PHP_CGI};
+	char **action = _get_action(false);
 	if (!action)
 	{
 		_dstrfree(env);
@@ -175,6 +260,15 @@ void	CGI::cgi_exec()
 		_dstrfree(env);
 		_dstrfree(action);
 	}
+}
+
+// C type shell
+void	CGI::cgi_exec() // TODO pipe avec cat du content
+{
+	if (!_req["body"].empty())
+		_exec_body();
+	else
+		_exec_nobody();
 }
 
 void	CGI::_dstrfree(char ** dstr) {

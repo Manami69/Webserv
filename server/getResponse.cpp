@@ -15,8 +15,10 @@ getResponse::getResponse( getRequest const &request ) : _request(request) {
 	if (this->_status_code == 200) {
 		if (!this->_request["method"].compare("GET"))
 			_content = _method_get();
-		else
-			_content = "nono";
+		else if  (!this->_request["method"].compare("POST"))
+			_content = _method_post();
+		else if (this->_request["method"].compare("DELETE"))
+			_content = _method_delete();
 	}
 	// continue checking with headers;
 	return ;
@@ -212,15 +214,14 @@ std::string getResponse::_method_get( void )
 	else if (!_get_extension().compare("php"))
 	{
 		// if cgi is on
-		CGI cgi("127.0.0.1", "7000", ROOT, this->_request["request-target"]);
+		CGI cgi(_request, "8000", ROOT);
 		try {
 			cgi.cgi_exec();
 		}
 		catch (std::exception &e)
 		{
 			this->_status_code = 503;
-			response_body += "BADGATEWQY"; // a changer
-			return _get_fill_headers(response_body);
+			return "";
 		}
 		location = PHP_CONTENT;
 	}
@@ -373,16 +374,15 @@ std::string	getResponse::_method_post( void ) {
 	// si activé mais pas vers une page statique >> vers get avec un corps
 	const std::string ext = _get_extension();
 	if (!ext.compare("php")) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
-		; //envoyer vers le php-cgi avec la requete remplie
+	{
+		_method_get();
+	}
 	else {
 		this->_status_code = 405;
 		return "";
 	}
 	return ""; //
 }
-
-
-
 
 /*
 ██████╗░███████╗██╗░░░░░███████╗████████╗███████╗
