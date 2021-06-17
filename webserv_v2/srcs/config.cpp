@@ -92,7 +92,6 @@ void	Config::init_serv_config( void )
 	serv_config.port = "80";
 	serv_config.server_name = "Default";
 	serv_config.root = "";
-	serv_config.error_page = "";
 	serv_config.client_max_body_size = 1;
 	_serv_config.push_back(serv_config);
 	return ;
@@ -126,8 +125,11 @@ void	Config::parse_config(void)
 						this->_serv_config.back().index.push_back(_tokens[i++]);
 					this->_serv_config.back().index.push_back(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
 				}
-				// else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
-				// 	this->_serv_config.back().error_page = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+				else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
+				{
+					this->_serv_config.back().error_page[std::atoi(this->_tokens[i].c_str())] = this->_tokens[i + 1].substr(0, this->_tokens[i + 1].size() - 1);
+					i++;
+				}
 				else if (check_line(this->_tokens[i], "location") && check_semicolon(++i))
 					while (i < this->_tokens.size() && this->_tokens[i] != "}")
 						i++;
@@ -144,10 +146,11 @@ void	Config::parse_config(void)
 
 bool	Config::check_line(std::string const &line, std::string const &comp)
 {
-	unsigned int	start = 0;
-	unsigned int	end = comp.size();
+	// unsigned int	start = 0;
+	// unsigned int	end = comp.size();
 
-	if (line.size() >= start && line.substr(start, end) == comp)
+	// if (line.size() >= start && line.substr(start, end) == comp)
+	if (line.size() >= 0 && line == comp)
 		return true;
 	return false;
 }
@@ -161,8 +164,8 @@ bool	Config::check_semicolon(unsigned long i)
 			|| check_line(this->_tokens[i], "root")
 			|| check_line(this->_tokens[i], "client_max_body_size")
 			|| check_line(this->_tokens[i], "error_page")
-			|| check_line(this->_tokens[i], "location")
-			|| check_line(this->_tokens[i], "error_page"))
+			|| check_line(this->_tokens[i], "index")
+			|| check_line(this->_tokens[i], "location"))
 			throw ( WrongConfig() );
 		i++;
 	}

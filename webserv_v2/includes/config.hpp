@@ -5,13 +5,13 @@
 
 struct						Serv_config
 {
-	std::string				host;
-	std::string				port;
-	std::string				server_name;
-	std::string				root;
-	std::string				error_page; // serveral error pages possible
-	size_t					client_max_body_size;
-	std::list<std::string>	index;
+	std::string					host;
+	std::string					port;
+	std::string					server_name;
+	std::string					root;
+	size_t						client_max_body_size;
+	std::map<int,std::string>	error_page;
+	std::list<std::string>		index;
 	// std::list<t_location>	locations;
 };
 
