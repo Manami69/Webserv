@@ -24,7 +24,6 @@ void CGI::_init_map() {
 
 void CGI::_fill_map_key( std::string key , std::string value) {
     std::vector<std::string> vect(arr, arr + sizeof(arr) / sizeof(std::string));
-	std::cout << value << std::endl;
     if (std::find(vect.begin(), vect.end(), key) != vect.end())
         this->_SERVER[key] = value;
 }
@@ -94,18 +93,21 @@ void    CGI::_fill_values( std::string port, std::string root) {
    _fill_map_key("REQUEST_SCHEME", REQUEST_SCHEME); // ne changera pas
    _fill_map_key("SERVER_PROTOCOL", SERVER_PROTOCOL); // ne changera pas
    _fill_map_key("DOCUMENT_ROOT", root);
-   _fill_map_key("DOCUMENT_URI", _req["request-target"]);
+	size_t cut;
+   if ((cut = _req["request-target"].find(".php?")) == std::string::npos)
+		cut = 0;
+   _fill_map_key("DOCUMENT_URI", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
    _fill_map_key("REQUEST_URI", _req["request-target"]);
-   _fill_map_key("SCRIPT_NAME", _req["request-target"]);
+   _fill_map_key("SCRIPT_NAME", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
    _fill_map_key("CONTENT_LENGTH", _req["Content-Length"]); // a changer pour method POST
    _fill_map_key("CONTENT_TYPE", _req["Content-Type"]);	// a remplir pour POST CONTENT_TYPE=application/x-www-form-urlencoded
    _fill_map_key("REQUEST_METHOD", _req["method"]); // GET POUR L'instant a changer (getRequest)
-   _fill_map_key("QUERY_STRING", QUERY_STRING); // ?
-   _fill_map_key("SCRIPT_FILENAME", root + _req["request-target"]);
+   _fill_map_key("QUERY_STRING", (cut ? _req["request-target"].substr(cut + 5) : "")); // ?
+   _fill_map_key("SCRIPT_FILENAME", root + (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
    _fill_map_key("PATH_TRANSLATED", PATH_TRANSLATED);
    _fill_map_key("PATH_INFO", PATH_INFO);
    _fill_map_key("FCGI_ROLE", FCGI_ROLE);
-   _fill_map_key("PHP_SELF", _req["request-target"]);
+   _fill_map_key("PHP_SELF", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
 }
 
 static char	*ft_strjoin(char const *s1, char const *s2)
@@ -129,18 +131,14 @@ static char	*ft_strjoin(char const *s1, char const *s2)
 char    **CGI::_get_env() {
     char **env = (char **) malloc((sizeof(arr) / sizeof(std::string) + 1) * sizeof(char*));
     std::string next;
-	std::cout << std::endl; // TODO
 	if (!env)
     	return NULL;// MALLOC ERROR, return une erreur a envoyer au serv;
     for (size_t i = 0; i < sizeof(arr) / sizeof(std::string); i++)
     {
-		std::cout << RED << arr[i] << END << std::endl;
 		next = "";
 		next.append(arr[i]);
 		next += "=";
-		std::cout << BLU << _SERVER[arr[i]]<<  END << std::endl;
 		//next.append(_SERVER[arr[i]]);
-		std::cout << RED << next << END << std::endl;
         env[i] = ft_strjoin((next).c_str(), _SERVER[arr[i]].c_str());
         if (!env[i])
         {
@@ -148,7 +146,6 @@ char    **CGI::_get_env() {
 			return NULL;
 		}
 		// MALLOC ERROR, return une erreur a envoyer au serv;
-        std::cout << env[i] << std::endl; ///// TODO
     }
 	env[sizeof(arr) / sizeof(std::string)] = NULL;
 	return env;
@@ -161,11 +158,13 @@ char **CGI::env() {
 char **CGI::_get_action(bool act) {
 	std::string ret[2];// = (act ? {"/bin/cat", _req["body"]} : {PHP_CGI, _SERVER["SCRIPT_FILENAME"]});
 	ret[0] = act ? "/bin/cat" : PHP_CGI;
-	ret[1] = act ? _req["body"] : _SERVER["SCRIPT_FILENAME"];
-	char **action = (char **)malloc((sizeof(ret) / sizeof(std::string) + 1) * sizeof(char *));
+	if (act)
+		ret[1] = _req["body"];
+	size_t		len = act ? 2 : 1;
+	char **action = (char **)malloc((len + 1) * sizeof(char *));
 	if (!action)
 		return NULL;// MALLOC ERROR, return une erreur a envoyer au serv;
-	for (size_t i = 0; i < sizeof(ret) / sizeof(std::string); i++)
+	for (size_t i = 0; i < len; i++)
 	{
 		action[i] = strdup(ret[i].c_str());
 		if (!(action[i]))
@@ -174,18 +173,16 @@ char **CGI::_get_action(bool act) {
 			return NULL;
 		}
 	}
-	action[sizeof(ret) / sizeof(std::string)] = NULL;
+	action[len] = NULL;
 	return action;
 }
 
 void	CGI::_exec_body( void ) {
 	int pipefd[2];
-	int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
 	pid_t pid;
 	char **env = _get_env();
 	if (!env)
-		throw CGI::Error();
-	
+		throw CGI::Error();	
 	char **action = _get_action(true);
 	if (!action)
 	{
@@ -195,41 +192,41 @@ void	CGI::_exec_body( void ) {
 	pipe(pipefd);
 	if ((pid = fork()) == 0)
 	{
-		std::cout << RED << action[0] << " " << action[1] << std::endl;
 		dup2(pipefd[1], 1);
 		close(pipefd[1]);
-		close(fd);
 		close(pipefd[0]);
 		execve(action[0], action, env);
 		exit(0);
 	}
 	else {
 		waitpid(pid, NULL, 0);
-		std::cout << "HOOOO" << END << std::endl;
-		close(pipefd[1]);
+		int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
+		//pid = 0;
 		_dstrfree(action);
-		char **action = _get_action(false);
+		action = _get_action(false);
 		if (!action)
 		{
 			_dstrfree(env);
 			throw CGI::Error();
 		}
-		if ((pid = fork()) == 0)
+		pid = fork();
+		if ((pid) == 0)
 		{
 			dup2(pipefd[0], 0);
 			dup2(fd, 1);
 			close(pipefd[0]);
+			close(pipefd[1]);
 			close(fd);
 			execve(action[0], action, env);
 			exit(0);
 		}
 		else {
 			waitpid(pid, NULL, 0);
+			close(pipefd[1]);
 			close(pipefd[0]);
 			close(fd);
 			_dstrfree(action);
 			_dstrfree(env);
-			//remove(_req["body"].c_str());
 		}
 	}
 }
@@ -265,7 +262,7 @@ void	CGI::_exec_nobody( void ) {
 // C type shell
 void	CGI::cgi_exec() // TODO pipe avec cat du content
 {
-	if (!_req["body"].empty())
+	if (!_req["body"].empty() && !_req["method"].compare("POST"))
 		_exec_body();
 	else
 		_exec_nobody();

@@ -132,6 +132,7 @@ std::map<int, std::string> Server::error_code(void) {
 	_err[204] = "No Content";
 	_err[400] = "Bad Request";
 	_err[404] = "Not Found";
+	_err[405] = "Method Not Allowed";
 	_err[505] = "HTTP Version Not Supported";
 	return _err;
 }

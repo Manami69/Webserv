@@ -1,11 +1,7 @@
 X-Powered-By: PHP/8.0.7
 Content-type: text/html; charset=UTF-8
 
-<br />
-<b>Warning</b>:  Undefined array key "say" in <b>/Users/lolopez/Documents/Webserv/www/php-example.php</b> on line <b>7</b><br />
- <br />
-<b>Warning</b>:  Undefined array key "to" in <b>/Users/lolopez/Documents/Webserv/www/php-example.php</b> on line <b>7</b><br />
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+JKKJOHUGU Mom<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
 <style type="text/css">
 body {background-color: #fff; color: #222; font-family: sans-serif;}
@@ -33,22 +29,26 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <h2>PHP Variables</h2>
 <table>
 <tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">$_REQUEST['say']</td><td class="v">JKKJOHUGU</td></tr>
+<tr><td class="e">$_REQUEST['to']</td><td class="v">Mom</td></tr>
+<tr><td class="e">$_POST['say']</td><td class="v">JKKJOHUGU</td></tr>
+<tr><td class="e">$_POST['to']</td><td class="v">Mom</td></tr>
 <tr><td class="e">$_SERVER['HTTP_CACHE_CONTROL']</td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">$_SERVER['HTTP_UPGRADE_INSECURE_REQUESTS']</td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">$_SERVER['HTTP_CONNECTION']</td><td class="v"><i>no value</i></td></tr>
-<tr><td class="e">$_SERVER['HTTP_ORIGIN']</td><td class="v">http://localhost:8000</td></tr>
-<tr><td class="e">$_SERVER['HTTP_CONTENT_LENGTH']</td><td class="v">13</td></tr>
-<tr><td class="e">$_SERVER['HTTP_CONTENT_TYPE']</td><td class="v">application/x-www-form-urlencoded</td></tr>
-<tr><td class="e">$_SERVER['HTTP_REFERER']</td><td class="v">http://localhost:8000/php-example.html</td></tr>
-<tr><td class="e">$_SERVER['HTTP_ACCEPT_ENCODING']</td><td class="v">gzip, deflate</td></tr>
-<tr><td class="e">$_SERVER['HTTP_ACCEPT_LANGUAGE']</td><td class="v">fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3</td></tr>
-<tr><td class="e">$_SERVER['HTTP_ACCEPT']</td><td class="v">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</td></tr>
-<tr><td class="e">$_SERVER['HTTP_USER_AGENT']</td><td class="v">Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:86.0) Gecko/20100101 Firefox/86.0</td></tr>
-<tr><td class="e">$_SERVER['HTTP_HOST']</td><td class="v">localhost:8000</td></tr>
+<tr><td class="e">$_SERVER['HTTP_ORIGIN']</td><td class="v">http://localhost:8000</td></tr>
+<tr><td class="e">$_SERVER['HTTP_CONTENT_LENGTH']</td><td class="v">20</td></tr>
+<tr><td class="e">$_SERVER['HTTP_CONTENT_TYPE']</td><td class="v">application/x-www-form-urlencoded</td></tr>
+<tr><td class="e">$_SERVER['HTTP_REFERER']</td><td class="v">http://localhost:8000/php-example.html</td></tr>
+<tr><td class="e">$_SERVER['HTTP_ACCEPT_ENCODING']</td><td class="v">gzip, deflate</td></tr>
+<tr><td class="e">$_SERVER['HTTP_ACCEPT_LANGUAGE']</td><td class="v">fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3</td></tr>
+<tr><td class="e">$_SERVER['HTTP_ACCEPT']</td><td class="v">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</td></tr>
+<tr><td class="e">$_SERVER['HTTP_USER_AGENT']</td><td class="v">Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:86.0) Gecko/20100101 Firefox/86.0</td></tr>
+<tr><td class="e">$_SERVER['HTTP_HOST']</td><td class="v">localhost:8000</td></tr>
 <tr><td class="e">$_SERVER['REDIRECT_STATUS']</td><td class="v">200</td></tr>
 <tr><td class="e">$_SERVER['SERVER_NAME']</td><td class="v">localhost</td></tr>
 <tr><td class="e">$_SERVER['SERVER_PORT']</td><td class="v">8000</td></tr>
-<tr><td class="e">$_SERVER['SERVER_ADDR']</td><td class="v">localhost:8000</td></tr>
+<tr><td class="e">$_SERVER['SERVER_ADDR']</td><td class="v">localhost:8000</td></tr>
 <tr><td class="e">$_SERVER['GATEWAY_INTERFACE']</td><td class="v">CGI/1.1</td></tr>
 <tr><td class="e">$_SERVER['REQUEST_SCHEME']</td><td class="v">http</td></tr>
 <tr><td class="e">$_SERVER['SERVER_PROTOCOL']</td><td class="v">HTTP/1.1</td></tr>
@@ -56,8 +56,8 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class="e">$_SERVER['DOCUMENT_URI']</td><td class="v">/php-example.php</td></tr>
 <tr><td class="e">$_SERVER['REQUEST_URI']</td><td class="v">/php-example.php</td></tr>
 <tr><td class="e">$_SERVER['SCRIPT_NAME']</td><td class="v">/php-example.php</td></tr>
-<tr><td class="e">$_SERVER['CONTENT_LENGTH']</td><td class="v">13</td></tr>
-<tr><td class="e">$_SERVER['CONTENT_TYPE']</td><td class="v">application/x-www-form-urlencoded</td></tr>
+<tr><td class="e">$_SERVER['CONTENT_LENGTH']</td><td class="v">20</td></tr>
+<tr><td class="e">$_SERVER['CONTENT_TYPE']</td><td class="v">application/x-www-form-urlencoded</td></tr>
 <tr><td class="e">$_SERVER['REQUEST_METHOD']</td><td class="v">POST</td></tr>
 <tr><td class="e">$_SERVER['QUERY_STRING']</td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">$_SERVER['SCRIPT_FILENAME']</td><td class="v">/Users/lolopez/Documents/Webserv/www/php-example.php</td></tr>
@@ -66,7 +66,7 @@ hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
 <tr><td class="e">$_SERVER['FCGI_ROLE']</td><td class="v"><i>no value</i></td></tr>
 <tr><td class="e">$_SERVER['PHP_SELF']</td><td class="v">/php-example.php</td></tr>
 <tr><td class="e">$_SERVER['__CF_USER_TEXT_ENCODING']</td><td class="v">0xE07C:0x0:0x0</td></tr>
-<tr><td class="e">$_SERVER['REQUEST_TIME_FLOAT']</td><td class="v">1623950890.2778</td></tr>
-<tr><td class="e">$_SERVER['REQUEST_TIME']</td><td class="v">1623950890</td></tr>
+<tr><td class="e">$_SERVER['REQUEST_TIME_FLOAT']</td><td class="v">1624033285.2518</td></tr>
+<tr><td class="e">$_SERVER['REQUEST_TIME']</td><td class="v">1624033285</td></tr>
 </table>
 </div></body></html>

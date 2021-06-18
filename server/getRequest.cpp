@@ -83,12 +83,12 @@ void			getRequest::fillRequest( std::string request ) {
 	{
 		key = request.substr(start, space - start);
 		start = space + 2;
-		if ((space = request.find("\n", start)) == std::string::npos)
+		if ((space = request.find("\n", start)) == std::string::npos) //
 		{
 			this->setKeyValue(key, request.substr(start, request.size() - start));
 			return ;
 		}
-		token = request.substr(start, space - start);
+		token = request.substr(start, space - start - 1);
 		this->setKeyValue(key, token);
 		start = space + 1;
 	}

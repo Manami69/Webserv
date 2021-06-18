@@ -56,6 +56,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::string str;
 	std::stringstream ss;
 
+	remove(_request["body"].c_str());
 	str.reserve(30);
 	if (!this->_status_code)
 		return this->_content;/////////////////////
@@ -66,7 +67,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	str += err.find(this->_status_code)->second;
 	str += CRLF;
 	///////////////////// a refaire
-	if (this->_status_code >= 200 || this->_status_code < 300)
+	if (this->_status_code >= 200 && this->_status_code < 300)
 		str += this->_content;
 	else
 		str += _error_response(err);
@@ -165,8 +166,8 @@ std::string	getResponse::_get_date_line( void ) {
 	gettimeofday(&time, NULL);
 	// Date: Tue, 15 Jun 2021 13:35:03 GMT
 
-	char strNow[31];
-	strftime(strNow, 31, "%a, %d %b %Y %X GMT\n", gmtime( &time.tv_sec ));
+	char strNow[32];
+	strftime(strNow, 32, "%a, %d %b %Y %X GMT\r\n", gmtime( &time.tv_sec ));
 	ret += strNow;
 	return (ret);
 }
@@ -211,7 +212,7 @@ std::string getResponse::_method_get( void )
 		location += PAGE;
 		isindex = true;
 	}
-	else if (!_get_extension().compare("php"))
+	else if (!_get_extension().compare("php") || _request["request-target"].find(".php?") != std::string::npos)
 	{
 		// if cgi is on
 		CGI cgi(_request, "8000", ROOT);
@@ -240,6 +241,7 @@ std::string getResponse::_method_get( void )
 	while (ifs.get(c))          // loop getting single characters
     	response_body += c;
 	ifs.close();
+	std::cout << response_body << std::endl;
 	return _get_fill_headers(response_body);
 }
 
@@ -253,13 +255,20 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	// TODO ajouter serv name
 	headers += _get_date_line();
-	if (!ext.compare("php") /* et cgi on */) {
+	if (!ext.compare("php") || _request["request-target"].find(".php?") != std::string::npos /* et cgi on */) {
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n") + 4;
+		if (headend == std::string::npos)
+			headend = 0;
+		std::cout << "SIZE = " << response.size() << "HEADEND= " << headend;
 		ss << response.size() - headend;
 		headers += ss.str();
-		headers += "\r\n";
+		if (response.find("\r\n\r\n") != response.npos)
+			headers += "\r\n";
+		else
+			headers += "\r\n\r\n";
 		headers += response;
+		std::cout << RED << headers << END << std::endl;
 		return headers;
 	}
 	headers += "Content-Type: ";
@@ -375,7 +384,7 @@ std::string	getResponse::_method_post( void ) {
 	const std::string ext = _get_extension();
 	if (!ext.compare("php")) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
 	{
-		_method_get();
+		return _method_get();
 	}
 	else {
 		this->_status_code = 405;
