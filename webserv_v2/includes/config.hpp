@@ -35,6 +35,10 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorListen : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void						scan_file( void );
@@ -49,6 +53,8 @@ public:
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_nb_server(void) const;
 	std::list<Serv_config>::iterator	get_config( unsigned int idx );
+	/////////		CHECKS		/////////
+	void						check_listen(std::string conf);
 };
 
 #endif

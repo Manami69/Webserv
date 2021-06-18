@@ -19,7 +19,7 @@ NAME		= 		webserv
 PATH_HEADER	=		includes/
 PATH_SRCS	=		srcs/
 PATH_OBJS	=		objs/
-SRCS_LIST	= 		main.cpp config.cpp
+SRCS_LIST	= 		main.cpp config.cpp error_config.cpp
 OBJS		= 		$(addprefix $(PATH_OBJS), $(SRCS_LIST:.cpp=.o))
 HEADER_LIST	=		header.hpp config.hpp
 HEADER		=		$(addprefix $(PATH_HEADER), $(HEADER_LIST))

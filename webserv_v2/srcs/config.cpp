@@ -109,6 +109,7 @@ void	Config::parse_config(void)
 			{
 				if (check_line(this->_tokens[i], "listen") && check_semicolon(++i))
 				{
+					check_listen(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
 					int		find = _tokens[i].find(":");
 					this->_serv_config.back().host = this->_tokens[i].substr(0, find);
 					this->_serv_config.back().port = this->_tokens[i].substr(find + 1, _tokens[i].size() - (find + 2));
