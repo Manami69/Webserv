@@ -39,6 +39,22 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorServerName : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
+	class ErrorRoot : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
+	class ErrorClientMaxBodySize : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
+	class ErrorPage : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void						scan_file( void );
@@ -55,6 +71,10 @@ public:
 	std::list<Serv_config>::iterator	get_config( unsigned int idx );
 	/////////		CHECKS		/////////
 	void						check_listen(std::string conf);
+	void						check_server_name(std::string conf);
+	void						check_root(std::string conf);
+	void						check_client_max_body_size(std::string conf);
+	void						check_error_page(std::string conf1, std::string conf2);
 };
 
 #endif

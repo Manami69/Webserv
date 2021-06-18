@@ -109,17 +109,26 @@ void	Config::parse_config(void)
 			{
 				if (check_line(this->_tokens[i], "listen") && check_semicolon(++i))
 				{
-					check_listen(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
+					check_listen(this->_tokens[i]);
 					int		find = _tokens[i].find(":");
 					this->_serv_config.back().host = this->_tokens[i].substr(0, find);
 					this->_serv_config.back().port = this->_tokens[i].substr(find + 1, _tokens[i].size() - (find + 2));
 				}
 				else if (check_line(this->_tokens[i], "server_name") && check_semicolon(++i))
+				{
+					check_server_name(this->_tokens[i]);
 					this->_serv_config.back().server_name = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+				}
 				else if (check_line(this->_tokens[i], "root") && check_semicolon(++i))
+				{
+					check_root(this->_tokens[i]);
 					this->_serv_config.back().root = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+				}
 				else if (check_line(this->_tokens[i], "client_max_body_size") && check_semicolon(++i))
+				{
+					check_client_max_body_size(this->_tokens[i]);
 					this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[i].substr(0, this->_tokens[i].size() - 1).c_str());
+				}
 				else if (check_line(this->_tokens[i], "index") && check_semicolon(++i))
 				{
 					while (this->_tokens[i].find(";") > this->_tokens[i].size())
@@ -128,6 +137,7 @@ void	Config::parse_config(void)
 				}
 				else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
 				{
+					check_error_page(this->_tokens[i], this->_tokens[i + 1]);
 					this->_serv_config.back().error_page[std::atoi(this->_tokens[i].c_str())] = this->_tokens[i + 1].substr(0, this->_tokens[i + 1].size() - 1);
 					i++;
 				}
