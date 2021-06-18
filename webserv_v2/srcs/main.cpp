@@ -1,4 +1,5 @@
 #include "../includes/config.hpp"
+#include "../includes/server.hpp"
 
 void	display_help(Config conf) // temporary
 {
@@ -38,23 +39,6 @@ void	display_help(Config conf) // temporary
 	}
 }
 
-void	parsing(int ac, char **av)
-{
-	std::string	file;
-
-	if ( ac == 1 )
-		file = "config/webserv.conf";
-	else
-		file = av[1];
-
-	Config	conf( file );
-	conf.scan_file();
-	conf.check_brackets();
-	conf.parse_config();
-	std::cout << GREEN << "Parsing Good" << RESET << std::endl;
-	display_help(conf); // temporary
-}
-
 int		main(int ac, char **av)
 {
 	if (ac > 2) {
@@ -64,7 +48,29 @@ int		main(int ac, char **av)
 		return (1);
 	}
 	try {
-		parsing(ac, av);
+		/* Get server config content */
+		std::string	file;
+		if ( ac == 1 )
+			file = "config/webserv.conf";
+		else
+			file = av[1];
+		Config	conf( file );
+		conf.scan_file();
+		conf.check_brackets();
+		conf.parse_config();
+		std::cout << GREEN << "Server config Good" << RESET << std::endl;
+		
+		/* Launch Server */
+		Server	server;
+	
+		for ( int i = 1; i <= conf.get_nb_server(); i++ ) {
+			server.setup_server_socket(conf, i);
+			server.set_socket_reuse();
+			server.binded();
+			server.listened();
+			server.add_server_lst();
+		}
+		server.selected();
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;

@@ -26,7 +26,6 @@ void	Config::scan_file( void ) {
 	std::ifstream	ifs;
 	std::string		line;
 
-	//this->check_filename();
 	ifs.open(get_filename());
 	if ( !ifs.is_open() ) {
 		ifs.close();
@@ -187,11 +186,11 @@ int		Config::get_nb_server( void ) const {
 	return (this->_nb_server);
 }
 
-std::list<Serv_config>::iterator	Config::get_config( unsigned int idx )
-{
-	//	if idx too high, security which reviews the last config
+std::list<Serv_config>::iterator	Config::get_config( unsigned int idx ) {
+	/*	if idx > nb of server, than it will get the last server in .config */
 	if (idx > this->_nb_server)
 		idx = this->_nb_server;
+
 	std::list<Serv_config>::iterator it = this->_serv_config.begin();
 	while (--idx > 0)
 		*it++;
