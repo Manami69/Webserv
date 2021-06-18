@@ -6,9 +6,11 @@
 
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
+	# define ROOT "/Users/lolopez/Documents/Webserv/www"
+#else
+	#define ROOT "/home/lolo/Documents/Webserv/www"
 #endif
 
-# define ROOT "/Users/lolopez/Documents/Webserv/www"
 # define CRLF "\r\n"
 # define SP " "
 # define CURRDIR "./../www"

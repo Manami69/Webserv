@@ -50,7 +50,6 @@ void CGI::_fill_map_key( std::string key , std::string value) {
     # define GATEWAY_INTERFACE "CGI/1.1"
     # define REQUEST_SCHEME "http"
     # define SERVER_PROTOCOL "HTTP/1.1"
-    # define DOCUMENT_ROOT "/Users/lolopez/Documents/Webserv/www"
     # define DOCUMENT_URI "/index.php"
     # define REQUEST_URI DOCUMENT_URI
     # define SCRIPT_NAME DOCUMENT_URI
@@ -65,8 +64,10 @@ void CGI::_fill_map_key( std::string key , std::string value) {
     # define PHP_SELF DOCUMENT_URI
 	#if defined (__APPLE__)
 		#define PHP_CGI HOME"/.brew/bin/php-cgi"
+    	# define DOCUMENT_ROOT "/Users/lolopez/Documents/Webserv/www"
 	#else
-		#define PHP_CGI ""
+		#define PHP_CGI "/usr/bin/php-cgi"
+		#define DOCUMENT_ROOT "/home/lolo/Documents/Webserv/www"
 	#endif
 # endif
 
@@ -145,6 +146,7 @@ char    **CGI::_get_env() {
 			_dstrfree(env);
 			return NULL;
 		}
+		std::cout << env[i] << std::endl;
 		// MALLOC ERROR, return une erreur a envoyer au serv;
     }
 	env[sizeof(arr) / sizeof(std::string)] = NULL;
@@ -158,9 +160,8 @@ char **CGI::env() {
 char **CGI::_get_action(bool act) {
 	std::string ret[2];// = (act ? {"/bin/cat", _req["body"]} : {PHP_CGI, _SERVER["SCRIPT_FILENAME"]});
 	ret[0] = act ? "/bin/cat" : PHP_CGI;
-	if (act)
-		ret[1] = _req["body"];
-	size_t		len = act ? 2 : 1;
+	ret[1] = act ? _req["body"] : _SERVER["SCRIPT_FILENAME"];
+	size_t		len = 2;
 	char **action = (char **)malloc((len + 1) * sizeof(char *));
 	if (!action)
 		return NULL;// MALLOC ERROR, return une erreur a envoyer au serv;

@@ -138,7 +138,7 @@ void	getRequest::_fill_body(std::string buffer) {
 			return;
 		}
 		filename = _new_file();
-		fs.open(filename, std::fstream::out);
+		fs.open(filename.c_str(), std::fstream::out);
 		fs << this->_request_tokens["body"];
 		fs.close();
 		this->_request_tokens["body"] = filename;
@@ -155,7 +155,7 @@ std::string getRequest::_new_file()
 	{
 		ss.str("");
 		ss << num;
-		fs.open("./srcs/body" + ss.str(), std::fstream::in);
+		fs.open(("./srcs/body" + ss.str()).c_str(), std::fstream::in);
 		t = fs.is_open();
 		fs.close();
 		num++;
