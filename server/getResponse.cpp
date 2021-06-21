@@ -71,6 +71,8 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 		str += this->_content;
 	else
 		str += _error_response(err);
+	for (size_t i = 0 ; i < str.size() ; i++)
+		std::cout << "\""<< str[i] << "\"=" << (int)str[i] << " ";
 	return str;
 }
 
@@ -254,21 +256,22 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	if (ext.empty() || (this->_status_code < 200 && this->_status_code > 299))
 		ext = "html";
 	// TODO ajouter serv name
-	headers += _get_date_line();
+	//headers += _get_date_line();
 	if (!ext.compare("php") || _request["request-target"].find(".php?") != std::string::npos /* et cgi on */) {
-		headers += "Content-Length: ";
-		size_t headend = response.find("\r\n\r\n") + 4;
-		if (headend == std::string::npos)
-			headend = 0;
-		std::cout << "SIZE = " << response.size() << "HEADEND= " << headend;
-		ss << response.size() - headend;
-		headers += ss.str();
-		if (response.find("\r\n\r\n") != response.npos)
-			headers += "\r\n";
-		else
-			headers += "\r\n\r\n";
+		//headers += "Content-Length: ";
+		//size_t headend = response.find("\r\n\r\n");
+		//headend = headend == std::string::npos? 0 : headend + 4;
+		//std::cout << "SIZE = " << response.size() << "HEADEND= " << headend;
+		//ss << response.size() - (headend);
+		//headers += ss.str();
+		//headers += "Connection: keep-alive\r\nContent-Encoding: gzip";
+		//if (response.find("\r\n\r\n") != response.npos)
+		//	headers += "\r\n";
+		//else
+		//	headers += "\r\n\r\n";
 		headers += response;
 		std::cout << RED << headers << END << std::endl;
+
 		return headers;
 	}
 	headers += "Content-Type: ";
