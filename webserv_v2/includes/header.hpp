@@ -1,5 +1,5 @@
-#ifndef ALL_HPP
-# define ALL_HPP
+#ifndef HEADER_HPP
+# define HEADER_HPP
 
 # define BLACK   "\033[1m\033[30m"       /* Bold Black */
 # define RED     "\033[1m\033[31m"      /* Bold Red */
@@ -15,15 +15,22 @@
 # include <netinet/in.h> // For sockaddr_in
 # include <arpa/inet.h> // For inet_addr
 # include <iostream>
-// # include <stdlib.h>
+# include <cstring>
+# include <sys/select.h>
+# include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 # include <list>
+# include <cerrno>
 # include <map>
-// # include <string>
+# include <vector>
+# include <string>
 # include <unistd.h>
-# include <csignal>
-# include <sys/types.h>
-# include <sys/stat.h>
+# include <cstdlib> // exit() and EXIT_FAILURE
 # include <fcntl.h>
-# include "utils.hpp"
+# include <stdexcept> 
+# include <stdlib.h> //DELETE LATER
+# include <iterator> // distance
+# include <fstream>
+# include <sstream>
+# include <algorithm>
 
 #endif
