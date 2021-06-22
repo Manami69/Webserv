@@ -6,5 +6,5 @@
 
   echo  $_POST['say'], ' ', $_POST['to'];
 
-  phpinfo(INFO_VARIABLES);
+  //phpinfo(INFO_VARIABLES);
 ?>

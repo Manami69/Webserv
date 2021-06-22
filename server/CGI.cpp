@@ -263,6 +263,7 @@ void	CGI::_exec_nobody( void ) {
 // C type shell
 void	CGI::cgi_exec() // TODO pipe avec cat du content
 {
+	std::cout << "HELLOOOOOOOOOO" << std::endl;
 	if (!_req["body"].empty() && !_req["method"].compare("POST"))
 		_exec_body();
 	else

@@ -65,7 +65,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	str.insert(0, "HTTP/1.1 ");
 	str+= " ";
 	str += err.find(this->_status_code)->second;
-	str += CRLF;
+	str += "\r\n";
 	///////////////////// a refaire
 	if (this->_status_code >= 200 && this->_status_code < 300)
 		str += this->_content;
@@ -217,7 +217,7 @@ std::string getResponse::_method_get( void )
 	else if (!_get_extension().compare("php") || _request["request-target"].find(".php?") != std::string::npos)
 	{
 		// if cgi is on
-		CGI cgi(_request, "8000", ROOT);
+		CGI cgi(_request, "7000", ROOT);
 		try {
 			cgi.cgi_exec();
 		}
@@ -248,6 +248,15 @@ std::string getResponse::_method_get( void )
 }
 
 
+// std::string reformPHP(std::string response)
+// {
+// 	size_t headend = response.find("\r\n\r\n");
+// 	headend = headend == std::string::npos? 0 : headend + 4;
+
+// 	std::string body = response.substr(headend);
+
+// }
+
 // ptet revoir la gestion des headers via une map ???????????
 std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string headers;
@@ -258,17 +267,16 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	// TODO ajouter serv name
 	//headers += _get_date_line();
 	if (!ext.compare("php") || _request["request-target"].find(".php?") != std::string::npos /* et cgi on */) {
-		//headers += "Content-Length: ";
-		//size_t headend = response.find("\r\n\r\n");
-		//headend = headend == std::string::npos? 0 : headend + 4;
+		headers += "Content-Length: ";
+		size_t headend = response.find("\r\n\r\n");
+		headend = headend == std::string::npos? 0 : headend + 4;
 		//std::cout << "SIZE = " << response.size() << "HEADEND= " << headend;
-		//ss << response.size() - (headend);
-		//headers += ss.str();
-		//headers += "Connection: keep-alive\r\nContent-Encoding: gzip";
-		//if (response.find("\r\n\r\n") != response.npos)
-		//	headers += "\r\n";
-		//else
-		//	headers += "\r\n\r\n";
+		ss << response.size() - headend;
+		headers += ss.str();
+		if (response.find("\r\n\r\n") != response.npos)
+			headers += "\r\n";
+		else
+			headers += "\r\n\r\n";
 		headers += response;
 		std::cout << RED << headers << END << std::endl;
 

@@ -10,21 +10,11 @@
 int main ()
 {
 	std::fstream fs;
-	int		num = 0;
-	std::stringstream ss;
-	bool t = true;
-	while (t)
-	{
-		ss.str("");
-		ss << num;
-		std::cout << "body" + ss.str() << std::endl;
-		fs.open("./body" + ss.str(), std::fstream::in);
-		t = fs.is_open();
-		fs.close();
-		num++;
-	}
-	fs.open("body" + ss.str(), std::fstream::out);
-	std::cout <<  "body" + ss.str() << std::endl;
+	char c;
+	fs.open("./popo.txt", std::fstream::in);
+	while (fs.get(c))          // loop getting single characters
+    	std::cout << c << "=" << (int)c << " ";
+	fs.close();
 	return 0;
 }
 
