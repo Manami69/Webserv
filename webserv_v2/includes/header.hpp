@@ -28,6 +28,9 @@
 # include <fcntl.h>
 # include <stdexcept> 
 # include <stdlib.h> //DELETE LATER
-#include <iterator> // distance
+# include <iterator> // distance
+# include <fstream>
+# include <sstream>
+# include <algorithm>
 
 #endif

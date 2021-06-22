@@ -1,5 +1,4 @@
-#include "getResponse.hpp"
-
+#include "../includes/getResponse.hpp"
 
 getResponse::getResponse( getRequest const &request ) : _request(request) {
 	this->_status_code = _parse_status_line();

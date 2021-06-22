@@ -1,20 +1,20 @@
-#include "server.hpp"
+#include "../includes/server.hpp"
 
-Server::Server(void) :
-_sockfd(0),
-_server_nbr(0) {
+Server::Server( void ) {
+	_sockfd = 0;
+	_server_nbr = 0;
 	return ;
 }
 
-Server::~Server(){
+Server::~Server( void ) {
 }
 
-void	Server::setup_server_socket(std::string const &port) {
+void	Server::setup_server_socket(Config conf, int idx) {
 	get_master_socket_fd();
 	_listen = new Listen();
 	_listen->sockfd = _sockfd;
-	_listen->port = atoi(port.c_str());
-	_listen->host = "127.0.0.1"; // Need to accepter other host later
+	_listen->port = atoi(conf.get_config(idx)->port.c_str());
+	_listen->host = conf.get_config(idx)->host;
 	
 	memset(&_listen->addr, 0, sizeof(sockaddr_in));
 	in_addr_t address = inet_addr(_listen->host.c_str());
@@ -29,13 +29,13 @@ void	Server::setup_server_socket(std::string const &port) {
 }
 
 void	Server::get_master_socket_fd(void) {
-	// TCP, IPv4
+	/* TCP, IPv4 */
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	std::cout << "Socket FD : " << sockfd << std::endl; // DELETE LATER
 	if (sockfd == -1)
 	{
 		close(sockfd);
-		throw std::runtime_error ("Failed to create socket. <" + std::string(strerror(errno)) + ">");
+		//throw std::runtime_error ("Failed to create socket. <" + std::string(strerror(errno)) + ">");
 	}
 	_sockfd = sockfd;
 	std::cout << GREEN << "Socket successfully created... " << RESET << std::endl;

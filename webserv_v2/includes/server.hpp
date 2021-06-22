@@ -2,10 +2,12 @@
 # define SERVER_HPP
 
 # include "header.hpp"
+# include "config.hpp"
 # include "getRequest.hpp"
 # include "getResponse.hpp"
 
 # define BUFSIZE 2048
+
 struct 					Listen
 {
 	int					sockfd;
@@ -17,11 +19,11 @@ struct 					Listen
 class Server
 {
 private:
-	int							_sockfd;
-	short						_port;
+    int							_sockfd;
+	int							_server_nbr;
 	Listen						*_listen;
 	std::vector<Listen*>		_server_lst;
-	int							_server_nbr;
+	
 	fd_set						_read_set;
 	fd_set						_read_copy;
 	int							_max_fd;
@@ -32,9 +34,9 @@ private:
 	std::map<int, std::string>	_err;
 
 public:
-	Server(void);
-	~Server(void);
-	void					setup_server_socket(std::string const &port);
+	Server( void );
+	~Server( void );
+	void					setup_server_socket(Config conf, int idx);
 	void					get_master_socket_fd(void);
 	void					set_socket_reuse(void);
 	void					binded(void);
