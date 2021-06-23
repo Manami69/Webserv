@@ -19,16 +19,15 @@ struct 					Listen
 class Server
 {
 private:
-    int							_sockfd;
-	int							_server_nbr;
-	Listen						*_listen;
-	std::vector<Listen*>		_server_lst;
-	
-	fd_set						_read_set;
-	fd_set						_read_copy;
-	int							_max_fd;
-	std::vector<int>			_client_lst;
-	std::vector<int>::iterator	_iter;
+    int								_sockfd;
+	int								_server_nbr;
+	Listen							*_listen;
+	std::vector<Listen*>			_server_lst;
+	fd_set							_read_set;
+	fd_set							_read_copy;
+	int								_max_fd;
+	std::map<int, int>				_client_lst;
+	std::map<int, int>::iterator	_iter;
 	Server(Server const &copy);
 	Server &operator=(Server const &rhs);
 	std::map<int, std::string>	_err;

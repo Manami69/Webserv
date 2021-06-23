@@ -103,23 +103,24 @@ void	Server::selected(void) {
 		for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
 			FD_SET((*it)->sockfd, &_read_set);
 			_max_fd = (*it)->sockfd;
+			std::cout << "Max sd server: " << _max_fd << std::endl;
 		}
 
+		std::cout << std::endl << "//// CLIENT LIST ////" << std::endl;
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
-			int sd = *_iter;
-			std::cout << std::endl << "client sd : " << *_iter << std::endl;
+			int sd = (*_iter).first;
+			std::cout << "client sd : " << (*_iter).first  << " and its server order : "  << (*_iter).second << std::endl;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
 			if(sd > _max_fd) {
 				_max_fd = sd;
+				std::cout << "Max sd clien: " << _max_fd << std::endl;
 			}
 		}
 		_read_copy = _read_set;
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
 		if ((ret == -1) && (errno != EINTR))
-		{
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
-		}
 		for (int fd = 0; fd <= _max_fd; ++fd) {
             if (FD_ISSET(fd, &_read_copy))
 				this->process_socket(fd);
@@ -128,7 +129,13 @@ void	Server::selected(void) {
 }
 
 void	Server::process_socket(int fd) {
+
+	std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
+
 	int	server_order = this->is_sockfd_found(fd);
+
+	std::cout << "server_order : " << server_order << std::endl;
+
 	if (server_order > 0) {
         // listener socket is readable => accept the connection and create communication socket
         uint32_t addrlen = sizeof(_server_lst[server_order - 1]->addr);
@@ -139,31 +146,32 @@ void	Server::process_socket(int fd) {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			fcntl(comm, F_SETFL, O_NONBLOCK);
 			FD_SET(comm, &_read_set);
-			_client_lst.push_back(comm);
+			_client_lst.insert(std::pair<int, int>(comm, server_order));
 		}
     }
 	else {
 		ssize_t size_recv;
-		ssize_t total = 0;
 		char	buf[BUFSIZE + 1];
 		memset(&buf, 0, sizeof(buf));
 		while ((size_recv = recv(fd, buf, sizeof(buf), 0)) > 0) {
-			std::cout << YELLOW << buf;
-			total += size_recv;
-			getRequest a(buf);
-			getResponse response(a);
-			this->error_code();
-			std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
+			std::cout << YELLOW << buf << RESET;
+			// getRequest a(buf);
+			// getResponse response(a);
+			// this->error_code();
+			// std::cout << a << response.responsetosend(_err);
+			// send(fd, response.responsetosend(_err));
 			memset(&buf, 0, sizeof(buf));
 		}
 		if (size_recv == 0) {
 			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-			_iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
-			if (_iter != _client_lst.end()) {
-        		int index = std::distance(_client_lst.begin(), _iter);
-				_client_lst.erase(_client_lst.begin() + index);
-			}
+			// _iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
+			// if (_iter != _client_lst.end()) {
+        	// 	int index = std::distance(_client_lst.begin(), _iter);
+			// 	_client_lst.erase(_client_lst.begin() + index);
+			// }
+			_iter = _client_lst.find(fd);
+			if (_iter != _client_lst.end())
+				_client_lst.erase(_iter);
 			FD_CLR(fd, &_read_set);
 			close(fd);
 		}
