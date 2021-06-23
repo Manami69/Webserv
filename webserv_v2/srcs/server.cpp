@@ -119,6 +119,9 @@ void	Server::selected(void) {
 		}
 		_read_copy = _read_set;
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
+
+		std::cout << std::endl << "select ret : " << ret << std::endl;
+
 		if ((ret == -1) && (errno != EINTR))
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
 		for (int fd = 0; fd <= _max_fd; ++fd) {
@@ -139,7 +142,7 @@ void	Server::process_socket(int fd) {
 	if (server_order > 0) {
         // listener socket is readable => accept the connection and create communication socket
         uint32_t addrlen = sizeof(_server_lst[server_order - 1]->addr);
-		int comm = accept(fd, (struct sockaddr *)&_server_lst[server_order - 1]->addr, (socklen_t *)&addrlen); // add 2nd and 3rd arguments
+		int comm = accept(fd, (struct sockaddr *)&_server_lst[server_order - 1]->addr, (socklen_t *)&addrlen);
 		if (comm == -1)
 			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
 		else {
@@ -155,20 +158,15 @@ void	Server::process_socket(int fd) {
 		memset(&buf, 0, sizeof(buf));
 		while ((size_recv = recv(fd, buf, sizeof(buf), 0)) > 0) {
 			std::cout << YELLOW << buf << RESET;
-			// getRequest a(buf);
-			// getResponse response(a);
-			// this->error_code();
-			// std::cout << a << response.responsetosend(_err);
-			// send(fd, response.responsetosend(_err));
+			getRequest a(buf);
+			getResponse response(a);
+			this->error_code();
+			std::cout << a << response.responsetosend(_err);
+			send(fd, response.responsetosend(_err));
 			memset(&buf, 0, sizeof(buf));
 		}
 		if (size_recv == 0) {
 			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-			// _iter = std::find(_client_lst.begin(), _client_lst.end(), fd);
-			// if (_iter != _client_lst.end()) {
-        	// 	int index = std::distance(_client_lst.begin(), _iter);
-			// 	_client_lst.erase(_client_lst.begin() + index);
-			// }
 			_iter = _client_lst.find(fd);
 			if (_iter != _client_lst.end())
 				_client_lst.erase(_iter);
