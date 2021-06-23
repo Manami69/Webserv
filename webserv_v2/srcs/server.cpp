@@ -60,7 +60,9 @@ void	Server::binded(void) {
 	if (ret == -1)
 	{
 		close(_listen->sockfd);
-		throw std::runtime_error ("Failed to bind to port " + std::to_string(_listen->port) + "<" + std::string(strerror(errno)) + ">");
+		std::stringstream ss;
+		ss << _listen->port;
+		throw std::runtime_error ("Failed to bind to port " + ss.str() + "<" + std::string(strerror(errno)) + ">");
 	}
 	std::cout << GREEN << "Socket successfully binded..." << RESET << std::endl;
 	return ;

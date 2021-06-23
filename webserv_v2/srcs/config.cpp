@@ -26,7 +26,7 @@ void	Config::scan_file( void ) {
 	std::ifstream	ifs;
 	std::string		line;
 
-	ifs.open(get_filename());
+	ifs.open(get_filename().c_str());
 	if ( !ifs.is_open() ) {
 		ifs.close();
 		throw ( FailedToOpenFile() );

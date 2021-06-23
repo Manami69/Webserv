@@ -2,6 +2,7 @@
 # define CGI_HPP
 # include "header.hpp"
 # include "getRequest.hpp"
+# include "getResponse.hpp"
 
 class CGI {
     public:

@@ -1,5 +1,4 @@
-#include "CGI.hpp"
-#include "getResponse.hpp"
+#include "./../includes/CGI.hpp"
 
 
 const std::string CGI::arr[] = {"HTTP_CACHE_CONTROL", "HTTP_UPGRADE_INSECURE_REQUESTS", \
@@ -201,7 +200,7 @@ void	CGI::_exec_body( void ) {
 	}
 	else {
 		waitpid(pid, NULL, 0);
-		int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
+		int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
 		//pid = 0;
 		_dstrfree(action);
 		action = _get_action(false);
@@ -233,7 +232,7 @@ void	CGI::_exec_body( void ) {
 }
 
 void	CGI::_exec_nobody( void ) {
-	int fd = open("./srcs/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
+	int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
 	pid_t pid;
 	char **env = _get_env();
 	if (!env)

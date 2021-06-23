@@ -32,5 +32,13 @@
 # include <fstream>
 # include <sstream>
 # include <algorithm>
+# include <dirent.h>
+# include <iomanip>
+# include <sys/stat.h>
+# include <ctime>
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <string.h>
+
 
 #endif
