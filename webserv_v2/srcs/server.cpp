@@ -148,26 +148,51 @@ void	Server::process_socket(int fd) {
 		else {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			fcntl(comm, F_SETFL, O_NONBLOCK);
-			FD_SET(comm, &_read_set);
+			//FD_SET(comm, &_read_set);
 			_client_lst.insert(std::pair<int, int>(comm, server_order));
 		}
     }
 	else {
-		ssize_t size_recv;
+		ssize_t size_recv, total_size = 0;
+		struct timeval begin , now;
 		char	buf[BUFSIZE + 1];
-		memset(&buf, 0, sizeof(buf));
+		double	timediff;
 		std::string *buffff = new std::string;
-		//buffff->reserve(10000000);
-		for (int i = 0; i < 10000; i++)
+		FD_SET(fd, &_read_set);
+		gettimeofday(&begin , NULL);
+		while(true)
 		{
-			size_recv = recv(fd, buf, sizeof(buf), 0);
-			//std::cout << buf << std::endl;
-			for (ssize_t j = 0; j < size_recv ; j++)
-				buffff->push_back(buf[j]);
+			//std::cout << "readddddd" << std::endl;
+			gettimeofday(&now , NULL);
+			timediff = (now.tv_sec - begin.tv_sec) + 1e-6 * (now.tv_usec - begin.tv_usec);
+			if( total_size > 0 && timediff > 4 )
+			{
+				break;
+			}
+			else if( timediff > 4*2)
+			{
+				break;
+			}
 			memset(&buf, 0, sizeof(buf));
+			if ((size_recv = recv(fd, buf, sizeof(buf), 0)) < 0)
+			{
+				usleep(100000);
+				
+			}
+			else
+			{
+				total_size += size_recv;
+				for (ssize_t j = 0; j < size_recv ; j++)
+					buffff->push_back(buf[j]);
+				gettimeofday(&begin , NULL);
+			}
 		}
-		//while ((size_recv = recv(fd, buf, sizeof(buf), 0)) > 0) {
+		
+
 		std::cout << YELLOW << *buffff << RESET;
+
+		std::cout << "total_size : " << total_size << std::endl;
+
 		if (!buffff->empty()) //// a changer
 		{
 			getRequest a(*buffff);
@@ -177,6 +202,7 @@ void	Server::process_socket(int fd) {
 			this->error_code();
 		//std::cout << a << response.responsetosend(_err);
 			send(fd, response.responsetosend(_err));
+			// close and clear fd
 		}
 		else
 
