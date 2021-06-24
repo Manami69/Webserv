@@ -3,7 +3,7 @@
 
 const std::string CGI::arr[] = {"HTTP_CACHE_CONTROL", "HTTP_UPGRADE_INSECURE_REQUESTS", \
     "HTTP_CONNECTION", "HTTP_ORIGIN", "HTTP_CONTENT_LENGTH", "HTTP_CONTENT_TYPE" , "HTTP_REFERER", "HTTP_ACCEPT_ENCODING",\
-    "HTTP_ACCEPT_LANGUAGE", "HTTP_ACCEPT", "HTTP_USER_AGENT", "HTTP_HOST", "REDIRECT_STATUS", "SERVER_NAME", "SERVER_PORT",\
+    "HTTP_ACCEPT_LANGUAGE", "HTTP_ACCEPT", "HTTP_USER_AGENT", "HTTP_HOST", "USER", "HOME" ,"REDIRECT_STATUS", "SERVER_NAME", "SERVER_PORT",\
     "SERVER_ADDR", "GATEWAY_INTERFACE", "REQUEST_SCHEME", "SERVER_PROTOCOL", "DOCUMENT_ROOT",\
     "DOCUMENT_URI", "REQUEST_URI", "SCRIPT_NAME", "CONTENT_LENGTH", "CONTENT_TYPE", "REQUEST_METHOD", "QUERY_STRING",\
     "SCRIPT_FILENAME", "PATH_TRANSLATED", "PATH_INFO", "FCGI_ROLE", "PHP_SELF"};
@@ -63,7 +63,7 @@ void CGI::_fill_map_key( std::string key , std::string value) {
     # define PHP_SELF DOCUMENT_URI
 	#if defined (__APPLE__)
 		#define PHP_CGI HOME"/.brew/bin/php-cgi"
-    	# define DOCUMENT_ROOT "/Users/lolopez/Documents/Webserv/www"
+    	# define DOCUMENT_ROOT "/Users/lolopez/Desktop/lolol/www"
 	#else
 		#define PHP_CGI "/usr/bin/php-cgi"
 		#define DOCUMENT_ROOT "/home/lolo/Documents/Webserv/www"
@@ -73,6 +73,8 @@ void CGI::_fill_map_key( std::string key , std::string value) {
 
 void    CGI::_fill_values( std::string port, std::string root) {
     ////// A REFAIRE AVEC LA CONF
+	_fill_map_key("USER", "lolopez");
+	_fill_map_key("HOME", HOME);
    _fill_map_key("HTTP_CACHE_CONTROL", HTTP_CACHE_CONTROL);
    _fill_map_key("HTTP_UPGRADE_INSECURE_REQUESTS", HTTP_UPGRADE_INSECURE_REQUESTS);
    _fill_map_key("HTTP_CONNECTION", HTTP_CONNECTION);
@@ -106,7 +108,7 @@ void    CGI::_fill_values( std::string port, std::string root) {
    _fill_map_key("SCRIPT_FILENAME", root + (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
    _fill_map_key("PATH_TRANSLATED", PATH_TRANSLATED);
    _fill_map_key("PATH_INFO", PATH_INFO);
-   _fill_map_key("FCGI_ROLE", FCGI_ROLE);
+   _fill_map_key("FCGI_ROLE", "RESPONDER");
    _fill_map_key("PHP_SELF", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
 }
 
@@ -159,7 +161,7 @@ char **CGI::env() {
 char **CGI::_get_action(bool act) {
 	std::string ret[2];// = (act ? {"/bin/cat", _req["body"]} : {PHP_CGI, _SERVER["SCRIPT_FILENAME"]});
 	ret[0] = act ? "/bin/cat" : PHP_CGI;
-	ret[1] = act ? _req["body"] : _SERVER["SCRIPT_FILENAME"];
+	ret[1] = act ? _req["body"]: _SERVER["SCRIPT_FILENAME"];
 	size_t		len = 2;
 	char **action = (char **)malloc((len + 1) * sizeof(char *));
 	if (!action)
@@ -180,6 +182,7 @@ char **CGI::_get_action(bool act) {
 void	CGI::_exec_body( void ) {
 	int pipefd[2];
 	pid_t pid;
+	pid_t pod;
 	char **env = _get_env();
 	if (!env)
 		throw CGI::Error();	
@@ -189,43 +192,46 @@ void	CGI::_exec_body( void ) {
 		_dstrfree(env);
 		throw CGI::Error();
 	}
+	std::cout << YEL << "PIPE 1" << END << std::endl;
 	pipe(pipefd);
-	if ((pid = fork()) == 0)
+	if ((pod = fork()) == 0)
 	{
 		dup2(pipefd[1], 1);
-		close(pipefd[1]);
+		// close(pipefd[1]);
 		close(pipefd[0]);
 		execve(action[0], action, env);
 		exit(0);
 	}
 	else {
-		waitpid(pid, NULL, 0);
-		int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
-		//pid = 0;
-		_dstrfree(action);
-		action = _get_action(false);
-		if (!action)
-		{
+		std::cout << YEL << "PIPE @" << END << std::endl;
+		int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK, 0777);
+		//pid = 0;man
+		char **actionman = _get_action(false);
+		if (!actionman)
+		{	
+			_dstrfree(action);
 			_dstrfree(env);
 			throw CGI::Error();
 		}
-		pid = fork();
+ 		pid = fork();
 		if ((pid) == 0)
 		{
 			dup2(pipefd[0], 0);
 			dup2(fd, 1);
-			close(pipefd[0]);
+			// close(pipefd[0]);
 			close(pipefd[1]);
-			close(fd);
-			execve(action[0], action, env);
+			//close(fd);
+			execve(actionman[0], actionman, env);
 			exit(0);
 		}
 		else {
+			waitpid(pod, NULL, 0);
 			waitpid(pid, NULL, 0);
 			close(pipefd[1]);
 			close(pipefd[0]);
 			close(fd);
 			_dstrfree(action);
+			_dstrfree(actionman);
 			_dstrfree(env);
 		}
 	}

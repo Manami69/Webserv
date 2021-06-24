@@ -31,7 +31,7 @@ void	Server::setup_server_socket(Config conf, int idx) {
 void	Server::get_master_socket_fd(void) {
 	/* TCP, IPv4 */
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	std::cout << "Socket FD : " << sockfd << std::endl; // DELETE LATER
+	//std::cout << "Socket FD : " << sockfd << std::endl; // DELETE LATER
 	if (sockfd == -1)
 	{
 		close(sockfd);
@@ -103,24 +103,24 @@ void	Server::selected(void) {
 		for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
 			FD_SET((*it)->sockfd, &_read_set);
 			_max_fd = (*it)->sockfd;
-			std::cout << "Max sd server: " << _max_fd << std::endl;
+			//std::cout << "Max sd server: " << _max_fd << std::endl;
 		}
 
-		std::cout << std::endl << "//// CLIENT LIST ////" << std::endl;
+		//std::cout << std::endl << "//// CLIENT LIST ////" << std::endl;
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
 			int sd = (*_iter).first;
-			std::cout << "client sd : " << (*_iter).first  << " and its server order : "  << (*_iter).second << std::endl;
+			//std::cout << "client sd : " << (*_iter).first  << " and its server order : "  << (*_iter).second << std::endl;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
 			if(sd > _max_fd) {
 				_max_fd = sd;
-				std::cout << "Max sd clien: " << _max_fd << std::endl;
+				//std::cout << "Max sd clien: " << _max_fd << std::endl;
 			}
 		}
 		_read_copy = _read_set;
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
 
-		std::cout << std::endl << "select ret : " << ret << std::endl;
+		//std::cout << std::endl << "select ret : " << ret << std::endl;
 
 		if ((ret == -1) && (errno != EINTR))
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
@@ -133,11 +133,11 @@ void	Server::selected(void) {
 
 void	Server::process_socket(int fd) {
 
-	std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
+	//std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
 
 	int	server_order = this->is_sockfd_found(fd);
 
-	std::cout << "server_order : " << server_order << std::endl;
+	//std::cout << "server_order : " << server_order << std::endl;
 
 	if (server_order > 0) {
         // listener socket is readable => accept the connection and create communication socket
@@ -156,15 +156,34 @@ void	Server::process_socket(int fd) {
 		ssize_t size_recv;
 		char	buf[BUFSIZE + 1];
 		memset(&buf, 0, sizeof(buf));
-		while ((size_recv = recv(fd, buf, sizeof(buf), 0)) > 0) {
-			std::cout << YELLOW << buf << RESET;
-			getRequest a(buf);
-			getResponse response(a);
-			this->error_code();
-			std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
+		std::string *buffff = new std::string;
+		//buffff->reserve(10000000);
+		for (int i = 0; i < 10000; i++)
+		{
+			size_recv = recv(fd, buf, sizeof(buf), 0);
+			//std::cout << buf << std::endl;
+			for (ssize_t j = 0; j < size_recv ; j++)
+				buffff->push_back(buf[j]);
 			memset(&buf, 0, sizeof(buf));
 		}
+		//while ((size_recv = recv(fd, buf, sizeof(buf), 0)) > 0) {
+		std::cout << YELLOW << *buffff << RESET;
+		if (!buffff->empty()) //// a changer
+		{
+			getRequest a(*buffff);
+			std::cout <<YEL << a["Content-Type"] << END << std::endl;
+			delete buffff;
+			getResponse response(a);
+			this->error_code();
+		//std::cout << a << response.responsetosend(_err);
+			send(fd, response.responsetosend(_err));
+		}
+		else
+
+			delete buffff;
+		
+		// memset(&buf, 0, sizeof(buf));
+		//}
 		if (size_recv == 0) {
 			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 			_iter = _client_lst.find(fd);

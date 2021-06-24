@@ -27,6 +27,7 @@ class getRequest {
 		// Setters
 		void			fillRequest( std::string buffer );
 		void			setKeyValue( std::string key, std::string val );
+
 		// Getters
 		std::string		getKeyValue( std::string key ) const;
 		std::map<std::string, std::string>	getMap( void ) const;
@@ -34,6 +35,7 @@ class getRequest {
 	private:
 		std::map<std::string, std::string>	_request_tokens;
 		std::vector<std::string>			_array;
+		void	_setKeyValueOnce( std::string key, std::string val );
 		void	_construct_array( void );
 		void	_construct_empty_map( void );
 		void	_fill_body(std::string buffer);

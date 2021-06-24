@@ -6,7 +6,7 @@
 
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
-	# define ROOT "/Users/lolopez/Documents/Webserv/www"
+	# define ROOT "/Users/lolopez/Desktop/lolol/www"
 #else
 	#define ROOT "/home/lolo/Documents/Webserv/www"
 #endif

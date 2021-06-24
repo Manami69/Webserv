@@ -56,7 +56,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::string str;
 	std::stringstream ss;
 
-	remove(_request["body"].c_str());
+	//remove(_request["body"].c_str());
 	str.reserve(30);
 	if (!this->_status_code)
 		return this->_content;/////////////////////
@@ -71,8 +71,6 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 		str += this->_content;
 	else
 		str += _error_response(err);
-	for (size_t i = 0 ; i < str.size() ; i++)
-		std::cout << "\""<< str[i] << "\"=" << (int)str[i] << " ";
 	return str;
 }
 
@@ -217,7 +215,7 @@ std::string getResponse::_method_get( void )
 	else if (!_get_extension().compare("php") || _request["request-target"].find(".php?") != std::string::npos)
 	{
 		// if cgi is on
-		CGI cgi(_request, "7000", ROOT);
+		CGI cgi(_request, "8080", ROOT);
 		try {
 			cgi.cgi_exec();
 		}

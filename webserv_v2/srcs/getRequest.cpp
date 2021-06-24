@@ -86,20 +86,30 @@ void			getRequest::fillRequest( std::string request ) {
 		start = space + 2;
 		if ((space = request.find("\n", start)) == std::string::npos) //
 		{
-			this->setKeyValue(key, request.substr(start, request.size() - start));
+			this->_setKeyValueOnce(key, request.substr(start, request.size() - start));
 			return ;
 		}
 		token = request.substr(start, space - start - 1);
-		this->setKeyValue(key, token);
+		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
 	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
 		_fill_body(request);
 }
 
+void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
+	if (_is_used_key(key))
+	{
+		if (this->_request_tokens[key].empty())
+			this->_request_tokens[key] = val;
+	}
+}
+
 void			getRequest::setKeyValue( std::string key, std::string val ) {
 	if (_is_used_key(key))
+	{
 		this->_request_tokens[key] = val;
+	}
 }
 
 std::string		getRequest::getKeyValue( std::string key ) const {

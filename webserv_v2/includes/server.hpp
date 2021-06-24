@@ -6,7 +6,7 @@
 # include "getRequest.hpp"
 # include "getResponse.hpp"
 
-# define BUFSIZE 2048
+# define BUFSIZE 100000
 
 struct 					Listen
 {
