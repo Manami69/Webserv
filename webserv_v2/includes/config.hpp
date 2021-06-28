@@ -3,6 +3,16 @@
 
 #include "header.hpp"
 
+struct						_locations
+{
+	std::string					access;
+	std::string					root;
+	std::list<std::string>		index;
+	size_t						client_max_body_size;
+	std::string					allow_methods;
+};
+
+
 struct						Serv_config
 {
 	std::string					host;
@@ -12,7 +22,8 @@ struct						Serv_config
 	size_t						client_max_body_size;
 	std::map<int,std::string>	error_page;
 	std::list<std::string>		index;
-	// std::list<t_location>	locations;
+	unsigned	int				_nb_location;
+	std::list<_locations>		locations;
 };
 
 class Config
@@ -55,26 +66,38 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorAccess : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
+	class ErrorMethods : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void						scan_file( void );
 	void						tokenize( std::string line );
 	void						check_brackets( void );
-	void						init_serv_config(void);
-	void						parse_config(void);
-	bool						check_line(std::string const &line, std::string const &comp);
-	bool						check_semicolon(unsigned long i);
+	void						init_serv_config( void );
+	void						init_config_location( void );
+	void						parse_config( void );
+	void						parse_location( unsigned long i );
+	bool						check_line( std::string const &line, std::string const &comp );
+	bool						check_semicolon( unsigned long i );
 	/////////		GETTERS		/////////
 	std::string							get_filename( void ) const;
 	std::vector<std::string>			get_tokens( void ) const;
-	int									get_nb_server(void) const;
+	int									get_nb_server( void ) const;
 	std::list<Serv_config>::iterator	get_config( unsigned int idx );
+	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
 	/////////		CHECKS		/////////
-	void						check_listen(std::string conf);
-	void						check_server_name(std::string conf);
-	void						check_root(std::string conf);
-	void						check_client_max_body_size(std::string conf);
-	void						check_error_page(std::string conf1, std::string conf2);
+	void						check_listen( std::string conf );
+	void						check_server_name( std::string conf );
+	void						check_root( std::string conf );
+	void						check_client_max_body_size( std::string conf );
+	void						check_error_page( std::string conf1, std::string conf2 );
+	void						check_allow_methods( std::string conf );
 };
 
 #endif

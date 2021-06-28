@@ -20,6 +20,14 @@ const char *Config::ErrorPage::what() const throw() {
 	return ( "Error : Wrong error page." );
 }
 
+const char *Config::ErrorAccess::what() const throw() {
+	return ( "Error : Wrong access to location." );
+}
+
+const char *Config::ErrorMethods::what() const throw() {
+	return ( "Error : Wrong methods to location." );
+}
+
 bool	is_number(const std::string& s)
 {
     std::string::const_iterator it = s.begin();
@@ -85,11 +93,18 @@ void	Config::check_client_max_body_size(std::string conf)
 
 void	Config::check_error_page(std::string conf1, std::string conf2)
 {
-	(void)conf1;
 	if (conf1.find(";") <= conf1.size())
 		throw ( ErrorPage() );
 	else if (conf2.find(";") > conf2.size())
 		throw ( ErrorPage() );
 	else if (!is_number(conf1))
 		throw ( ErrorPage() );
+}
+
+void	Config::check_allow_methods(std::string conf)
+{
+	if (conf.find(";") > conf.size())
+		throw ( ErrorMethods() );
+	else if (!check_line(conf, "GET;") && !check_line(conf, "PUT;") && !check_line(conf, "POST;"))
+		throw ( ErrorMethods() );
 }

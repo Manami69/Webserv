@@ -36,11 +36,6 @@ void	Config::scan_file( void ) {
 		this->tokenize( line );
 	}
 	ifs.close();
-	////////////////////////////////////////////////////////////////////////////
-	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-		std::cout << YELLOW << "token : |" << _tokens[i] << "|" << RESET << std::endl;
-	}
-	////////////////////////////////////////////////////////////////////////////
 	return ;
 }
 
@@ -92,6 +87,7 @@ void	Config::init_serv_config( void )
 	serv_config.server_name = "Default";
 	serv_config.root = "";
 	serv_config.client_max_body_size = 1;
+	serv_config._nb_location = 0;
 	_serv_config.push_back(serv_config);
 	return ;
 }
@@ -141,17 +137,16 @@ void	Config::parse_config(void)
 					i++;
 				}
 				else if (check_line(this->_tokens[i], "location") && check_semicolon(++i))
+				{
+					parse_location(i);
+					this->_serv_config.back()._nb_location++;
 					while (i < this->_tokens.size() && this->_tokens[i] != "}")
 						i++;
+				}
 				i++;
 			}
 		}
 	}
-	// std::cout << BLUE << this->_serv_config.back().host << RESET << std::endl;
-	// std::cout << BLUE << this->_serv_config.back().port << RESET << std::endl;
-	// std::cout << BLUE << this->_serv_config.back().server_name << RESET << std::endl;
-	// std::cout << BLUE << this->_serv_config.back().root << RESET << std::endl;
-	// std::cout << BLUE << this->_serv_config.back().error_page << RESET << std::endl;
 }
 
 bool	Config::check_line(std::string const &line, std::string const &comp)
@@ -196,3 +191,14 @@ std::list<Serv_config>::iterator	Config::get_config( unsigned int idx ) {
 		*it++;
 	return (it);
 };
+
+std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx )
+{
+	if (idx > it->_nb_location)
+		idx = it->_nb_location;
+
+	std::list<_locations>::iterator is = it->locations.begin();
+	while (--idx > 0)
+		*is++;
+	return (is);
+}

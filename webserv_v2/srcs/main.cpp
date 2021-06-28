@@ -22,7 +22,12 @@ void	display_help(Config conf) // temporary
 		std::cout << BLUE << "client_max_body_size : " << RESET;
 		std::cout << conf.get_config(i)->client_max_body_size << std::endl;
 
-		std::cout << BLUE << "error_page : " << RESET;
+		std::cout << BLUE << "index : " << RESET;
+		std::list<std::string>::iterator	it = conf.get_config(i)->index.begin();
+		while (it != conf.get_config(i)->index.end())
+			std::cout << *it++ << YELLOW << " | " << RESET;
+
+		std::cout << BLUE << "\nerror_page : " << RESET;
 		std::map<int,std::string>::iterator is = conf.get_config(i)->error_page.begin();
 		while (is != conf.get_config(i)->error_page.end())
 		{
@@ -31,11 +36,25 @@ void	display_help(Config conf) // temporary
 		}
 		// std::cout << conf.get_config(i)->error_page[404] << std::endl;
 
-		std::cout << BLUE << "\nindex : " << RESET;
-		std::list<std::string>::iterator	it = conf.get_config(i)->index.begin();
-		while (it != conf.get_config(i)->index.end())
-			std::cout << *it++ << YELLOW << " | " << RESET;
-		std::cout << std::endl;
+		///////// LOCATIONS /////////
+		for (unsigned int j = 1; j <= conf.get_config(i)->_nb_location; j++)
+		{
+			std::cout << CYAN << "\nlocation " << j << " : " << RESET;
+			std::cout << "\t" << YELLOW << "access : " << RESET; 
+			std::cout << conf.get_location(conf.get_config(i), j)->access << std::endl;
+			std::cout << "\t\t" << YELLOW << "root : " << RESET; 
+			std::cout << conf.get_location(conf.get_config(i), j)->root << std::endl;
+			std::cout << "\t\t" << YELLOW << "index : " << RESET;
+			std::list<std::string>::iterator	ix = conf.get_location(conf.get_config(i), j)->index.begin();
+			while (ix != conf.get_location(conf.get_config(i), j)->index.end())
+				std::cout << *ix++ << YELLOW << " | " << RESET;
+			std::cout << std::endl;
+			std::cout << "\t\t" << YELLOW << "client_max_body_size : " << RESET;
+			std::cout << conf.get_location(conf.get_config(i), j)->client_max_body_size << std::endl;
+			std::cout << "\t\t" << YELLOW << "allow_methods : " << RESET;
+			std::cout << conf.get_location(conf.get_config(i), j)->allow_methods << std::endl;
+		}
+		std::cout << "\n" << std::endl;
 	}
 }
 
@@ -58,19 +77,20 @@ int		main(int ac, char **av)
 		conf.scan_file();
 		conf.check_brackets();
 		conf.parse_config();
+		display_help(conf);
 		std::cout << GREEN << "Server config Good" << RESET << std::endl;
 		
-		/* Launch Server */
-		Server	server;
+		// /* Launch Server */
+		// Server	server;
 	
-		for ( int i = 1; i <= conf.get_nb_server(); i++ ) {
-			server.setup_server_socket(conf, i);
-			server.set_socket_reuse();
-			server.binded();
-			server.listened();
-			server.add_server_lst();
-		}
-		server.selected();
+		// for ( int i = 1; i <= conf.get_nb_server(); i++ ) {
+		// 	server.setup_server_socket(conf, i);
+		// 	server.set_socket_reuse();
+		// 	server.binded();
+		// 	server.listened();
+		// 	server.add_server_lst();
+		// }
+		// server.selected();
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;

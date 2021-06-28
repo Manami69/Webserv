@@ -260,7 +260,7 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string headers;
 	std::stringstream ss;
 	std::string ext = _get_extension();
-	if (ext.empty() || (this->_status_code < 200 && this->_status_code > 299))
+	if (ext.empty() || (this->_status_code < 200 || this->_status_code > 299))
 		ext = "html";
 	// TODO ajouter serv name
 	//headers += _get_date_line();
