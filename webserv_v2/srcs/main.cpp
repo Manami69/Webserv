@@ -40,7 +40,9 @@ void	display_help(Config conf) // temporary
 		for (unsigned int j = 1; j <= conf.get_config(i)->_nb_location; j++)
 		{
 			std::cout << CYAN << "\nlocation " << j << " : " << RESET;
-			std::cout << "\t" << YELLOW << "access : " << RESET; 
+			std::cout << "\t" << YELLOW << "cgi : " << RESET; 
+			std::cout << conf.get_location(conf.get_config(i), j)->cgi << std::endl;
+			std::cout << "\t\t" << YELLOW << "access : " << RESET; 
 			std::cout << conf.get_location(conf.get_config(i), j)->access << std::endl;
 			std::cout << "\t\t" << YELLOW << "root : " << RESET; 
 			std::cout << conf.get_location(conf.get_config(i), j)->root << std::endl;
@@ -53,6 +55,13 @@ void	display_help(Config conf) // temporary
 			std::cout << conf.get_location(conf.get_config(i), j)->client_max_body_size << std::endl;
 			std::cout << "\t\t" << YELLOW << "allow_methods : " << RESET;
 			std::cout << conf.get_location(conf.get_config(i), j)->allow_methods << std::endl;
+			std::cout << "\t\t" << YELLOW << "cgi_path : " << RESET;
+			std::cout << conf.get_location(conf.get_config(i), j)->cgi_path << std::endl;
+			std::cout << "\t\t" << YELLOW << "try_files: " << RESET;
+			std::list<std::string>::iterator	iw = conf.get_location(conf.get_config(i), j)->try_files.begin();
+			while (iw != conf.get_location(conf.get_config(i), j)->try_files.end())
+				std::cout << *iw++ << YELLOW << " | " << RESET;
+			std::cout << std::endl;
 		}
 		std::cout << "\n" << std::endl;
 	}

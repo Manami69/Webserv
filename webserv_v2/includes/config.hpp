@@ -10,6 +10,9 @@ struct						_locations
 	std::list<std::string>		index;
 	size_t						client_max_body_size;
 	std::string					allow_methods;
+	bool						cgi;
+	std::string					cgi_path;
+	std::list<std::string>		try_files;
 };
 
 
