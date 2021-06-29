@@ -112,20 +112,23 @@ void	Config::parse_config(void)
 		if (!_tokens[i].compare("server"))
 		{
 			_nb_server++;
+			std::cout << "server nb : " << _nb_server << std::endl; // hahaha
 			init_serv_config();
 			if (_tokens[++i].compare("{"))
 				throw ( WrongConfig() );
 			while (++i < _tokens.size() && _tokens[i] != "}")
 			{
 				std::cout << i << " " <<_tokens[i] << std::endl; // hahaha
-				if (!_tokens[i].compare("listen"))
+				if (!_tokens[i].compare("listen")){
 					i = set_listen(i);
+					std::cout << " port " << _serv_config.back().port << std::endl; // hahaha
+					std::cout << " host " << _serv_config.back().host << std::endl; // hahaha
+				}
+
 				else if (!_tokens[i].compare("server_name"))
 					i = check_server_name(i);
-				else if (!_tokens[i].compare("client_max_body_size")) {
+				else if (!_tokens[i].compare("client_max_body_size"))
 					i = check_client_max_body_size(i);
-					std::cout << " client max : " << _serv_config.back().client_max_body_size << std::endl; // hahaha
-				}
 				// else if (this->_tokens[i] == "error_page") {
 
 				// }

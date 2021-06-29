@@ -82,7 +82,9 @@ size_t	Config::set_listen(size_t i)
 			if (!host.empty() || !port.empty())
 				throw ( ErrorListen() );	
 			host = _tokens[i].substr(0, found);
+			std::cout << YELLOW << host << RESET << std::endl;
 			port = _tokens[i].substr(found + 1);
+			std::cout << YELLOW << port << RESET << std::endl;
 			if (!_check_host(host))
 				throw ( ErrorListen() );			
 			if (!is_number(port) || std::atoi(port.c_str()) > 65535)
@@ -113,6 +115,8 @@ size_t	Config::set_listen(size_t i)
 	}
 	_serv_config.back().host = !host.compare("localhost") ? "127.0.0.1" : host;
 	_serv_config.back().port = port;
+	std::cout << YELLOW << _serv_config.back().host << RESET << std::endl;
+	std::cout << YELLOW << _serv_config.back().port << RESET << std::endl;
 	return (i);
 }
 
@@ -175,8 +179,16 @@ size_t	Config::check_client_max_body_size( size_t i )
 			std::stringstream(_tokens[i]) >> limit_size;
 			_serv_config.back().client_max_body_size = limit_size;
 		}
-		if (_tokens[i].at(digit) == 'M')
+		if (_tokens[i].at(digit) == 'K')
 			_serv_config.back().client_max_body_size *= 1000;
+		else if (_tokens[i].at(digit) == 'M')
+			_serv_config.back().client_max_body_size *= 1000000;
+		else if (_tokens[i].at(digit) == 'G')
+			_serv_config.back().client_max_body_size *= 1000000000; // do we need ?
+		else
+			throw ( ErrorClientMaxBodySize() );
+		if (digit != _tokens[i].size() - 1)
+			throw ( ErrorClientMaxBodySize() );
 	}
 	return (i);
 }
