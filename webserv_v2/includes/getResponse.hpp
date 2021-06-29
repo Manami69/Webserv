@@ -3,6 +3,7 @@
 # include "header.hpp"
 # include "getRequest.hpp"
 # include "CGI.hpp"
+# include "config.hpp"
 
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
@@ -53,7 +54,7 @@ class getResponse {
 	public:
 		~getResponse( void );
 		//getResponse(); TODO constructeur qui prend uniquement la status line et renvoie directement 400 si besoin
-		getResponse( getRequest const &request);
+		getResponse( getRequest const &request, Serv_config conf);
 		getResponse( getResponse const & src );
 
 		getResponse &	operator=( getResponse const & rhs );
@@ -69,7 +70,7 @@ class getResponse {
 		std::string _get_MIMEtype( const std::string& ext);
 		// // GET HEADERS LINE
 		std::string	_get_date_line( void );
-		//TODO std::string _get_serv_line( void );
+		std::string _get_serv_line( void );
 		// // USE PHP-CGI (if enabled)
 		std::string _use_php();
 
@@ -94,6 +95,7 @@ class getResponse {
 		std::vector<std::string>			_keys;
 		int									_status_code;
 		getRequest							_request;
+		Serv_config							_conf;
 		std::string							_content;
 };
 

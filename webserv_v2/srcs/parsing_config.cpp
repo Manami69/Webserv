@@ -132,7 +132,7 @@ void	Config::parse_config(void)
 				}
 				else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
 				{
-					check_error_page(this->_tokens[i], this->_tokens[i + 1]);
+					check_error_page(i);
 					this->_serv_config.back().error_page[std::atoi(this->_tokens[i].c_str())] = this->_tokens[i + 1].substr(0, this->_tokens[i + 1].size() - 1);
 					i++;
 				}

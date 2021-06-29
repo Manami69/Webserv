@@ -126,7 +126,9 @@ void	getRequest::fill_body(std::string request) {
 		_fill_body(request);
 }
 int		getRequest::get_content_length( void ) {
-	if (!getKeyValue("Content-Length").empty())
+	if (getKeyValue("Transfer-Encoding").find("chunked") != std::string::npos)
+		return -1;
+	else if (!getKeyValue("Content-Length").empty())
 	{
 		std::stringstream ss;
 		int ret = 0;
@@ -134,8 +136,6 @@ int		getRequest::get_content_length( void ) {
 		ss >> ret;
 		return ret;
 	}
-	else if (!getKeyValue("Transfer-Encoding").compare("chunked"))
-		return -1;
 	else
 		return 0;
 }

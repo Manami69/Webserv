@@ -91,13 +91,13 @@ void	Config::check_client_max_body_size(std::string conf)
 		throw ( ErrorClientMaxBodySize() );
 }
 
-void	Config::check_error_page(std::string conf1, std::string conf2)
+void	Config::check_error_page(size_t i)
 {
-	if (conf1.find(";") <= conf1.size())
+	if (!is_number(_tokens[i]))
 		throw ( ErrorPage() );
-	else if (conf2.find(";") > conf2.size())
-		throw ( ErrorPage() );
-	else if (!is_number(conf1))
+	while (is_number(_tokens[i]))
+		i++;
+	if (_tokens[i].find(";") == std::string::npos)
 		throw ( ErrorPage() );
 }
 

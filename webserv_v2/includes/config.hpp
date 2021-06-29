@@ -99,7 +99,7 @@ public:
 	void						check_server_name( std::string conf );
 	void						check_root( std::string conf );
 	void						check_client_max_body_size( std::string conf );
-	void						check_error_page( std::string conf1, std::string conf2 );
+	void						check_error_page(size_t i);
 	void						check_allow_methods( std::string conf );
 };
 

@@ -10,7 +10,7 @@
 ░╚════╝░╚══════╝╚═╝░░╚═╝╚═════╝░╚═════╝░  ░╚═════╝░░░░╚═╝░░░╚═╝╚══════╝╚═════╝░
 */
 
-getResponse::getResponse( getRequest const &request ) : _request(request) {
+getResponse::getResponse( getRequest const &request, Serv_config conf ) : _request(request), _conf(conf) {
 	this->_status_code = _parse_status_line();
 	if (this->_status_code == 200) {
 		if (!this->_request["method"].compare("GET"))
@@ -37,6 +37,7 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 	// put your equality here eg.: this->_xx = rhs._xx
 	if (this != &rhs) {
 		this->_request = rhs._request;
+		this->_conf = rhs._conf;
 		this->_keys= rhs._keys;
 		this->_status_code = rhs._status_code;
 	}
@@ -172,12 +173,23 @@ std::string	getResponse::_get_date_line( void ) {
 	return (ret);
 }
 
+std::string getResponse::_get_serv_line( void ) {
+	std::string ret = "Server: ";
+	ret += _conf.server_name;
+	ret += CRLF;
+	return ret;
+}
+
 
 std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 	std::string ret;
 	size_t f = 0;
 	std::stringstream ss;
 	// si pas de fichier personalisé
+	if (!_conf.error_page[this->_status_code].empty())
+	{
+		
+	}
 	ret.reserve(200);
 	ret += "<html>\n<head><title>xx yy</title></head>\n<body>\n\
 <center><h1>xx yy</h1></center>\n<hr><center>Webserv/1.0</center>\n\
