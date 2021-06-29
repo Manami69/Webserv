@@ -7,8 +7,7 @@ struct						_locations
 {
 	std::string					access;
 	std::string					root;
-	std::list<std::string>		index;
-	size_t						client_max_body_size;
+	std::string					index;
 	std::string					allow_methods;
 	bool						cgi;
 	std::string					cgi_path;
@@ -21,10 +20,8 @@ struct						Serv_config
 	std::string					host;
 	std::string					port;
 	std::string					server_name;
-	std::string					root;
 	size_t						client_max_body_size;
 	std::map<int,std::string>	error_page;
-	std::list<std::string>		index;
 	unsigned	int				_nb_location;
 	std::list<_locations>		locations;
 };
@@ -77,6 +74,10 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorIndex : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void						scan_file( void );
@@ -85,22 +86,22 @@ public:
 	void						init_serv_config( void );
 	void						init_config_location( void );
 	void						parse_config( void );
-	void						parse_location( unsigned long i );
-	bool						check_line( std::string const &line, std::string const &comp );
-	bool						check_semicolon( unsigned long i );
+	//void						parse_location( unsigned long i );
+	//bool						check_semicolon( unsigned long i );
 	/////////		GETTERS		/////////
 	std::string							get_filename( void ) const;
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_nb_server( void ) const;
 	std::list<Serv_config>::iterator	get_config( unsigned int idx );
 	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
-	/////////		CHECKS		/////////
-	void						check_listen( std::string conf );
-	void						check_server_name( std::string conf );
-	void						check_root( std::string conf );
-	void						check_client_max_body_size( std::string conf );
-	void						check_error_page(size_t i);
-	void						check_allow_methods( std::string conf );
+	/////////		SETTERS		/////////
+	size_t						set_listen( size_t i );
+	size_t						check_server_name( size_t i );
+	size_t						check_client_max_body_size( size_t i );
+	size_t						check_error_page( size_t i );
+	size_t						check_allow_methods( size_t i );
+	//size_t						check_root( size_t i );
+	//size_t						check_index( size_t i );
 };
 
 #endif

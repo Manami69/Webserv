@@ -50,13 +50,27 @@ void	Config::tokenize( std::string line ) {
 	while ( std::getline(str, intermediate, '\t') ) {
 		_tokens.push_back( intermediate );
 	}
-
+	size_t found;
+	std::string temp;
 	/* Remove empty vector */
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
 		if ( _tokens[i].empty() )
 			_tokens.erase( _tokens.begin() + i );
 	}
-	// find ; and insert it to be an element
+	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
+	{
+		//std::cout << _tokens[i] << " " <<  i << std::endl;
+		if ((found = _tokens[i].find(";")) != std::string::npos && _tokens[i].size() != 1) {
+		 	temp = _tokens[i].substr(0, found);
+		 	_tokens.insert(_tokens.begin() + i + 1, ";");
+			if (found >= _tokens[i].size() - 1)
+				_tokens.insert(_tokens.begin() + i + 2, _tokens[i].substr(found + 1, _tokens[i].size() - found));
+			_tokens[i] = temp;
+			temp =  "";
+		}
+	}
+	// for (std::vector<std::string>::iterator it = _tokens.begin(); it != _tokens.end(); it++)
+	// 	std::cout << "_tokens : |"<< *it << "|" << std::endl;
 }
 
 std::vector<std::string>	Config::get_tokens( void ) const {
@@ -82,11 +96,10 @@ void	Config::init_serv_config( void )
 {
 	Serv_config	serv_config;
 
-	serv_config.host = "0.0.0.0";
-	serv_config.port = "80";
-	serv_config.server_name = "Default";
-	serv_config.root = "";
-	serv_config.client_max_body_size = 1;
+	// serv_config.host = "0.0.0.0";
+	// serv_config.port = "80";
+	serv_config.server_name = "";
+	serv_config.client_max_body_size = 1000000; //nginx default upload limit 1MB
 	serv_config._nb_location = 0;
 	_serv_config.push_back(serv_config);
 	return ;
@@ -94,88 +107,101 @@ void	Config::init_serv_config( void )
 
 void	Config::parse_config(void)
 {
-	for (unsigned long i = 0; i < this->_tokens.size(); i++)
+	for (size_t i = 0; i < _tokens.size(); i++)
 	{
-		if (check_line(this->_tokens[i], "server"))
+		if (!_tokens[i].compare("server"))
 		{
-			this->_nb_server++;
-			this->init_serv_config();
-			while (i < this->_tokens.size() && this->_tokens[i] != "}")
+			_nb_server++;
+			init_serv_config();
+			if (_tokens[++i].compare("{"))
+				throw ( WrongConfig() );
+			while (++i < _tokens.size() && _tokens[i] != "}")
 			{
-				if (check_line(this->_tokens[i], "listen") && check_semicolon(++i))
-				{
-					check_listen(this->_tokens[i]);
-					int		find = _tokens[i].find(":");
-					this->_serv_config.back().host = this->_tokens[i].substr(0, find);
-					this->_serv_config.back().port = this->_tokens[i].substr(find + 1, _tokens[i].size() - (find + 2));
+				std::cout << i << " " <<_tokens[i] << std::endl; // hahaha
+				if (!_tokens[i].compare("listen"))
+					i = set_listen(i);
+				else if (!_tokens[i].compare("server_name"))
+					i = check_server_name(i);
+				else if (!_tokens[i].compare("client_max_body_size")) {
+					i = check_client_max_body_size(i);
+					std::cout << " client max : " << _serv_config.back().client_max_body_size << std::endl; // hahaha
 				}
-				else if (check_line(this->_tokens[i], "server_name") && check_semicolon(++i))
-				{
-					check_server_name(this->_tokens[i]);
-					this->_serv_config.back().server_name = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
-				}
-				else if (check_line(this->_tokens[i], "root") && check_semicolon(++i))
-				{
-					check_root(this->_tokens[i]);
-					this->_serv_config.back().root = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
-				}
-				else if (check_line(this->_tokens[i], "client_max_body_size") && check_semicolon(++i))
-				{
-					check_client_max_body_size(this->_tokens[i]);
-					this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[i].substr(0, this->_tokens[i].size() - 1).c_str());
-				}
-				else if (check_line(this->_tokens[i], "index") && check_semicolon(++i))
-				{
-					while (this->_tokens[i].find(";") > this->_tokens[i].size())
-						this->_serv_config.back().index.push_back(_tokens[i++]);
-					this->_serv_config.back().index.push_back(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
-				}
-				else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
-				{
-					check_error_page(i);
-					this->_serv_config.back().error_page[std::atoi(this->_tokens[i].c_str())] = this->_tokens[i + 1].substr(0, this->_tokens[i + 1].size() - 1);
-					i++;
-				}
-				else if (check_line(this->_tokens[i], "location") && check_semicolon(++i))
-				{
-					parse_location(i);
-					this->_serv_config.back()._nb_location++;
-					while (i < this->_tokens.size() && this->_tokens[i] != "}")
-						i++;
-				}
-				i++;
+				// else if (this->_tokens[i] == "error_page") {
+
+				// }
+				// else if (this->_tokens[i] == "location") {
+
+				// }
 			}
+			//checker si host et port sont set et si ils ne le sont pas les mettre a default
 		}
 	}
+	// 		this->init_serv_config();
+	// 		while (i < this->_tokens.size() && this->_tokens[i] != "}")
+	// 		{
+	// 			if (check_line(this->_tokens[i], "listen") && check_semicolon(++i))
+	// 			{
+	// 				check_listen(this->_tokens[i]);
+	// 				int		find = _tokens[i].find(":");
+	// 				this->_serv_config.back().host = this->_tokens[i].substr(0, find);
+	// 				this->_serv_config.back().port = this->_tokens[i].substr(find + 1, _tokens[i].size() - (find + 2));
+	// 			}
+	// 			else if (check_line(this->_tokens[i], "server_name") && check_semicolon(++i))
+	// 			{
+	// 				check_server_name(this->_tokens[i]);
+	// 				this->_serv_config.back().server_name = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+	// 			}
+	// 			else if (check_line(this->_tokens[i], "root") && check_semicolon(++i))
+	// 			{
+	// 				check_root(this->_tokens[i]);
+	// 				this->_serv_config.back().root = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
+	// 			}
+	// 			else if (check_line(this->_tokens[i], "client_max_body_size") && check_semicolon(++i))
+	// 			{
+	// 				check_client_max_body_size(this->_tokens[i]);
+	// 				this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[i].substr(0, this->_tokens[i].size() - 1).c_str());
+	// 			}
+	// 			else if (check_line(this->_tokens[i], "index") && check_semicolon(++i))
+	// 			{
+	// 				while (this->_tokens[i].find(";") > this->_tokens[i].size())
+	// 					this->_serv_config.back().index.push_back(_tokens[i++]);
+	// 				this->_serv_config.back().index.push_back(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
+	// 			}
+	// 			else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
+	// 			{
+	// 				check_error_page(i);
+	// 				this->_serv_config.back().error_page[std::atoi(this->_tokens[i].c_str())] = this->_tokens[i + 1].substr(0, this->_tokens[i + 1].size() - 1);
+	// 				i++;
+	// 			}
+	// 			else if (check_line(this->_tokens[i], "location") && check_semicolon(++i))
+	// 			{
+	// 				parse_location(i);
+	// 				this->_serv_config.back()._nb_location++;
+	// 				while (i < this->_tokens.size() && this->_tokens[i] != "}")
+	// 					i++;
+	// 			}
+	// 			i++;
+	// 		}
+	// 	}
+	// }
 }
 
-bool	Config::check_line(std::string const &line, std::string const &comp)
-{
-	// unsigned int	start = 0;
-	// unsigned int	end = comp.size();
-
-	// if (line.size() >= start && line.substr(start, end) == comp)
-	if (line.size() >= 0 && line == comp)
-		return true;
-	return false;
-}
-
-bool	Config::check_semicolon(unsigned long i)
-{
-	while (this->_tokens[i].find(";") > this->_tokens[i].size())
-	{
-		if (check_line(this->_tokens[i], "listen")
-			|| check_line(this->_tokens[i], "server_name")
-			|| check_line(this->_tokens[i], "root")
-			|| check_line(this->_tokens[i], "client_max_body_size")
-			|| check_line(this->_tokens[i], "error_page")
-			|| check_line(this->_tokens[i], "index")
-			|| check_line(this->_tokens[i], "location"))
-			throw ( WrongConfig() );
-		i++;
-	}
-	return true;
-}
+// bool	Config::check_semicolon(unsigned long i)
+// {
+// 	while (this->_tokens[i].find(";") > this->_tokens[i].size())
+// 	{
+// 		if (check_line(this->_tokens[i], "listen")
+// 			|| check_line(this->_tokens[i], "server_name")
+// 			|| check_line(this->_tokens[i], "root")
+// 			|| check_line(this->_tokens[i], "client_max_body_size")
+// 			|| check_line(this->_tokens[i], "error_page")
+// 			|| check_line(this->_tokens[i], "index")
+// 			|| check_line(this->_tokens[i], "location"))
+// 			throw ( WrongConfig() );
+// 		i++;
+// 	}
+// 	return true;
+// }
 
 int		Config::get_nb_server( void ) const {
 	return (this->_nb_server);

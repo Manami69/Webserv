@@ -196,16 +196,16 @@ void	Server::process_socket(Config conf, int fd) {
 
 		if (!buffff->empty()) //// a changer
 		{
-			getRequest a(*buffff);
+			//getRequest a(*buffff);
 			//std::cout << "GOGOGOGO" << a.get_content_length() << std::endl;
 			delete buffff;
 			// use fd to find server idx in _client_lst<int(fd), int(server idx)>,
 			// and use the server idx for the function conf.get_config(idx)
 			(void)conf;
-			getResponse response(a);
+			//getResponse response(a);
 			this->error_code();
 		//std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
+			//send(fd, response.responsetosend(_err));
 			// close and clear fd
 			_iter = _client_lst.find(fd);
 			if (_iter != _client_lst.end())
