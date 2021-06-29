@@ -99,7 +99,7 @@ int		main(int ac, char **av)
 			server.listened();
 			server.add_server_lst();
 		}
-		server.selected();
+		server.selected(conf);
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;

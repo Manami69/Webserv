@@ -199,6 +199,7 @@ void	Server::process_socket(Config conf, int fd) {
 			delete buffff;
 			// use fd to find server idx in _client_lst<int(fd), int(server idx)>,
 			// and use the server idx for the function conf.get_config(idx)
+			(void)conf;
 			getResponse response(a);
 			this->error_code();
 		//std::cout << a << response.responsetosend(_err);
