@@ -86,20 +86,20 @@ int		main(int ac, char **av)
 		conf.scan_file();
 		conf.check_brackets();
 		conf.parse_config();
-		display_help(conf);
+		//display_help(conf);
 		std::cout << GREEN << "Server config Good" << RESET << std::endl;
 		
-		// /* Launch Server */
-		// Server	server;
+		/* Launch Server */
+		Server	server;
 	
-		// for ( int i = 1; i <= conf.get_nb_server(); i++ ) {
-		// 	server.setup_server_socket(conf, i);
-		// 	server.set_socket_reuse();
-		// 	server.binded();
-		// 	server.listened();
-		// 	server.add_server_lst();
-		// }
-		// server.selected();
+		for ( int i = 1; i <= conf.get_nb_server(); i++ ) {
+			server.setup_server_socket(conf, i);
+			server.set_socket_reuse();
+			server.binded();
+			server.listened();
+			server.add_server_lst();
+		}
+		server.selected();
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;
