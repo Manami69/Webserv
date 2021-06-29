@@ -93,8 +93,6 @@ void			getRequest::fillRequest( std::string request ) {
 		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
-	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
-		_fill_body(request);
 }
 
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
@@ -121,6 +119,25 @@ std::string		getRequest::getKeyValue( std::string key ) const {
 
 std::map<std::string, std::string>	getRequest::getMap( void ) const {
 	return this->_request_tokens;
+}
+
+void	getRequest::fill_body(std::string request) {
+	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
+		_fill_body(request);
+}
+int		getRequest::get_content_length( void ) {
+	if (!getKeyValue("Content-Length").empty())
+	{
+		std::stringstream ss;
+		int ret = 0;
+		ss << getKeyValue("Content-Length");
+		ss >> ret;
+		return ret;
+	}
+	else if (!getKeyValue("Transfer-Encoding").compare("chunked"))
+		return -1;
+	else
+		return 0;
 }
 
 void	getRequest::_construct_array( void ) {

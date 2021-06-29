@@ -183,6 +183,8 @@ void	Server::process_socket(Config conf, int fd) {
 				total_size += size_recv;
 				for (ssize_t j = 0; j < size_recv ; j++)
 					buffff->push_back(buf[j]);
+				if (buffff->find("\r\n\r\n") != std::string::npos)
+					break ;
 				gettimeofday(&begin , NULL);
 			}
 		}
@@ -195,7 +197,7 @@ void	Server::process_socket(Config conf, int fd) {
 		if (!buffff->empty()) //// a changer
 		{
 			getRequest a(*buffff);
-			std::cout <<YEL << a["Content-Type"] << END << std::endl;
+			//std::cout << "GOGOGOGO" << a.get_content_length() << std::endl;
 			delete buffff;
 			// use fd to find server idx in _client_lst<int(fd), int(server idx)>,
 			// and use the server idx for the function conf.get_config(idx)
