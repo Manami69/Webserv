@@ -17,7 +17,7 @@ server {
     //... your configuration here
 }
 ```
-#### :cookie: :tokyo_tower: Choose the port and host of each "server"
+#### :cookie: Choose the port and host of each "server"
 `port` and l'`host` can be defined with IPV4 addresses with the `listen` tag. In this configuration, you have to choose one of each for each server block.
 You can't set several `port` and `host` for one server. If you don't set one, default settings are set.
 The following definitions are allowed:
@@ -35,13 +35,13 @@ The following definitions are allowed:
 ```
 > The first server for a host:port will be the default for this host:port (meaning it will answer to all request that doesn’t belong to an other server)
 
-#### :cookie: :tokyo_tower: Setup the server_names (optional)
+#### :cookie: Setup the server_names (optional)
 
-#### :cookie: :tokyo_tower: setup default error pages
+#### :cookie: setup default error pages
 
-#### :cookie: :tokyo_tower: limit client body size
+#### :cookie: limit client body size
 
-#### :cookie: :tokyo_tower: Location block (setup routes with one or multiple of the following rules/configuration (routes wont be using regexp))
+#### :cookie: Location block (setup routes with one or multiple of the following rules/configuration (routes wont be using regexp))
 Like `server` blocks, `location` blocks begin and end with curvy brackets. Each `location` is defined with a `modifier` (optional) and an `URI` specification. Unlike Nginx, `.` for any char and wildcard `*` and `?` and `$any_var` are not implemented (nothing including regex).
 ```
 location [modifier] [URI] {
@@ -60,23 +60,23 @@ location [modifier] [URI] {
 
 The following settings can only be defined inside a `location` block.
 
-##### :cookie: :tokyo_tower: :memo: define a list of accepted HTTP Methods for the route
+##### :cookie: define a list of accepted HTTP Methods for the route
 By default `GET` and `POST` methods are accepted, `DELETE` must be allowed.
 Both tags `allow_methods` and `limit_methods` can be used. 
 if `limit_methods` is used, not included methods can't be allowed.
 If `DELETE` is in limited methods, you'll still need to allow it with `allow_methods`.
 
-##### :cookie: :tokyo_tower: :memo: define an HTTP redirection
+##### :cookie: define an HTTP redirection
 Redirection are set with the tag `return`. (it can be also with `error_page`). It is set if the page is temporarly (302) or permanently moved (301);
 ```
 return 301 @newlocation;
 return 301;
 ```
 
-##### :cookie: :tokyo_tower: :memo: define a directory or a file from where the file should be search (for example if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is/tmp/www/pouic/toto/pouet)
+##### :cookie: define a directory or a file from where the file should be search (for example if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is/tmp/www/pouic/toto/pouet)
 with the `root` tag, define a directory with absolute path. 
 
-##### :cookie: :tokyo_tower: :memo: turn on or off directory listing
+##### :cookie: turn on or off directory listing
 If no default file is found in this location and you requested a folder, then you can set an auto index with the `autoindex` tag.
 
 ```
@@ -85,10 +85,10 @@ autoindex on;
 autoindex off; #->> default setting
 ```
 
-##### :cookie: :tokyo_tower: :memo: default file to answer if the request is a directory
+##### :cookie: default file to answer if the request is a directory
 Can be several file after the `index` tag.
 
-##### :cookie: :tokyo_tower: :memo: execute CGI based on certain file extension (for example .php)
+##### :cookie: execute CGI based on certain file extension (for example .php)
 with `CGI_path` tag followed with an absolute path to the binary file.
 ```
 location ~ .php$ {
