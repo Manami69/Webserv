@@ -33,20 +33,20 @@ const char *Config::ErrorIndex::what() const throw() {
 }
 
 const char *Config::ErrorAutoindex::what() const throw() {
-	return ( "Error : Wrong index." );
+	return ( "Error : Wrong autoindex." );
 }
 
-// static or not ?
-bool	is_number(const std::string& s)
-{
-    std::string::const_iterator it = s.begin();
-    while (it != s.end() && std::isdigit(*it))
-		++it;
-    return (!s.empty() && it == s.end());
+const char *Config::ErrorReturn::what() const throw() {
+	return ( "Error : Wrong return." );
 }
+
+const int	Config::error_code[] = { 100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
+, 302 , 303 , 304 , 305 , 307 , 308 , 400 , 401 , 402 , 403 , 404 , 405 , 406 , 407 , 408 , 409 , 410 , 411\
+, 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
+, 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};
 
 // static ?
-static bool _check_host(std::string host) {
+bool 	Config::check_host(std::string host) {
 	int 		count = 0; 
 	size_t		pos = 0;
 	size_t		next = 0;
@@ -89,7 +89,7 @@ size_t	Config::set_listen(size_t i)
 				throw ( ErrorListen() );	
 			host = _tokens.at(i).substr(0, found);
 			port = _tokens.at(i).substr(found + 1);
-			if (!_check_host(host)){
+			if (!check_host(host)){
 				throw ( ErrorListen() );
 			}
 			if (!is_number(port) || std::atoi(port.c_str()) > 65535)
@@ -111,7 +111,7 @@ size_t	Config::set_listen(size_t i)
 			if (!host.empty())
 				throw ( ErrorListen() );	
 			host = _tokens.at(i);
-			if (!_check_host(host))
+			if (!check_host(host))
 				throw ( ErrorListen() );
 		}
 		else
@@ -143,8 +143,7 @@ size_t count_digit( std::string str ) {
 
 size_t	Config::set_client_max_body_size( size_t i )
 {
-	i++;
-	if (!_tokens.at(i).compare(";"))
+	if (!_tokens.at(++i).compare(";"))
 		throw ( ErrorClientMaxBodySize() );
 	size_t digit = count_digit(_tokens.at(i));
 	if (digit == _tokens.at(i).size())
@@ -167,6 +166,7 @@ size_t	Config::set_client_max_body_size( size_t i )
 		if (digit != _tokens.at(i).size() - 1)
 			throw ( ErrorClientMaxBodySize() );
 	}
+	i++;
 	return (i);
 }
 
@@ -175,11 +175,7 @@ size_t	Config::set_error_page(size_t i)
 	std::list<int> num;
 	std::string page;
 	std::string redirect;
-	int		e[] = {	100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
-	, 302 , 303 , 304 , 305 , 307 , 308 , 400 , 401 , 402 , 403 , 404 , 405 , 406 , 407 , 408 , 409 , 410 , 411\
-	, 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
-	, 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};
-	std::list<int> errorcode(e, e + sizeof(e)/sizeof(int));
+	std::list<int> errorcode(error_code, error_code + sizeof(error_code)/sizeof(int));
 	int count = 0;
 
 	while (_tokens.at(++i).compare(";"))

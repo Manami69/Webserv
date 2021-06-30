@@ -25,7 +25,6 @@ void	Server::setup_server_socket(Config conf, int idx) {
 	_listen->addr.sin_family = AF_INET;
 	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
-	return ;
 }
 
 void	Server::get_master_socket_fd(void) {

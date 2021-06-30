@@ -9,10 +9,13 @@ struct						_locations
 	std::string					access;
 	std::string					root;
 	std::string					index;
-	std::string					allow_methods;
+	size_t						client_max_body_size;
+	bool						allowm;
+	bool						limitm;
+	int							allow_methods[3];
 	bool						autoindex;
 	std::string					cgi_path;
-	std::list<std::string>		redirect;
+	std::map<std::string, std::string>	redirect;
 };
 
 
@@ -83,31 +86,39 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorReturn : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
-	void						scan_file( void );
-	void						tokenize( std::string line );
-	void						check_brackets( void );
-	void						init_serv_config( void );
-	void						init_config_location( void );
-	void						parse_config( void );
-	size_t						parse_location( size_t i );
-	//bool						check_semicolon( unsigned long i );
-	/////////		GETTERS		/////////
+	void								scan_file( void );
+	void								tokenize( std::string line );
+	void								check_brackets( void );
+	void								init_serv_config( void );
+	void								init_config_location( void );
+	void								parse_config( void );
+	bool								is_number(const std::string& s);
+	bool 								check_host(std::string host);
+	size_t								parse_location( size_t i );
+	//////////////////		GETTERS		//////////////////
 	std::string							get_filename( void ) const;
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_nb_server( void ) const;
 	std::list<Serv_config>::iterator	get_config( unsigned int idx );
 	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
-	/////////		SETTERS		/////////
-	size_t						set_listen( size_t i );
-	size_t						set_server_name( size_t i );
-	size_t						set_client_max_body_size( size_t i );
-	size_t						set_error_page( size_t i );
-	// size_t						set_allow_methods( size_t i );
-	// size_t						set_root( size_t i );
-	// size_t						set_index( size_t i );
-	// size_t						set_autoindex( size_t i );
+	//////////////////		SETTERS		//////////////////
+	size_t								set_listen( size_t i );
+	size_t								set_server_name( size_t i );
+	size_t								set_client_max_body_size( size_t i );
+	size_t								set_error_page( size_t i );
+	size_t								set_allow_methods( size_t i, bool titre );
+	size_t								set_root( size_t i );
+	size_t								set_index( size_t i );
+	size_t								set_autoindex( size_t i );
+	size_t								set_return( size_t i );
+	static const int					error_code[];
+	// static int							error_code_length;
 };
 
 #endif

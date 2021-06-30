@@ -118,15 +118,15 @@ void	Config::parse_config(void)
 				throw ( WrongConfig() );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
+				std::cout << i << " tokens " << _tokens.at(i) << std::endl;
 				if (!_tokens.at(i).compare("listen"))
 					i = set_listen(i);
 				else if (!_tokens.at(i).compare("server_name"))
 					i = set_server_name(i);
 				else if (!_tokens.at(i).compare("client_max_body_size"))
 					i = set_client_max_body_size(i);
-				// else if (this->_tokens.at(i) == "error_page") {
-					//i = set_error_page(i);
-				// }
+				else if (this->_tokens.at(i) == "error_page")
+					i = set_error_page(i);
 				else if (this->_tokens.at(i) == "location") {
 					i = parse_location(i);
 				}
@@ -134,72 +134,15 @@ void	Config::parse_config(void)
 			//checker si host et port sont set et si ils ne le sont pas les mettre a default
 		}
 	}
-	// 		this->init_serv_config();
-	// 		while (i < this->_tokens.size() && this->_tokens[i] != "}")
-	// 		{
-	// 			if (check_line(this->_tokens[i], "listen") && check_semicolon(++i))
-	// 			{
-	// 				check_listen(this->_tokens[i]);
-	// 				int		find = _tokens[i].find(":");
-	// 				this->_serv_config.back().host = this->_tokens[i].substr(0, find);
-	// 				this->_serv_config.back().port = this->_tokens[i].substr(find + 1, _tokens[i].size() - (find + 2));
-	// 			}
-	// 			else if (check_line(this->_tokens[i], "server_name") && check_semicolon(++i))
-	// 			{
-	// 				check_server_name(this->_tokens[i]);
-	// 				this->_serv_config.back().server_name = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
-	// 			}
-	// 			else if (check_line(this->_tokens[i], "root") && check_semicolon(++i))
-	// 			{
-	// 				check_root(this->_tokens[i]);
-	// 				this->_serv_config.back().root = this->_tokens[i].substr(0, this->_tokens[i].size() - 1);
-	// 			}
-	// 			else if (check_line(this->_tokens[i], "client_max_body_size") && check_semicolon(++i))
-	// 			{
-	// 				check_client_max_body_size(this->_tokens[i]);
-	// 				this->_serv_config.back().client_max_body_size = std::atoi(this->_tokens[i].substr(0, this->_tokens[i].size() - 1).c_str());
-	// 			}
-	// 			else if (check_line(this->_tokens[i], "index") && check_semicolon(++i))
-	// 			{
-	// 				while (this->_tokens[i].find(";") > this->_tokens[i].size())
-	// 					this->_serv_config.back().index.push_back(_tokens[i++]);
-	// 				this->_serv_config.back().index.push_back(this->_tokens[i].substr(0, this->_tokens[i].size() - 1));
-	// 			}
-	// 			else if (check_line(this->_tokens[i], "error_page") && check_semicolon(++i))
-	// 			{
-	// 				check_error_page(i);
-	// 				this->_serv_config.back().error_page[std::atoi(this->_tokens[i].c_str())] = this->_tokens[i + 1].substr(0, this->_tokens[i + 1].size() - 1);
-	// 				i++;
-	// 			}
-	// 			else if (check_line(this->_tokens[i], "location") && check_semicolon(++i))
-	// 			{
-	// 				parse_location(i);
-	// 				this->_serv_config.back()._nb_location++;
-	// 				while (i < this->_tokens.size() && this->_tokens[i] != "}")
-	// 					i++;
-	// 			}
-	// 			i++;
-	// 		}
-	// 	}
-	// }
 }
 
-// bool	Config::check_semicolon(unsigned long i)
-// {
-// 	while (this->_tokens[i].find(";") > this->_tokens[i].size())
-// 	{
-// 		if (check_line(this->_tokens[i], "listen")
-// 			|| check_line(this->_tokens[i], "server_name")
-// 			|| check_line(this->_tokens[i], "root")
-// 			|| check_line(this->_tokens[i], "client_max_body_size")
-// 			|| check_line(this->_tokens[i], "error_page")
-// 			|| check_line(this->_tokens[i], "index")
-// 			|| check_line(this->_tokens[i], "location"))
-// 			throw ( WrongConfig() );
-// 		i++;
-// 	}
-// 	return true;
-// }
+bool	Config::is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it))
+		++it;
+    return (!s.empty() && it == s.end());
+}
 
 int		Config::get_nb_server( void ) const {
 	return (this->_nb_server);
