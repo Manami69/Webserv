@@ -54,8 +54,10 @@ void	Config::tokenize( std::string line ) {
 	std::string temp;
 	/* Remove empty vector */
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-		if ( _tokens[i].empty() )
+		if ( _tokens[i].empty() ) {
 			_tokens.erase( _tokens.begin() + i );
+			i = 0;
+		}
 	}
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
 	{
