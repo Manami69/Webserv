@@ -28,15 +28,15 @@ size_t		Config::parse_location(size_t i) {
 		// 	i = set_allow_methods(i, false);
 		if (!_tokens.at(i).compare("root"))
 			i = set_root(i);
-		// else if (!_tokens.at(i).compare("return"))
-		// 	i = set_return(i);
+		else if (!_tokens.at(i).compare("return"))
+		{
+			std::cout << RED << _tokens.at(i) << RESET << std::endl;
+			i = set_return(i);
+		}
 		else if (!_tokens.at(i).compare("autoindex"))
 			i = set_autoindex(i);
 		else if (!_tokens.at(i).compare("index"))
-		{
-			std::cout << GREEN << "hello" << RESET << std::endl;
 			i = set_index(i);
-		}
 		// else if (!_tokens.at(i).compare("CGI_path"))
 		// 	;
 	}
@@ -72,12 +72,11 @@ size_t	Config::set_root( size_t i ) {
 size_t	Config::set_index( size_t i ) {
 	if ( !_tokens.at(++i).compare(";") )
 		throw ( ErrorIndex() );
-	std::cout << GREEN << i << " index tokens :" << _tokens.at(i) << RESET << std::endl;
-	// while ( _tokens.at(i).compare(";") ) {
-	// 	std::cout << GREEN << i << " index tokens " << _tokens.at(i) << RESET << std::endl;
-	// 	_serv_config.back().locations.back().index += _tokens.at(i);
-	// 	_serv_config.back().locations.back().index += " ";
-	// }
+	while (_tokens.at(i).compare(";")) {
+		_serv_config.back().locations.back().index += _tokens.at(i);
+		_serv_config.back().locations.back().index += " ";
+		i++;
+	}
 	return ( i );
 }
 
@@ -100,15 +99,15 @@ size_t	Config::set_autoindex( size_t i ) {
 size_t	Config::set_return( size_t i ) {
 	if ( !_tokens.at(++i).compare(";") )
 		throw ( ErrorReturn() );
-	while ( !_tokens.at(i).compare("return") ) {
-		if (is_number(_tokens.at(i)) && _tokens.at(i + 1).compare(";"))
-			_serv_config.back().locations.back().redirect.insert(std::pair<std::string, std::string>(_tokens.at(i), _tokens.at(i + 1)));
-		if (_tokens.at(i + 2).compare(";"))
-			throw ( ErrorReturn() );
-		else
-			throw ( ErrorReturn() );
-		i += 2;
-	}
+	if ( !_tokens.at(i + 1).compare(";") )
+		throw ( ErrorReturn() );
+	if (is_number(_tokens.at(i)) && _tokens.at(i + 1).compare(";"))
+		_serv_config.back().locations.back().redirect.insert(std::pair<std::string, std::string>(_tokens.at(i), _tokens.at(i + 1)));
+	// for ( std::map<std::string, std::string>::iterator it = _serv_config.back().locations.back().redirect.begin(); it !=  _serv_config.back().locations.back().redirect.end(); it++)
+	// 	std::cout << it->first << " " << it->second << std::endl;
+	if ( _tokens.at(i + 2).compare(";") )
+		throw ( ErrorReturn() );
+	i += 3;
 	return ( i );
 }
 
