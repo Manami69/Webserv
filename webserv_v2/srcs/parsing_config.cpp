@@ -59,20 +59,19 @@ void	Config::tokenize( std::string line ) {
 			i = 0;
 		}
 	}
+	/* Seperate semicolon */
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
 	{
-		//std::cout << _tokens[i] << " " <<  i << std::endl;
-		if ((found = _tokens[i].find(";")) != std::string::npos && _tokens[i].size() != 1) {
-		 	temp = _tokens[i].substr(0, found);
+		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1) {
+		 	temp = _tokens.at(i).substr(0, found);
 		 	_tokens.insert(_tokens.begin() + i + 1, ";");
-			if (found >= _tokens[i].size() - 1)
-				_tokens.insert(_tokens.begin() + i + 2, _tokens[i].substr(found + 1, _tokens[i].size() - found));
+			if (found >= _tokens.at(i).size() - 1)
+				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
 			_tokens[i] = temp;
 			temp =  "";
 		}
 	}
-	// for (std::vector<std::string>::iterator it = _tokens.begin(); it != _tokens.end(); it++)
-	// 	std::cout << "_tokens : |"<< *it << "|" << std::endl;
+	return ;
 }
 
 std::vector<std::string>	Config::get_tokens( void ) const {
@@ -111,32 +110,26 @@ void	Config::parse_config(void)
 {
 	for (size_t i = 0; i < _tokens.size(); i++)
 	{
-		if (!_tokens[i].compare("server"))
+		if (!_tokens.at(i).compare("server"))
 		{
 			_nb_server++;
-			std::cout << "server nb : " << _nb_server << std::endl; // hahaha
 			init_serv_config();
-			if (_tokens[++i].compare("{"))
+			if (_tokens.at(++i).compare("{"))
 				throw ( WrongConfig() );
-			while (++i < _tokens.size() && _tokens[i] != "}")
+			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
-				std::cout << i << " " <<_tokens[i] << std::endl; // hahaha
-				if (!_tokens[i].compare("listen")){
+				if (!_tokens.at(i).compare("listen"))
 					i = set_listen(i);
-					std::cout << " port " << _serv_config.back().port << std::endl; // hahaha
-					std::cout << " host " << _serv_config.back().host << std::endl; // hahaha
+				else if (!_tokens.at(i).compare("server_name"))
+					i = set_server_name(i);
+				else if (!_tokens.at(i).compare("client_max_body_size"))
+					i = set_client_max_body_size(i);
+				// else if (this->_tokens.at(i) == "error_page") {
+					//i = set_error_page(i);
+				// }
+				else if (this->_tokens.at(i) == "location") {
+					i = parse_location(i);
 				}
-
-				else if (!_tokens[i].compare("server_name"))
-					i = check_server_name(i);
-				else if (!_tokens[i].compare("client_max_body_size"))
-					i = check_client_max_body_size(i);
-				// else if (this->_tokens[i] == "error_page") {
-
-				// }
-				// else if (this->_tokens[i] == "location") {
-
-				// }
 			}
 			//checker si host et port sont set et si ils ne le sont pas les mettre a default
 		}

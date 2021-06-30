@@ -1,5 +1,34 @@
 #include "../includes/config.hpp"
 
+size_t		Config::parse_location(size_t i) {
+	if (!_tokens.at(i + 3).compare("}")) //  prefix modifier case
+	{
+		i++;
+		std::string c[] = {"=", "~", "~*", "^~"};
+		std::vector<std::string> cas(c, c + sizeof(c) / sizeof(std::string)); //  POURQUOI CA M;ENGUEULE? ca doit etre c++ 11 par defaut ?
+		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end())
+			throw WrongConfig();
+		else
+			_serv_config.back().locations.back().modifier = _tokens[i];
+		_serv_config.back().locations.back().access = _tokens.at(++i);
+	}
+	else if (!_tokens.at(i + 2).compare("}"))
+	{
+		_serv_config.back().locations.back().access = _tokens.at(++i);
+	}
+	else
+		throw WrongConfig();
+	i++;
+	while (!_tokens.at(++i).compare("}"))
+	{
+		if (!_tokens.at(i).compare("allow_methods"))
+			;
+		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
+			; 
+	}
+	return i;
+}
+
 // void		Config::parse_location(unsigned long i)
 // {
 // 	this->init_config_location();
@@ -63,4 +92,45 @@
 // 	location.root = this->_serv_config.back().root;
 // 	location.client_max_body_size = this->_serv_config.back().client_max_body_size;
 // 	_serv_config.back().locations.push_back(location);
+// }
+
+// size_t	Config::set_root( size_t i ) {
+
+// 	if ( !_tokens.at(++i).compare(";") )
+// 		throw ( ErrorRoot() );
+// 	_serv_config.back().locations.back().root = _tokens.at(i);
+// 	if ( _tokens.at(++i).compare(";") )
+// 		throw ( ErrorRoot() );
+// 	// NOT COMPLETE YET
+// 	return ( i );
+// }
+
+// size_t	Config::set_index( size_t i ) {
+
+// 	if ( !_tokens.at(++i).compare(";") )
+// 		throw ( ErrorIndex() );
+// 	while ( _tokens.at(i).compare(";") ) {
+// 		_serv_config.back().locations.back().index += _tokens.at(i);
+// 		_serv_config.back().locations.back().index += " ";
+// 	}
+// 	return ( i );
+// }
+
+// size_t	Config::set_autoindex( size_t i ) {
+
+// 	if ( !_tokens.at(++i).compare(";") )
+// 		throw ( ErrorAutoindex() );
+// 	if ( !_tokens.at(i).compare("off") || !_tokens.at(i).compare("OFF"))
+// 		_serv_config.back().locations.back().autoindex = false;
+// 	else if ( !_tokens.at(i).compare("on") || !_tokens.at(i).compare("ON") )
+// 		_serv_config.back().locations.back().autoindex = true;
+// 	else
+// 		throw ( ErrorRoot() );
+// 	if ( _tokens.at(++i).compare(";") )
+// 		throw ( ErrorRoot() );
+// 	return ( i );
+// }
+
+// size_t	Config::set_allow_methods( size_t i ) {
+
 // }

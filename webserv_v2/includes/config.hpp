@@ -5,13 +5,14 @@
 
 struct						_locations
 {
+	std::string					modifier;
 	std::string					access;
 	std::string					root;
 	std::string					index;
 	std::string					allow_methods;
-	bool						cgi;
+	bool						autoindex;
 	std::string					cgi_path;
-	std::list<std::string>		try_files;
+	std::list<std::string>		redirect;
 };
 
 
@@ -78,6 +79,10 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorAutoindex : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void						scan_file( void );
@@ -86,7 +91,7 @@ public:
 	void						init_serv_config( void );
 	void						init_config_location( void );
 	void						parse_config( void );
-	//void						parse_location( unsigned long i );
+	size_t						parse_location( size_t i );
 	//bool						check_semicolon( unsigned long i );
 	/////////		GETTERS		/////////
 	std::string							get_filename( void ) const;
@@ -96,12 +101,13 @@ public:
 	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
 	/////////		SETTERS		/////////
 	size_t						set_listen( size_t i );
-	size_t						check_server_name( size_t i );
-	size_t						check_client_max_body_size( size_t i );
-	size_t						check_error_page( size_t i );
-	size_t						check_allow_methods( size_t i );
-	//size_t						check_root( size_t i );
-	//size_t						check_index( size_t i );
+	size_t						set_server_name( size_t i );
+	size_t						set_client_max_body_size( size_t i );
+	size_t						set_error_page( size_t i );
+	// size_t						set_allow_methods( size_t i );
+	// size_t						set_root( size_t i );
+	// size_t						set_index( size_t i );
+	// size_t						set_autoindex( size_t i );
 };
 
 #endif
