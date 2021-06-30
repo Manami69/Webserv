@@ -6,8 +6,8 @@ size_t		Config::parse_location(size_t i) {
 		i++;
 		std::string c[] = {"=", "~", "~*", "^~"};
 		std::vector<std::string> cas(c, c + sizeof(c) / sizeof(std::string)); //  POURQUOI CA M;ENGUEULE? ca doit etre c++ 11 par defaut ?
-		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end())
-			throw WrongConfig();
+		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end()) // faire une erreur speciale au lieu de Wrong Config
+			throw WrongConfig(); 
 		else
 			_serv_config.back().locations.back().modifier = _tokens[i];
 		_serv_config.back().locations.back().access = _tokens.at(++i);
@@ -24,11 +24,20 @@ size_t		Config::parse_location(size_t i) {
 		if (!_tokens.at(i).compare("allow_methods"))
 			;
 		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
-			; 
+			;
+		else if (!_tokens.at(i).compare("root"))
+			;
+		else if (!_tokens.at(i).compare("return"))
+			;
+		else if (!_tokens.at(i).compare("autoindex"))
+			;
+		else if (!_tokens.at(i).compare("index"))
+			;
+		else if (!_tokens.at(i).compare("CGI_path"))
+			;
 	}
 	return i;
 }
-
 // void		Config::parse_location(unsigned long i)
 // {
 // 	this->init_config_location();
