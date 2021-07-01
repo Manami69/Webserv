@@ -163,11 +163,11 @@ size_t	Config::set_client_max_body_size( size_t i )
 			std::stringstream(_tokens.at(i)) >> limit_size;
 			_serv_config.back().client_max_body_size = limit_size;
 		}
-		if (_tokens.at(i).at(digit) == 'K')
+		if (_tokens.at(i).at(digit) == 'K' || _tokens.at(i).at(digit) == 'k')
 			_serv_config.back().client_max_body_size *= 1000;
-		else if (_tokens.at(i).at(digit) == 'M')
+		else if (_tokens.at(i).at(digit) == 'M' || _tokens.at(i).at(digit) == 'm')
 			_serv_config.back().client_max_body_size *= 1000000;
-		else if (_tokens.at(i).at(digit) == 'G')
+		else if (_tokens.at(i).at(digit) == 'G' || _tokens.at(i).at(digit) == 'g')
 			_serv_config.back().client_max_body_size *= 1000000000; // do we need ?
 		else
 			throw ( ErrorClientMaxBodySize() );

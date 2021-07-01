@@ -35,6 +35,9 @@ void	Config::scan_file( void ) {
 		std::getline( ifs, line );
 		this->tokenize( line );
 	}
+	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
+		std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
+	}
 	ifs.close();
 	return ;
 }
@@ -50,27 +53,61 @@ void	Config::tokenize( std::string line ) {
 	while ( std::getline(str, intermediate, '\t') ) {
 		_tokens.push_back( intermediate );
 	}
-	size_t found;
-	std::string temp;
+
 	/* Remove empty vector */
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-		if ( _tokens[i].empty() ) {
+		if ( _tokens.at(i).empty() ) {
 			_tokens.erase( _tokens.begin() + i );
 			i = 0;
 		}
 	}
+
 	/* Seperate semicolon */
+	size_t found;
+	std::string temp;
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
 	{
 		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1) {
 		 	temp = _tokens.at(i).substr(0, found);
+			// std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
+			// std::cout << BLUE << "temp : " << temp << RESET << std::endl;
 		 	_tokens.insert(_tokens.begin() + i + 1, ";");
-			if (found >= _tokens.at(i).size() - 1)
-				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
-			_tokens[i] = temp;
-			temp =  "";
+			std::cout << YELLOW << "token insert: " << _tokens.at(i) << RESET << std::endl;
+			std::cout << GREEN << "found : " << found << " token size : " <<  _tokens.at(i).size() << RESET << std::endl;
+			// if (found >= _tokens.at(i).size() - 1) {
+			// 	std::cout << RED << "found : " << found << " token size : " <<  _tokens.at(i).size() << RESET << std::endl;
+			// 	_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
+			// }
+			_tokens.at(i) = temp;
+			temp = "";
 		}
 	}
+
+	/* Seperate open bracket */
+	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
+	{
+		if ((found = _tokens.at(i).find("{")) != std::string::npos && _tokens.at(i).size() != 1) {
+		 	temp = _tokens.at(i).substr(0, found);
+		 	_tokens.insert(_tokens.begin() + i + 1, "{");
+			if (found >= _tokens.at(i).size() - 1)
+				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
+			_tokens.at(i) = temp;
+			temp = "";
+		}
+	}
+
+	// /* Seperate close bracket */
+	// for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
+	// {
+	// 	if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1) {
+	// 	 	temp = _tokens.at(i).substr(0, found);
+	// 	 	_tokens.insert(_tokens.begin() + i + 1, "}");
+	// 		if (found >= _tokens.at(i).size() - 1)
+	// 			_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
+	// 		_tokens.at(i) = temp;
+	// 		temp = "";
+	// 	}
+	// }
 	return ;
 }
 
@@ -110,7 +147,7 @@ void	Config::parse_config(void)
 {
 	for (size_t i = 0; i < _tokens.size(); i++)
 	{
-		//std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
+		std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
 
 		if (!_tokens.at(i).compare("server"))
 		{
@@ -120,7 +157,7 @@ void	Config::parse_config(void)
 				throw ( WrongConfig() );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
-				//std::cout << i << " tokens " << _tokens.at(i) << std::endl;
+				std::cout << i << " tokens " << _tokens.at(i) << std::endl;
 				if (!_tokens.at(i).compare("listen"))
 					i = set_listen(i);
 				else if (!_tokens.at(i).compare("server_name"))
@@ -129,9 +166,10 @@ void	Config::parse_config(void)
 					i = set_client_max_body_size(i);
 				else if (this->_tokens.at(i) == "error_page")
 					i = set_error_page(i);
-				else if (this->_tokens.at(i) == "location") {
+				else if (this->_tokens.at(i) == "location")
 					i = parse_location(i);
-				}
+				else
+					throw ( WrongConfig() );
 			}
 			//checker si host et port sont set et si ils ne le sont pas les mettre a default
 		}

@@ -85,9 +85,9 @@ size_t	Config::set_autoindex( size_t i ) {
 
 	if ( !_tokens.at(++i).compare(";") )
 		throw ( ErrorAutoindex() );
-	if ( !_tokens.at(i).compare("off") || !_tokens.at(i).compare("OFF"))
+	if ( !_tokens.at(i).compare("off") || !_tokens.at(i).compare("OFF") || !_tokens.at(i).compare("Off") )
 		_serv_config.back().locations.back().autoindex = false;
-	else if ( !_tokens.at(i).compare("on") || !_tokens.at(i).compare("ON") )
+	else if ( !_tokens.at(i).compare("on") || !_tokens.at(i).compare("ON") || !_tokens.at(i).compare("On") )
 		_serv_config.back().locations.back().autoindex = true;
 	else
 		throw ( ErrorAutoindex() );
