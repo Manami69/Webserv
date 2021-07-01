@@ -31,8 +31,6 @@ class getRequest {
 		// Getters
 		std::string		getKeyValue( std::string key ) const;
 		std::map<std::string, std::string>	getMap( void ) const;
-		void	fill_body(std::string request);
-		int		get_content_length( void );
 		static const std::string headers[];
 	private:
 		std::map<std::string, std::string>	_request_tokens;
