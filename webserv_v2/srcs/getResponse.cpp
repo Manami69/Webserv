@@ -174,12 +174,8 @@ std::string	getResponse::_get_date_line( void ) {
 }
 
 std::string getResponse::_get_serv_line( void ) {
-	std::string ret = "Server: ";
-	ret += _conf.server_name;
-	ret += CRLF;
-	return ret;
+	return "Server: Webserv/v1.0\r\n";
 }
-
 
 std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 	std::string ret;
