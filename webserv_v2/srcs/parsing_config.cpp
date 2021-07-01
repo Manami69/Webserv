@@ -110,7 +110,7 @@ void	Config::parse_config(void)
 {
 	for (size_t i = 0; i < _tokens.size(); i++)
 	{
-		std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
+		//std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
 
 		if (!_tokens.at(i).compare("server"))
 		{
@@ -120,7 +120,7 @@ void	Config::parse_config(void)
 				throw ( WrongConfig() );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
-				std::cout << i << " tokens " << _tokens.at(i) << std::endl;
+				//std::cout << i << " tokens " << _tokens.at(i) << std::endl;
 				if (!_tokens.at(i).compare("listen"))
 					i = set_listen(i);
 				else if (!_tokens.at(i).compare("server_name"))

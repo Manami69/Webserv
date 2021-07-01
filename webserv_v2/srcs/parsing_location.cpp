@@ -21,7 +21,7 @@ size_t		Config::parse_location(size_t i) {
 		throw WrongConfig();
 	while (_tokens.at(++i).compare("}"))
 	{
-		std::cout << YELLOW << i << " location directive " << _tokens.at(i) << RESET << std::endl;
+		//std::cout << YELLOW << i << " location directive " << _tokens.at(i) << RESET << std::endl;
 		if (!_tokens.at(i).compare("allow_methods"))
 			i = set_allow_methods(i, true);
 		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
@@ -34,11 +34,12 @@ size_t		Config::parse_location(size_t i) {
 			i = set_autoindex(i);
 		else if (!_tokens.at(i).compare("index"))
 			i = set_index(i);
-		// else if (!_tokens.at(i).compare("CGI_path"))
-		// 	;
+		else if (!_tokens.at(i).compare("cgi_path"))
+			i = set_cgi_path(i);
+		else if (!_tokens.at(i).compare("try_files"))
+			i = set_try_files(i);
 	}
-	// std::cout << "return : " << _serv_config.back().locations.back().redirect.first() << std::endl;
-	return i;
+	return ( i );
 }
 
 void		Config::init_config_location(void)
@@ -46,13 +47,16 @@ void		Config::init_config_location(void)
 	_locations		location;
 
 	location.access = "";
-	location.client_max_body_size = this->_serv_config.back().client_max_body_size;
 	location.autoindex = false;
 	location.allowm = false;
 	location.limitm = false;
 	location.allow_methods[0] = 0;
 	location.allow_methods[1] = 0;
 	location.allow_methods[2] = 0;
+	location.root = "";
+	location.index = "";
+	location.cgi_path = "";
+	location.try_files = "";
 	_serv_config.back().locations.push_back(location);
 }
 
@@ -86,9 +90,9 @@ size_t	Config::set_autoindex( size_t i ) {
 	else if ( !_tokens.at(i).compare("on") || !_tokens.at(i).compare("ON") )
 		_serv_config.back().locations.back().autoindex = true;
 	else
-		throw ( ErrorRoot() );
+		throw ( ErrorAutoindex() );
 	if ( _tokens.at(++i).compare(";") )
-		throw ( ErrorRoot() );
+		throw ( ErrorAutoindex() );
 	return ( i );
 }
 
@@ -102,6 +106,26 @@ size_t	Config::set_return( size_t i ) {
 	if ( _tokens.at(i + 2).compare(";") )
 		throw ( ErrorReturn() );
 	i += 2;
+	return ( i );
+}
+
+size_t	Config::set_cgi_path( size_t i ) {
+	if ( !_tokens.at(++i).compare(";") )
+		throw ( ErrorCgiPath() );
+	_serv_config.back().locations.back().cgi_path = _tokens.at(i); // check if the cgi path end by php-cgi ?
+	if ( _tokens.at(++i).compare(";") )
+		throw ( ErrorCgiPath() );
+	return ( i );
+}
+
+size_t	Config::set_try_files( size_t i ) {
+	if ( !_tokens.at(++i).compare(";") )
+		throw ( ErrorTryFiles() );
+	while ( _tokens.at(i).compare(";") ) {
+		_serv_config.back().locations.back().try_files += _tokens.at(i);
+		_serv_config.back().locations.back().try_files += " ";
+		i++;
+	}
 	return ( i );
 }
 
@@ -141,5 +165,5 @@ size_t	Config::set_allow_methods( size_t i, bool titre ) {
 		else
 			throw ErrorMethods();
 	}
-	return i;
+	return ( i );
 }

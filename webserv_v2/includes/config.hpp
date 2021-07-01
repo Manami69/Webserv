@@ -7,14 +7,14 @@ struct						_locations
 {
 	std::string					modifier;
 	std::string					access;
-	std::string					root;
-	std::string					index;
-	size_t						client_max_body_size;
 	bool						allowm;
 	bool						limitm;
 	int							allow_methods[3];
+	std::string					root;
+	std::string					index;
 	bool						autoindex;
 	std::string					cgi_path;
+	std::string					try_files;
 	std::map<std::string, std::string>	redirect;
 };
 
@@ -90,6 +90,14 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorCgiPath : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
+	class ErrorTryFiles : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void								scan_file( void );
@@ -117,8 +125,10 @@ public:
 	size_t								set_index( size_t i );
 	size_t								set_autoindex( size_t i );
 	size_t								set_return( size_t i );
+	size_t								set_cgi_path( size_t i );
+	size_t								set_try_files( size_t i );
+
 	static const int					error_code[];
-	// static int							error_code_length;
 };
 
 #endif
