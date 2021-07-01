@@ -69,15 +69,9 @@ void	Config::tokenize( std::string line ) {
 	{
 		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1) {
 		 	temp = _tokens.at(i).substr(0, found);
-			// std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
-			// std::cout << BLUE << "temp : " << temp << RESET << std::endl;
 		 	_tokens.insert(_tokens.begin() + i + 1, ";");
-			std::cout << YELLOW << "token insert: " << _tokens.at(i) << RESET << std::endl;
-			std::cout << GREEN << "found : " << found << " token size : " <<  _tokens.at(i).size() << RESET << std::endl;
-			// if (found >= _tokens.at(i).size() - 1) {
-			// 	std::cout << RED << "found : " << found << " token size : " <<  _tokens.at(i).size() << RESET << std::endl;
-			// 	_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
-			// }
+			if ( _tokens.at(i).size() - 1 > found )
+				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
 			_tokens.at(i) = temp;
 			temp = "";
 		}
@@ -89,25 +83,25 @@ void	Config::tokenize( std::string line ) {
 		if ((found = _tokens.at(i).find("{")) != std::string::npos && _tokens.at(i).size() != 1) {
 		 	temp = _tokens.at(i).substr(0, found);
 		 	_tokens.insert(_tokens.begin() + i + 1, "{");
-			if (found >= _tokens.at(i).size() - 1)
+			if ( _tokens.at(i).size() - 1 > found )
 				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
 			_tokens.at(i) = temp;
 			temp = "";
 		}
 	}
 
-	// /* Seperate close bracket */
-	// for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
-	// {
-	// 	if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1) {
-	// 	 	temp = _tokens.at(i).substr(0, found);
-	// 	 	_tokens.insert(_tokens.begin() + i + 1, "}");
-	// 		if (found >= _tokens.at(i).size() - 1)
-	// 			_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
-	// 		_tokens.at(i) = temp;
-	// 		temp = "";
-	// 	}
-	// }
+	/* Seperate close bracket */
+	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
+	{
+		if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1) {
+		 	temp = _tokens.at(i).substr(0, found);
+		 	_tokens.insert(_tokens.begin() + i + 1, "}");
+			if ( _tokens.at(i).size() - 1 > found )
+				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
+			_tokens.at(i) = temp;
+			temp = "";
+		}
+	}
 	return ;
 }
 
