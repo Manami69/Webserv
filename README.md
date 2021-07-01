@@ -73,7 +73,7 @@ return 301 @newlocation;
 return 301;
 ```
 
-##### :cookie: define a directory or a file from where the file should be search (for example if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is/tmp/www/pouic/toto/pouet)
+##### :cookie: define a directory or a file from where the file should be search (for example if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is /tmp/www/pouic/toto/pouet)
 with the `root` tag, define a directory with absolute path. 
 
 ##### :cookie: turn on or off directory listing

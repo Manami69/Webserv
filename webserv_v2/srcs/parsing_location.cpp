@@ -13,26 +13,23 @@ size_t		Config::parse_location(size_t i) {
 		_serv_config.back().locations.back().access = _tokens.at(++i);
 	}
 	else if (!_tokens.at(i + 2).compare("{"))
-	{
 		_serv_config.back().locations.back().access = _tokens.at(++i);
-	}
 	else
 		throw WrongConfig();
 	init_config_location();
+	if (_tokens.at(++i).compare("{"))
+		throw WrongConfig();
 	while (_tokens.at(++i).compare("}"))
 	{
-		std::cout << YELLOW << i << "location directive " << _tokens.at(i) << RESET << std::endl;
-		// if (!_tokens.at(i).compare("allow_methods"))
-		// 	i = set_allow_methods(i, true);
-		// else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
-		// 	i = set_allow_methods(i, false);
+		std::cout << YELLOW << i << " location directive " << _tokens.at(i) << RESET << std::endl;
+		if (!_tokens.at(i).compare("allow_methods"))
+			i = set_allow_methods(i, true);
+		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
+			i = set_allow_methods(i, false);
 		if (!_tokens.at(i).compare("root"))
 			i = set_root(i);
 		else if (!_tokens.at(i).compare("return"))
-		{
-			std::cout << RED << _tokens.at(i) << RESET << std::endl;
 			i = set_return(i);
-		}
 		else if (!_tokens.at(i).compare("autoindex"))
 			i = set_autoindex(i);
 		else if (!_tokens.at(i).compare("index"))
@@ -92,7 +89,6 @@ size_t	Config::set_autoindex( size_t i ) {
 		throw ( ErrorRoot() );
 	if ( _tokens.at(++i).compare(";") )
 		throw ( ErrorRoot() );
-	i++;
 	return ( i );
 }
 
@@ -103,11 +99,9 @@ size_t	Config::set_return( size_t i ) {
 		throw ( ErrorReturn() );
 	if (is_number(_tokens.at(i)) && _tokens.at(i + 1).compare(";"))
 		_serv_config.back().locations.back().redirect.insert(std::pair<std::string, std::string>(_tokens.at(i), _tokens.at(i + 1)));
-	// for ( std::map<std::string, std::string>::iterator it = _serv_config.back().locations.back().redirect.begin(); it !=  _serv_config.back().locations.back().redirect.end(); it++)
-	// 	std::cout << it->first << " " << it->second << std::endl;
 	if ( _tokens.at(i + 2).compare(";") )
 		throw ( ErrorReturn() );
-	i += 3;
+	i += 2;
 	return ( i );
 }
 

@@ -110,6 +110,8 @@ void	Config::parse_config(void)
 {
 	for (size_t i = 0; i < _tokens.size(); i++)
 	{
+		std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
+
 		if (!_tokens.at(i).compare("server"))
 		{
 			_nb_server++;
