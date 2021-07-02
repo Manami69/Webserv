@@ -166,9 +166,11 @@ void	Config::check_location( void ) {
 			}
 		}
 	}
-
+	//////////////////////////////// delete later //////////////////////////////
 	for ( unsigned long i = 0; i < prefixe.size(); i++ )
 		std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
+	////////////////////////////////////////////////////////////////////////////
+	prefixe.clear();
 }
 
 void	Config::init_serv_config( void )
