@@ -27,7 +27,7 @@ struct						Serv_config
 	size_t						client_max_body_size;
 	std::map<int,std::string>	error_page;
 	unsigned	int				_nb_location;
-	std::list<_locations>		locations;
+	std::vector<_locations>		locations;
 };
 
 class Config
@@ -114,7 +114,7 @@ public:
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_nb_server( void ) const;
 	std::list<Serv_config>::iterator	get_config( unsigned int idx );
-	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
+	std::vector<_locations>::iterator	get_location( std::list<Serv_config>::iterator it, unsigned int idx );
 	//////////////////		SETTERS		//////////////////
 	size_t								set_listen( size_t i );
 	size_t								set_server_name( size_t i );

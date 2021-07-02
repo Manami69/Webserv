@@ -193,13 +193,9 @@ std::list<Serv_config>::iterator	Config::get_config( unsigned int idx ) {
 	return (it);
 };
 
-std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx )
+std::vector<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx )
 {
-	if (idx > it->_nb_location)
-		idx = it->_nb_location;
-
-	std::list<_locations>::iterator is = it->locations.begin();
-	while (--idx > 0)
-		*is++;
-	return (is);
+	if (idx > it->locations.size())
+		return it->locations.end();
+	return it->locations.begin() + idx;
 }
