@@ -35,10 +35,14 @@ void	Config::scan_file( void ) {
 		std::getline( ifs, line );
 		this->tokenize( line );
 	}
+	//////////////////////////////// delete later //////////////////////////////
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
 		std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
 	}
+	////////////////////////////////////////////////////////////////////////////
 	ifs.close();
+	this->check_brackets();
+	this->check_location();
 	return ;
 }
 
@@ -122,6 +126,49 @@ void	Config::check_brackets( void ) {
 	}
 	if (open_bracket != close_bracket)
 		throw ( WrongConfig() );
+}
+
+void	Config::check_location( void ) {
+	std::vector<std::string> prefixe;
+	size_t found;
+
+	/* Get prefixe */
+	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
+		if ( !_tokens.at(i).compare("location") ) {
+			for ( ; _tokens.at(i).compare("{") ; i++ )
+				prefixe.push_back(_tokens.at(i));
+		}
+	}
+
+	/* Check if prefixe exists */
+	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
+		if ( i != prefixe.size() - 1 && !prefixe.at(i).compare("location")
+			&& !prefixe.at(i + 1).compare("location"))
+			throw ( WrongConfig() );
+		if ( i == prefixe.size() - 1 && !prefixe.at(i).compare("location"))
+			throw ( WrongConfig() );
+		if ( !prefixe.at(i).compare("location") )
+		{
+			for ( ; prefixe.at(++i).compare("location") ;) {
+				if ( i != prefixe.size() - 1 && (found = prefixe.at(i).find("/")) == NOTFOUND
+				&& !prefixe.at(i + 1).compare("location") )
+					throw ( WrongConfig() );
+				if (i == prefixe.size() - 1 && (found = prefixe.at(i).find("/")) == NOTFOUND)
+					throw ( WrongConfig() );
+				if (i != prefixe.size() - 2 && (found = prefixe.at(i).find("/")) == NOTFOUND
+				&& (found = prefixe.at(i + 1).find("/")) == NOTFOUND
+				&& !prefixe.at(i + 2).compare("location"))
+					throw ( WrongConfig() );
+				if (i == prefixe.size() - 2 && (found = prefixe.at(i).find("/")) == NOTFOUND
+				&& (found = prefixe.at(i + 1).find("/")) == NOTFOUND)
+					throw ( WrongConfig() );
+				break ;
+			}
+		}
+	}
+
+	for ( unsigned long i = 0; i < prefixe.size(); i++ )
+		std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
 }
 
 void	Config::init_serv_config( void )

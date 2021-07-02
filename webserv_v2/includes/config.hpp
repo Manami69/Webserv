@@ -103,6 +103,7 @@ public:
 	void								scan_file( void );
 	void								tokenize( std::string line );
 	void								check_brackets( void );
+	void								check_location( void );
 	void								init_serv_config( void );
 	void								init_config_location( void );
 	void								parse_config( void );
