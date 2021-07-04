@@ -88,7 +88,8 @@ int		main(int ac, char **av)
 		conf.parse_config();
 		//display_help(conf);
 		std::cout << GREEN << "Server config Good" << RESET << std::endl;
-		
+		getLocation loc (*conf.get_config(0), "test");
+		std::cout << loc << std::endl;
 		/* Launch Server */
 		// Server	server;
 	

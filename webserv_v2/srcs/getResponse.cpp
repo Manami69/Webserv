@@ -215,6 +215,8 @@ std::string getResponse::_method_get( void )
 	std::string response_body;
 	std::ifstream ifs;
 
+	getLocation loc(_conf, "_request");
+	std::cout << loc << std::endl;
 	response_body.reserve(10000);
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
 		location += PAGE;

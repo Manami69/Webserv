@@ -4,6 +4,7 @@
 # include "getRequest.hpp"
 # include "CGI.hpp"
 # include "config.hpp"
+# include "getLocation.hpp"
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
 	# define ROOT "/Users/lolopez/Desktop/lolol/www"
