@@ -166,6 +166,13 @@ void	Config::check_location( void ) {
 			}
 		}
 	}
+
+	/* Check if prefix begins with a slash */
+	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
+		if ( (found = prefixe.at(i).find("/")) != NOTFOUND && found > 0)
+			throw ( WrongConfig() );
+	}
+
 	//////////////////////////////// delete later //////////////////////////////
 	for ( unsigned long i = 0; i < prefixe.size(); i++ )
 		std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
