@@ -46,13 +46,13 @@ void	Config::scan_file( void ) {
 	return ;
 }
 
-void	Config::_split(size_t found, int i, std::string s) {
+void	Config::_split(size_t found, int i, std::string s, int len) {
 	std::string temp;
 
 	temp = _tokens.at(i).substr(0, found);
 	_tokens.insert(_tokens.begin() + i + 1, s);
 	if ( _tokens.at(i).size() - 1 > found )
-		_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
+		_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + len, _tokens.at(i).size() - found));
 	_tokens.at(i) = temp;
 }
 
@@ -76,24 +76,28 @@ void	Config::tokenize( std::string line ) {
 		}
 	}
 
-	/* Split semicolon, brackets */
+	/* Split semicolon, brackets, equal, tilde, carat tilde, tilde star */
 	size_t found;
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
 	{
 		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, ";");
+			this->_split(found, i, ";", 1);
 		if ((found = _tokens.at(i).find("{")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, "{");
+			this->_split(found, i, "{", 1);
 		if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, "}");
+			this->_split(found, i, "}", 1);
 		if ((found = _tokens.at(i).find("=")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, "=");
-		if (i > 0 && !_tokens.at(i - 1).compare("location") && _tokens.at(i).size() != 1
-		&& (found = _tokens.at(i).find("~")) != std::string::npos && found == 0)
-		{
-			size_t slash;
-			if ((slash = _tokens.at(i).find("/")) != std::string::npos && slash == 1)
-				this->_split(found, i, "~");
+			this->_split(found, i, "=", 1);
+		if ((found = _tokens.at(i).find("~")) != std::string::npos && _tokens.at(i).size() != 1) {
+			size_t next;
+			if (found == 0 && (next = _tokens.at(i).find("/")) != std::string::npos && next == 1)
+				this->_split(found, i, "~", 1);
+			if (found == 0 && (next = _tokens.at(i).find("*")) != std::string::npos && next == 1
+			&& _tokens.at(i).size() != 2)
+				this->_split(found, i, "~*", 2);
+			if (found == 1 && (next = _tokens.at(i).find("^")) != std::string::npos && next == 0
+			&& _tokens.at(i).size() != 2)
+				this->_split(0, i, "^~", 2);
 		}
 	}
 	return ;

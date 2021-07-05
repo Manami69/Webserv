@@ -37,7 +37,7 @@ private:
 	std::vector<std::string>			_tokens;
 	unsigned	int						_nb_server;
 	std::list<Serv_config>				_serv_config;
-	void								_split(size_t found, int i, std::string s);
+	void								_split(size_t found, int i, std::string s, int len);
 	Config( void );
 	// Config(Config const &copy);
 	// Config &operation=(Config const &rhs);
