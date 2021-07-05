@@ -46,6 +46,16 @@ void	Config::scan_file( void ) {
 	return ;
 }
 
+void	Config::_split(size_t found, int i, std::string s) {
+	std::string temp;
+
+	temp = _tokens.at(i).substr(0, found);
+	_tokens.insert(_tokens.begin() + i + 1, s);
+	if ( _tokens.at(i).size() - 1 > found )
+		_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
+	_tokens.at(i) = temp;
+}
+
 void	Config::tokenize( std::string line ) {
 	/* Replace all space into tab */
 	std::replace( line.begin(), line.end(), ' ', '\t' );
@@ -66,44 +76,24 @@ void	Config::tokenize( std::string line ) {
 		}
 	}
 
-	/* Seperate semicolon */
+	/* Split semicolon, brackets */
 	size_t found;
-	std::string temp;
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
 	{
-		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1) {
-		 	temp = _tokens.at(i).substr(0, found);
-		 	_tokens.insert(_tokens.begin() + i + 1, ";");
-			if ( _tokens.at(i).size() - 1 > found )
-				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
-			_tokens.at(i) = temp;
-			temp = "";
-		}
-	}
-
-	/* Seperate open bracket */
-	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
-	{
-		if ((found = _tokens.at(i).find("{")) != std::string::npos && _tokens.at(i).size() != 1) {
-		 	temp = _tokens.at(i).substr(0, found);
-		 	_tokens.insert(_tokens.begin() + i + 1, "{");
-			if ( _tokens.at(i).size() - 1 > found )
-				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
-			_tokens.at(i) = temp;
-			temp = "";
-		}
-	}
-
-	/* Seperate close bracket */
-	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
-	{
-		if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1) {
-		 	temp = _tokens.at(i).substr(0, found);
-		 	_tokens.insert(_tokens.begin() + i + 1, "}");
-			if ( _tokens.at(i).size() - 1 > found )
-				_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + 1, _tokens.at(i).size() - found));
-			_tokens.at(i) = temp;
-			temp = "";
+		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1)
+			this->_split(found, i, ";");
+		if ((found = _tokens.at(i).find("{")) != std::string::npos && _tokens.at(i).size() != 1)
+			this->_split(found, i, "{");
+		if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1)
+			this->_split(found, i, "}");
+		if ((found = _tokens.at(i).find("=")) != std::string::npos && _tokens.at(i).size() != 1)
+			this->_split(found, i, "=");
+		if (i > 0 && !_tokens.at(i - 1).compare("location") && _tokens.at(i).size() != 1
+		&& (found = _tokens.at(i).find("~")) != std::string::npos && found == 0)
+		{
+			size_t slash;
+			if ((slash = _tokens.at(i).find("/")) != std::string::npos && slash == 1)
+				this->_split(found, i, "~");
 		}
 	}
 	return ;
@@ -174,8 +164,8 @@ void	Config::check_location( void ) {
 	}
 
 	//////////////////////////////// delete later //////////////////////////////
-	for ( unsigned long i = 0; i < prefixe.size(); i++ )
-		std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
+	// for ( unsigned long i = 0; i < prefixe.size(); i++ )
+	// 	std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
 	////////////////////////////////////////////////////////////////////////////
 	prefixe.clear();
 }
