@@ -134,7 +134,7 @@ void	Config::check_location( void ) {
 		}
 	}
 
-	/* Check if prefixe exists */
+	/* Check prefixe */
 	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
 		/* if there's nothing between location and open bracket */
 		if ( i < prefixe.size() - 1 && !prefixe.at(i).compare("location")
@@ -170,11 +170,63 @@ void	Config::check_location( void ) {
 			}
 		}
 	}
+	
+	/* Check prefixe "=", "~", "~*", "^~" */
+	std::vector<std::string>	modifiers;
+	modifiers.push_back ("=");
+	modifiers.push_back ("~");
+	modifiers.push_back ("~*");
+	modifiers.push_back ("^~");
+
+	for ( unsigned long i = 0; i < prefixe.size(); i++ )
+	{
+		if ( i > 0 && i < prefixe.size() - 2 && !prefixe.at(i - 1).compare("location")
+		&& !prefixe.at(i + 2).compare("location") )
+			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
+				throw ( ErrorLocationPrefix() );	
+		if	( i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location") )
+			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
+				throw ( ErrorLocationPrefix() );
+	}
+
+	/* remove location */
+	for ( unsigned long i = 0; i < prefixe.size(); i++ )
+		if ( !prefixe.at(i).compare("location") )
+			prefixe.erase (prefixe.begin() + i);
 
 	//////////////////////////////// delete later //////////////////////////////
-	// for ( unsigned long i = 0; i < prefixe.size(); i++ )
-	// 	std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
+	for ( unsigned long i = 0; i < prefixe.size(); i++ )
+		std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
 	////////////////////////////////////////////////////////////////////////////
+
+	/* check duplicated prefixe */
+	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
+		for ( unsigned long j = 1; j < prefixe.size(); j++ ) {
+			if ( !prefixe.at(i).compare(prefixe.at(j)) && i != j
+			&& std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end()) 
+			{
+				std::cout << GREEN << "i : " << prefixe.at(i) << " j : " << prefixe.at(j) << RESET << std::endl;
+				if ( prefixe.at(j - 1).compare("~") && prefixe.at(j - 1).compare("~*") ) {
+					std::cout << "eeeeeee" << std::endl;
+					if ( i != 0 && !prefixe.at(i - 1).compare("=") && !prefixe.at(j - 1).compare("="))
+						throw ( ErrorLocationPrefix() );
+					else if ( i != 0 && !prefixe.at(i - 1).compare("^~") && !prefixe.at(j - 1).compare("^~"))
+						throw ( ErrorLocationPrefix() );
+					else if ( i == 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
+						throw ( ErrorLocationPrefix() );
+					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
+					&& std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
+						throw ( ErrorLocationPrefix() );
+					else if ( i == 0 && !prefixe.at(j - 1).compare("^~"))
+						throw ( ErrorLocationPrefix() );
+					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
+					&& !prefixe.at(j - 1).compare("^~"))
+						throw ( ErrorLocationPrefix() );
+				}
+			}
+		}
+	}
+	modifiers.clear();
 	prefixe.clear();
 }
 
