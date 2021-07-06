@@ -7,7 +7,7 @@ size_t		Config::parse_location(size_t i) {
 		std::string c[] = {"=", "~", "~*", "^~"};
 		std::vector<std::string> cas(c, c + sizeof(c) / sizeof(std::string)); //  POURQUOI CA M;ENGUEULE? ca doit etre c++ 11 par defaut ?
 		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end()) // faire une erreur speciale au lieu de Wrong Config
-			throw WrongConfig(); 
+			throw ErrorLocationPrefix(); 
 		else
 			_serv_config.back().locations.back().modifier = _tokens[i];
 		_serv_config.back().locations.back().access = _tokens.at(++i);
@@ -18,7 +18,7 @@ size_t		Config::parse_location(size_t i) {
 		throw WrongConfig();
 	init_config_location();
 	if (_tokens.at(++i).compare("{"))
-		throw WrongConfig();
+		throw ErrorLocationPrefix();
 	while (_tokens.at(++i).compare("}"))
 	{
 		//std::cout << YELLOW << i << " location directive " << _tokens.at(i) << RESET << std::endl;

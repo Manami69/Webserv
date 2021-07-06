@@ -99,6 +99,10 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorLocationPrefix : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void								scan_file( void );

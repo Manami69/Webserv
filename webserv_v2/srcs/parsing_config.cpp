@@ -136,35 +136,39 @@ void	Config::check_location( void ) {
 
 	/* Check if prefixe exists */
 	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
-		if ( i != prefixe.size() - 1 && !prefixe.at(i).compare("location")
+		/* if there's nothing between location and open bracket */
+		if ( i < prefixe.size() - 1 && !prefixe.at(i).compare("location")
 			&& !prefixe.at(i + 1).compare("location"))
-			throw ( WrongConfig() );
+			throw ( ErrorLocationPrefix() );
 		if ( i == prefixe.size() - 1 && !prefixe.at(i).compare("location"))
-			throw ( WrongConfig() );
+			throw ( ErrorLocationPrefix() );
 		if ( !prefixe.at(i).compare("location") )
 		{
 			for ( ; prefixe.at(++i).compare("location") ;) {
-				if ( i != prefixe.size() - 1 && (found = prefixe.at(i).find("/")) == NOTFOUND
-				&& !prefixe.at(i + 1).compare("location") )
-					throw ( WrongConfig() );
-				if (i == prefixe.size() - 1 && (found = prefixe.at(i).find("/")) == NOTFOUND)
-					throw ( WrongConfig() );
-				if (i != prefixe.size() - 2 && (found = prefixe.at(i).find("/")) == NOTFOUND
-				&& (found = prefixe.at(i + 1).find("/")) == NOTFOUND
-				&& !prefixe.at(i + 2).compare("location"))
-					throw ( WrongConfig() );
-				if (i == prefixe.size() - 2 && (found = prefixe.at(i).find("/")) == NOTFOUND
-				&& (found = prefixe.at(i + 1).find("/")) == NOTFOUND)
-					throw ( WrongConfig() );
+				/* there's one token between location and open bracket, the token begins with a slash */
+				if ( (i < prefixe.size() - 1 && !prefixe.at(i + 1).compare("location")) 
+				|| (i == prefixe.size() - 1 && !prefixe.at(i - 1).compare("location")) ) {
+					if ((found = prefixe.at(i).find("/")) == NOTFOUND
+					|| ((found = prefixe.at(i).find("/")) != NOTFOUND && found > 0))
+						throw ( ErrorLocationPrefix() );
+				}
+				/* there's two tokens between location and open bracket, if the 1st token is = or ^~, the 2nd token begin with a slash */
+				if ( (i < prefixe.size() - 2 && !prefixe.at(i + 2).compare("location")) 
+				|| (i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location")) ) {
+					if ( prefixe.at(i).size() == 1 && (found = prefixe.at(i).find("=")) != NOTFOUND) {
+						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
+						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
+							throw ( ErrorLocationPrefix() );
+					}
+					if ( prefixe.at(i).size() == 2 && (found = prefixe.at(i).find("^~")) != NOTFOUND) {
+						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
+						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
+							throw ( ErrorLocationPrefix() );
+					}
+				}
 				break ;
 			}
 		}
-	}
-
-	/* Check if prefix begins with a slash */
-	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
-		if ( (found = prefixe.at(i).find("/")) != NOTFOUND && found > 0)
-			throw ( WrongConfig() );
 	}
 
 	//////////////////////////////// delete later //////////////////////////////
