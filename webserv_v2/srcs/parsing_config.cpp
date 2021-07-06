@@ -36,9 +36,9 @@ void	Config::scan_file( void ) {
 		this->tokenize( line );
 	}
 	//////////////////////////////// delete later //////////////////////////////
-	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-		std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
-	}
+	// for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
+	// 	std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
+	// }
 	////////////////////////////////////////////////////////////////////////////
 	ifs.close();
 	this->check_brackets();
@@ -195,8 +195,8 @@ void	Config::check_location( void ) {
 			prefixe.erase (prefixe.begin() + i);
 
 	//////////////////////////////// delete later //////////////////////////////
-	for ( unsigned long i = 0; i < prefixe.size(); i++ )
-		std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
+	// for ( unsigned long i = 0; i < prefixe.size(); i++ )
+	// 	std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
 	////////////////////////////////////////////////////////////////////////////
 
 	/* check duplicated prefixe */
