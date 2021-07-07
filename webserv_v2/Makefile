@@ -19,13 +19,14 @@ NAME		= 		webserv
 PATH_HEADER	=		includes/
 PATH_SRCS	=		srcs/
 PATH_OBJS	=		objs/
-SRCS_LIST	= 		main.cpp config.cpp error_config.cpp server.cpp getRequest.cpp getResponse.cpp CGI.cpp
+SRCS_LIST	= 		main.cpp parsing_config.cpp parsing_error.cpp parsing_location.cpp server.cpp getRequest.cpp getResponse.cpp CGI.cpp getLocation.cpp
 OBJS		= 		$(addprefix $(PATH_OBJS), $(SRCS_LIST:.cpp=.o))
-HEADER_LIST	=		header.hpp config.hpp server.hpp getRequest.hpp getResponse.hpp CGI.hpp
+HEADER_LIST	=		header.hpp config.hpp server.hpp getRequest.hpp getResponse.hpp CGI.hpp getLocation.hpp
 HEADER		=		$(addprefix $(PATH_HEADER), $(HEADER_LIST))
 CC			=		clang++
 RM			= 		rm -rf
 FLAGS 		= 		-Wall -Wextra -Werror -std=c++98 -fsanitize=address
+FSANITIZE	=		-fsanitize=address
 
 ################################################################################
 #									RULES									   #

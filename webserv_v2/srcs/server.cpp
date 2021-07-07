@@ -25,7 +25,6 @@ void	Server::setup_server_socket(Config conf, int idx) {
 	_listen->addr.sin_family = AF_INET;
 	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
-	return ;
 }
 
 void	Server::get_master_socket_fd(void) {
@@ -94,7 +93,7 @@ std::vector<Listen*>	Server::get_server_lst(void) const {
 	return (_server_lst);
 }
 
-void	Server::selected(void) {
+void	Server::selected(Config conf) {
 	while (true) {
 		FD_ZERO(&_read_set);
     	FD_ZERO(&_read_copy);
@@ -126,12 +125,12 @@ void	Server::selected(void) {
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
 		for (int fd = 0; fd <= _max_fd; ++fd) {
             if (FD_ISSET(fd, &_read_copy))
-				this->process_socket(fd);
+				this->process_socket(conf, fd);
         }
 	}
 }
 
-void	Server::process_socket(int fd) {
+void	Server::process_socket(Config conf, int fd) {
 
 	//std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
 
@@ -148,7 +147,6 @@ void	Server::process_socket(int fd) {
 		else {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			fcntl(comm, F_SETFL, O_NONBLOCK);
-			//FD_SET(comm, &_read_set);
 			_client_lst.insert(std::pair<int, int>(comm, server_order));
 		}
     }
@@ -177,13 +175,15 @@ void	Server::process_socket(int fd) {
 			if ((size_recv = recv(fd, buf, sizeof(buf), 0)) < 0)
 			{
 				usleep(100000);
-				
 			}
 			else
 			{
+				// std::cout << GREEN << buf << RESET;
 				total_size += size_recv;
 				for (ssize_t j = 0; j < size_recv ; j++)
 					buffff->push_back(buf[j]);
+				if (buffff->find("\r\n\r\n") != std::string::npos)
+					break ;
 				gettimeofday(&begin , NULL);
 			}
 		}
@@ -195,14 +195,22 @@ void	Server::process_socket(int fd) {
 
 		if (!buffff->empty()) //// a changer
 		{
-			getRequest a(*buffff);
-			std::cout <<YEL << a["Content-Type"] << END << std::endl;
+			//getRequest a(*buffff);
+			//std::cout << "GOGOGOGO" << a.get_content_length() << std::endl;
 			delete buffff;
-			getResponse response(a);
+			// use fd to find server idx in _client_lst<int(fd), int(server idx)>,
+			// and use the server idx for the function conf.get_config(idx)
+			(void)conf;
+			//getResponse response(a);
 			this->error_code();
 		//std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
+			//send(fd, response.responsetosend(_err));
 			// close and clear fd
+			_iter = _client_lst.find(fd);
+			if (_iter != _client_lst.end())
+				_client_lst.erase(_iter);
+			FD_CLR(fd, &_read_set);
+			close(fd);
 		}
 		else
 
