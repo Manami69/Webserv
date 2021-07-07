@@ -21,7 +21,6 @@ int		main(int ac, char **av)
 		conf.parse_config();
 		
 		std::cout << GREEN << "Webserv configuration OK" << RESET << std::endl;
-		
 		/* Launch Server */
 		// Server	server;
 	

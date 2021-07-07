@@ -288,20 +288,29 @@ int		Config::get_nb_server( void ) const {
 	return (this->_nb_server);
 }
 
-std::list<Serv_config>::iterator	Config::get_config( unsigned int idx ) {
+std::list<Serv_config>::iterator	Config::get_config( size_t idx ) {
 	/*	if idx > nb of server, than it will get the last server in .config */
 	if (idx > this->_nb_server)
 		idx = this->_nb_server;
 
 	std::list<Serv_config>::iterator it = this->_serv_config.begin();
-	while (--idx > 0)
-		*it++;
+	while (idx > 0)
+	{
+		idx--;
+	 	it++;
+	}
 	return (it);
 };
 
-std::vector<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx )
+std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx )
 {
 	if (idx > it->locations.size())
-		return it->locations.end();
-	return it->locations.begin() + idx;
+		return (*it).locations.end();
+	std::list<_locations>::iterator its = (*it).locations.begin();
+	while (idx > 0)
+	{
+		idx--;
+	 	its++;
+	}
+	return (its);
 }

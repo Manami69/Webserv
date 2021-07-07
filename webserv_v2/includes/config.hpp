@@ -119,8 +119,8 @@ public:
 	std::string							get_filename( void ) const;
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_nb_server( void ) const;
-	std::list<Serv_config>::iterator	get_config( unsigned int idx );
-	std::vector<_locations>::iterator	get_location( std::list<Serv_config>::iterator it, unsigned int idx );
+	std::list<Serv_config>::iterator	get_config( size_t idx );
+	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
 	//////////////////		SETTERS		//////////////////
 	size_t								set_listen( size_t i );
 	size_t								set_server_name( size_t i );

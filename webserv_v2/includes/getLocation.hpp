@@ -33,6 +33,9 @@ class getLocation {
 		getLocation(const getLocation& src);
 		getLocation();
 		getLocation &operator=(const getLocation &rhs);
+		bool _tildeisfound(std::string loc, bool isCaseSensitive);
+		std::string	strtoupper(std::string str);
+
 };
 
 std::ostream &operator<<(std::ostream & o, const getLocation& src);

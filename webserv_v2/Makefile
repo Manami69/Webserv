@@ -26,6 +26,7 @@ HEADER		=		$(addprefix $(PATH_HEADER), $(HEADER_LIST))
 CC			=		clang++
 RM			= 		rm -rf
 FLAGS 		= 		-Wall -Wextra -Werror -std=c++98 -fsanitize=address
+FSANITIZE	=		-fsanitize=address
 
 ################################################################################
 #									RULES									   #
