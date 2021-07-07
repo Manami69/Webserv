@@ -6,8 +6,8 @@ size_t		Config::parse_location(size_t i) {
 		i++;
 		std::string c[] = {"=", "~", "~*", "^~"};
 		std::vector<std::string> cas(c, c + sizeof(c) / sizeof(std::string)); //  POURQUOI CA M;ENGUEULE? ca doit etre c++ 11 par defaut ?
-		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end()) // faire une erreur speciale au lieu de Wrong Config
-			throw WrongConfig(); 
+		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end()) 
+			throw ErrorLocationPrefix();
 		else
 			_serv_config.back().locations.back().modifier = _tokens[i];
 		_serv_config.back().locations.back().access = _tokens.at(++i);
@@ -15,13 +15,12 @@ size_t		Config::parse_location(size_t i) {
 	else if (!_tokens.at(i + 2).compare("{"))
 		_serv_config.back().locations.back().access = _tokens.at(++i);
 	else
-		throw WrongConfig();
+		throw ErrorLocationPrefix();
 	init_config_location();
 	if (_tokens.at(++i).compare("{"))
-		throw WrongConfig();
+		throw	( ErrorLocationPrefix() );
 	while (_tokens.at(++i).compare("}"))
 	{
-		//std::cout << YELLOW << i << " location directive " << _tokens.at(i) << RESET << std::endl;
 		if (!_tokens.at(i).compare("allow_methods"))
 			i = set_allow_methods(i, true);
 		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel

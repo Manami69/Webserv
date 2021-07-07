@@ -3,40 +3,41 @@
 
 #include "header.hpp"
 
-struct						_locations
+struct									_locations
 {
-	std::string					modifier;
-	std::string					access;
-	bool						allowm;
-	bool						limitm;
-	int							allow_methods[3];
-	std::string					root;
-	std::string					index;
-	bool						autoindex;
-	std::string					cgi_path;
-	std::string					try_files;
+	std::string							modifier;
+	std::string							access;
+	bool								allowm;
+	bool								limitm;
+	int									allow_methods[3];
+	std::string							root;
+	std::string							index;
+	bool								autoindex;
+	std::string							cgi_path;
+	std::string							try_files;
 	std::map<std::string, std::string>	redirect;
 };
 
 
-struct						Serv_config
+struct									Serv_config
 {
-	std::string					host;
-	std::string					port;
-	std::string					server_name;
-	size_t						client_max_body_size;
-	std::map<int,std::string>	error_page;
-	unsigned	int				_nb_location;
-	std::vector<_locations>		locations;
+	std::string							host;
+	std::string							port;
+	std::string							server_name;
+	size_t								client_max_body_size;
+	std::map<int,std::string>			error_page;
+	unsigned	int						_nb_location;
+	std::list<_locations>				locations;
 };
 
 class Config
 {
 private:
-	std::string					_filename;
-	std::vector<std::string>	_tokens;
-	unsigned	int				_nb_server;
-	std::list<Serv_config>		_serv_config;
+	std::string							_filename;
+	std::vector<std::string>			_tokens;
+	unsigned	int						_nb_server;
+	std::list<Serv_config>				_serv_config;
+	void								_split(size_t found, int i, std::string s, int len);
 	Config( void );
 	// Config(Config const &copy);
 	// Config &operation=(Config const &rhs);
@@ -98,11 +99,16 @@ public:
 	public:
 		const char *what() const throw(); // override
 	};
+	class ErrorLocationPrefix : public std::exception {
+	public:
+		const char *what() const throw(); // override
+	};
 	Config( std::string filename );
 	~Config( void );
 	void								scan_file( void );
 	void								tokenize( std::string line );
 	void								check_brackets( void );
+	void								check_location( void );
 	void								init_serv_config( void );
 	void								init_config_location( void );
 	void								parse_config( void );
