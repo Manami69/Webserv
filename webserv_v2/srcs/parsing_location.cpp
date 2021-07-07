@@ -1,22 +1,14 @@
 #include "../includes/config.hpp"
 
 size_t		Config::parse_location(size_t i) {
-	if (!_tokens.at(i + 3).compare("{")) //  prefix modifier case
+	init_config_location();
+	if ( !_tokens.at(i + 2).compare("{") )
+		_serv_config.back().locations.back().access += _tokens.at(++i);
+	else if ( !_tokens.at(i + 3).compare("{") ) //  prefix modifier case
 	{
-		i++;
-		std::string c[] = {"=", "~", "~*", "^~"};
-		std::vector<std::string> cas(c, c + sizeof(c) / sizeof(std::string)); //  POURQUOI CA M;ENGUEULE? ca doit etre c++ 11 par defaut ?
-		if (std::find(cas.begin(), cas.end(), _tokens.at(i)) == cas.end()) 
-			throw ErrorLocationPrefix();
-		else
-			_serv_config.back().locations.back().modifier = _tokens[i];
+		_serv_config.back().locations.back().modifier = _tokens.at(++i);
 		_serv_config.back().locations.back().access = _tokens.at(++i);
 	}
-	else if (!_tokens.at(i + 2).compare("{"))
-		_serv_config.back().locations.back().access = _tokens.at(++i);
-	else
-		throw ErrorLocationPrefix();
-	init_config_location();
 	if (_tokens.at(++i).compare("{"))
 		throw	( ErrorLocationPrefix() );
 	while (_tokens.at(++i).compare("}"))

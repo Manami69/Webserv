@@ -35,14 +35,14 @@ void	Config::scan_file( void ) {
 		std::getline( ifs, line );
 		this->tokenize( line );
 	}
-	//////////////////////////////// delete later //////////////////////////////
-	// for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-	// 	std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
-	// }
-	////////////////////////////////////////////////////////////////////////////
 	ifs.close();
 	this->check_brackets();
 	this->check_location();
+	//////////////////////////////// delete later //////////////////////////////
+	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
+		std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
+	}
+	////////////////////////////////////////////////////////////////////////////
 	return ;
 }
 
@@ -183,8 +183,9 @@ void	Config::check_location( void ) {
 		if ( i > 0 && i < prefixe.size() - 2 && !prefixe.at(i - 1).compare("location")
 		&& !prefixe.at(i + 2).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw ( ErrorLocationPrefix() );	
-		if	( i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location") )
+				throw ( ErrorLocationPrefix() );
+
+		if	( i != 0 && i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
 				throw ( ErrorLocationPrefix() );
 	}
@@ -205,9 +206,7 @@ void	Config::check_location( void ) {
 			if ( !prefixe.at(i).compare(prefixe.at(j)) && i != j
 			&& std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end()) 
 			{
-				std::cout << GREEN << "i : " << prefixe.at(i) << " j : " << prefixe.at(j) << RESET << std::endl;
-				if ( prefixe.at(j - 1).compare("~") && prefixe.at(j - 1).compare("~*") ) {
-					std::cout << "eeeeeee" << std::endl;
+	 			if ( prefixe.at(j - 1).compare("~") && prefixe.at(j - 1).compare("~*") ) {
 					if ( i != 0 && !prefixe.at(i - 1).compare("=") && !prefixe.at(j - 1).compare("="))
 						throw ( ErrorLocationPrefix() );
 					else if ( i != 0 && !prefixe.at(i - 1).compare("^~") && !prefixe.at(j - 1).compare("^~"))
@@ -247,7 +246,7 @@ void	Config::parse_config(void)
 {
 	for (size_t i = 0; i < _tokens.size(); i++)
 	{
-		std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
+		//std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
 
 		if (!_tokens.at(i).compare("server"))
 		{
