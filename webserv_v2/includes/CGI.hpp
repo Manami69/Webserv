@@ -6,7 +6,7 @@
 
 class CGI {
     public:
-        CGI( getRequest request, std::string port, std::string root);
+        CGI( getRequest request, std::string port, std::string root, std::string path_cgi);
         ~CGI( void );
         static const std::string arr[];
         char **env();
@@ -18,7 +18,8 @@ class CGI {
 				}
 		};
     private:
-        std::map<std::string, std::string> _SERVER;
+        std::map<std::string, std::string> _SERVER;\
+		std::string	_CGIPath;
 		getRequest _req;
         void    _init_map();
         void    _fill_map_key(std::string key, std::string value);

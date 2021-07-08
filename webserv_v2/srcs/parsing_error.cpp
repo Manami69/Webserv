@@ -187,7 +187,7 @@ size_t	Config::set_error_page(size_t i)
 	std::list<int> num;
 	std::string page;
 	std::string redirect;
-	std::list<int> errorcode(error_code, error_code + sizeof(error_code)/sizeof(int));
+	//std::list<int> errorcode(error_code, error_code + sizeof(error_code)/sizeof(int));
 	int count = 0;
 
 	while (_tokens.at(++i).compare(";"))
@@ -197,9 +197,9 @@ size_t	Config::set_error_page(size_t i)
 		else if (!is_number(_tokens.at(i)) && _tokens.at(i)[0] != '=' && page.empty())
 			page = _tokens.at(i);
 		else if (_tokens.at(i)[0] == '=' && is_number(_tokens.at(i).substr(1)) && \
-		std::find(errorcode.begin(), errorcode.end(), atoi(_tokens.at(i).substr(1).c_str())) != errorcode.end() && redirect.empty())
+		atoi(_tokens.at(i).substr(1).c_str()) > 0 && atoi(_tokens.at(i).substr(1).c_str()) < 1000 && redirect.empty())
 			redirect = _tokens.at(i);
-		else if (is_number(_tokens.at(i)) && std::find(errorcode.begin(), errorcode.end(), atoi(_tokens.at(i).c_str())) != errorcode.end())
+		else if (is_number(_tokens.at(i)) && atoi(_tokens.at(i).c_str()) > 299 && atoi(_tokens.at(i).c_str()) < 600) // 300 and 599
 		{
 			count++;
 			num.push_back(atoi(_tokens.at(i).c_str()));

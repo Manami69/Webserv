@@ -64,6 +64,7 @@ class getResponse {
 		// 🅤🅣🅘🅛🅢
 		int	_parse_status_line( void );
 		getResponse( void );
+		bool _fileExists(std::string fileStr);
 		std::string		_error_response(const std::map<int, std::string> err);
 		// // GET MIMETYPE
 		std::string	_get_extension( void );
@@ -73,12 +74,16 @@ class getResponse {
 		std::string _get_serv_line( void );
 		// // USE PHP-CGI (if enabled)
 		std::string _use_php();
+		// // ERROR REDIRECT
+		std::string	_redirectError();
 
-
+		
 		// 🅜🅔🅣🅗🅞🅓🅢
 		// // GET METHOD
 		std::string	_get_fill_headers( std::string response );
 		std::string _method_get( void );
+		// // // FIND INDEX
+		std::string	_findIndex();
 		// // // AUTOINDEX PAGE GENERATOR
 		std::string _get_autoindex( std::string location );
 		std::string _fill_index_body(std::list<t_index_file> files);
@@ -93,10 +98,12 @@ class getResponse {
 
 		// 🅥🅐🅡🅘🅐🅑🅛🅔🅢
 		std::vector<std::string>			_keys;
+		getLocation							*_locInfos;
 		int									_status_code;
 		getRequest							_request;
 		std::string							_content;
 		Serv_config							_conf;
+		bool								isloc;
 };
 
 //std::map<int, std::string> getResponse::error_code = getResponse::create_error();

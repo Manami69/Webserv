@@ -23,19 +23,19 @@ class getLocation {
 	public:
 		getLocation(const Serv_config &s, const std::string& r);
 		~getLocation();
-		ID					get_id();
-		std::vector<_locations> 		get_locations() const;
-		std::string						getRoot(ID id);
-		bool							isAllowedMethod(ID id, int method);
-		std::string						getRedirection(ID id);
-		bool							getAutoindex(ID id);
-		std::string						getIndex(ID id);
-		std::string						getCGIPath(ID id);
+		std::string						getRoot();
+		bool							isAllowedMethod(int method);
+		std::string						getRedirection();
+		bool							getAutoindex();
+		std::string						getIndex();
+		std::string						getCGIPath();
 
 	
 	private:
-		std::vector<_locations> arr;
-		std::string				_req;
+		//std::vector<_locations> arr;
+		_locations			_infos;
+		std::string			_req;
+		ID					get_id(std::vector<_locations> & arr);
 		getLocation(const getLocation& src);
 		getLocation();
 		getLocation &operator=(const getLocation &rhs);
@@ -44,5 +44,4 @@ class getLocation {
 
 };
 
-std::ostream &operator<<(std::ostream & o, const getLocation& src);
 #endif

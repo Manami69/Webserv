@@ -10,9 +10,17 @@
 ░╚════╝░╚══════╝╚═╝░░╚═╝╚═════╝░╚═════╝░  ░╚═════╝░░░░╚═╝░░░╚═╝╚══════╝╚═════╝░
 */
 
-getResponse::getResponse( getRequest const &request, Serv_config conf ) : _request(request), _conf(conf) {
-	this->_status_code = _parse_status_line();
+getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
+	this->_status_code = _parse_status_line();// verifie la status line
+	
+	// continue checking with headers;
 	if (this->_status_code == 200) {
+		if (size_t mark = this->_request["request-target"].find("?") == NOTFOUND) // gere les GET avec infos
+			_locInfos = new getLocation(_conf, this->_request["request-target"]);
+		else
+			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
+		isloc = true;
+		// TODO si return existe alors il retourne direct le code;
 		if (!this->_request["method"].compare("GET"))
 			_content = _method_get();
 		else if  (!this->_request["method"].compare("POST"))
@@ -20,7 +28,6 @@ getResponse::getResponse( getRequest const &request, Serv_config conf ) : _reque
 		else if (this->_request["method"].compare("DELETE"))
 			_content = _method_delete();
 	}
-	// continue checking with headers;
 	return ;
 }
 
@@ -30,6 +37,8 @@ getResponse::getResponse( getResponse const & src ) {
 }
 
 getResponse::~getResponse( void ) {
+	if (isloc)
+		delete _locInfos;
 	return ;
 }
 
@@ -58,6 +67,8 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::stringstream ss;
 
 	//remove(_request["body"].c_str());
+	if (this->_status_code >= 300 && this->_status_code < 600 && !_conf.error_page[this->_status_code].empty())
+		return _redirectError();
 	str.reserve(30);
 	if (!this->_status_code)
 		return this->_content;/////////////////////
@@ -177,15 +188,29 @@ std::string getResponse::_get_serv_line( void ) {
 	return "Server: Webserv/v1.0\r\n";
 }
 
+std::string	getResponse::_redirectError() {
+	std::string reloc;
+	std::string resp;
+	resp.reserve(500);
+	size_t pos = 0;
+	if (_conf.error_page[this->_status_code][0] == '=' && (pos = _conf.error_page[this->_status_code].find(" ")) != NOTFOUND)
+			reloc = _conf.error_page[this->_status_code].substr(pos + 1);
+	else
+		reloc = _conf.error_page[this->_status_code];
+	resp += "HTTP/1.1 302 Moved Temporarily\r\n";
+	resp += _get_serv_line();
+	resp += _get_date_line();
+	resp += "Connection: keep-alive\r\nLocation: ";
+	resp += reloc + CRLF + CRLF;
+	return resp;
+}
+
+
 std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 	std::string ret;
 	size_t f = 0;
 	std::stringstream ss;
-	// si pas de fichier personalisé
-	if (!_conf.error_page[this->_status_code].empty())
-	{
-		
-	}
+
 	ret.reserve(200);
 	ret += "<html>\n<head><title>xx yy</title></head>\n<body>\n\
 <center><h1>xx yy</h1></center>\n<hr><center>Webserv/1.0</center>\n\
@@ -207,25 +232,66 @@ std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 ░╚═════╝░╚══════╝░░░╚═╝░░░  ╚═╝░░░░░╚═╝╚══════╝░░░╚═╝░░░╚═╝░░╚═╝░╚════╝░╚═════╝░
 */
 
+std::string		getResponse::_findIndex() {
+	std::string test;
+	size_t i = 0;
+	size_t last = 0;
+	if (_locInfos->getIndex().empty())
+		return "";
+	while ((i = _locInfos->getIndex().find(" ", last)) != NOTFOUND)
+	{
+		test = _locInfos->getIndex().substr(last, i);
+		if (_fileExists(_locInfos->getRoot() + test));
+			return test;
+		last = i + 1;
+	}
+	test = _locInfos->getIndex().substr(last);
+	if (_fileExists(_locInfos->getRoot() + test));
+		return test;
+	return "";
+}
+
+bool		getResponse::_fileExists(std::string fileStr)
+{
+	std::fstream fs;
+
+	fs.open(fileStr.c_str(), std::fstream::in);
+	if (fs.is_open())
+	{
+		fs.close();
+		return true;
+	}
+	else
+		return false;
+}
+
+
 #define PHP_CONTENT "./tmp/php_content"
 std::string getResponse::_method_get( void )
 {
-	std::string location = CURRDIR + this->_request["request-target"];
-	bool	isindex = false;
+	std::string location = _locInfos->getRoot() + this->_request["request-target"];
+	std::string	index;
 	std::string response_body;
 	std::ifstream ifs;
 
-	getLocation loc(_conf, "_request");
-	std::cout << loc << std::endl;
 	response_body.reserve(10000);
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
-		location += PAGE;
-		isindex = true;
+		if ((index = _findIndex()).empty())
+		{	
+			if (_locInfos->getAutoindex()) {
+				response_body += _get_autoindex(_locInfos->getRoot() + this->_request["request-target"]);
+				return _get_fill_headers(response_body);
+			}
+			else {
+				_status_code = 404;
+				return "";
+			}
+		}
+		location += index;
 	}
-	else if (!_get_extension().compare("php") || _request["request-target"].find(".php?") != std::string::npos)
+	if (!_locInfos->getCGIPath().empty())
 	{
-		// if cgi is on
-		CGI cgi(_request, "8080", ROOT);
+		CGI cgi(_request, _conf.port, _locInfos->getRoot(), _locInfos->getCGIPath());
 		try {
 			cgi.cgi_exec();
 		}
@@ -238,11 +304,6 @@ std::string getResponse::_method_get( void )
 	}
 	ifs.open(location.c_str(), std::ifstream::in);
 	if (ifs.fail()) {
-		if (isindex)
-		{
-			response_body += _get_autoindex(CURRDIR + this->_request["request-target"]);
-			return _get_fill_headers(response_body);
-		}
 		ifs.clear();
 		this->_status_code = 404;
 		return "";
@@ -274,11 +335,10 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	// TODO ajouter serv name
 	//headers += _get_date_line();
-	if (!ext.compare("php") || _request["request-target"].find(".php?") != std::string::npos /* et cgi on */) {
+	if (!_locInfos->getCGIPath().empty()) {
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
 		headend = headend == std::string::npos? 0 : headend + 4;
-		//std::cout << "SIZE = " << response.size() << "HEADEND= " << headend;
 		ss << response.size() - headend;
 		headers += ss.str();
 		if (response.find("\r\n\r\n") != response.npos)
@@ -369,7 +429,7 @@ std::string getResponse::_get_autoindex( std::string location ) {
 	if ((dir = opendir(location.c_str())) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
 			memset(&st, 0, sizeof(st));
-			std::string path = ROOT + this->_request["request-target"];
+			std::string path = _locInfos->getRoot() + this->_request["request-target"];
 			path += ent->d_name;
 			stat(path.c_str(), &st);
 			char strNow[ 19 ];
@@ -384,7 +444,8 @@ std::string getResponse::_get_autoindex( std::string location ) {
   		closedir (dir);
 	}
 	else {
-		std::cout << "Errrr" << std::endl; //////////////////////TODO return error 404 si page non existante ???????????????
+		_status_code = 500;
+		return "";
 	}
 	return _fill_index_body(files);
 }
@@ -451,7 +512,7 @@ std::string getResponse::_delete_fill_header( void ) {
 }
 
 int			getResponse::_delete_file( void ) {
-	const std::string path = ROOT + _request["request-target"];
+	const std::string path = _locInfos->getRoot() + _request["request-target"];
 	if ( remove(path.c_str()) )
 		return 404;
 	else

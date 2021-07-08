@@ -1,6 +1,7 @@
 #include "./../includes/getLocation.hpp"
 
 getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
+	std::vector<_locations> arr;
 	for (std::list<_locations>::const_iterator it = s.locations.begin(); it != s.locations.end(); it++) // first loop, get = modifiers
 	{
 		if (!it->modifier.compare("=")) {
@@ -25,14 +26,14 @@ getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 			arr.push_back(*it);
 		}
 	}
+	_infos = arr.at(get_id(arr));
 }
 
 getLocation::~getLocation() {}
 
-std::vector<_locations> 		getLocation::get_locations() const { return arr; }
 
 // get the best location id for this config so you can check all that you need in the configuration
-ID getLocation::get_id() {
+ID getLocation::get_id(std::vector<_locations> & arr) {
 	ID i = 0;
 // cherche  les locations avec prefixe et egalite parfaite
 	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
@@ -89,71 +90,39 @@ std::string	getLocation::strtoupper(std::string str) {
 	return ret;
 }
 
-std::string getLocation::getRoot(ID id) {
-	if (arr.size() <= id)
-	{
-		return ""; // DEFAULT_LOCATION
-	}
-	else
-		return arr.at(id).root;
+std::string getLocation::getRoot() {
+		return _infos.root;
 }
 
-bool	getLocation::isAllowedMethod(ID id, int method) {
+bool	getLocation::isAllowedMethod(int method) {
 	try {
 		if (method == DELETE) {
-			return arr.at(id).allow_methods[DELETE] == 1 ? true : false;
+			return _infos.allow_methods[DELETE] == 1 ? true : false;
 		}
 		else {
-			return arr.at(id).allow_methods[method] != -1 ? true : false;
+			return _infos.allow_methods[method] != -1 ? true : false;
 		}
 	} catch (std::exception &e) {
 		return method == DELETE ? false : true;
 	}
 }
 
+std::string		getLocation::getRedirection() {
 
-std::string		getLocation::getRedirection(ID id) {
-	try {
-		if (arr.at(id).redirect.empty())
-			return "";
-		return arr.at(id).redirect.begin()->first + " " + arr.at(id).redirect.begin()->second;
-	} catch (std::exception &e) {
+	if (_infos.redirect.empty())
 		return "";
-	}
+	return _infos.redirect.begin()->first + " " + _infos.redirect.begin()->second;
+
 }
 
-bool							getLocation::getAutoindex(ID id) {
-	try {
-		return (arr.at(id).autoindex);
-	} catch (std::exception &e) {
-		return false;
-	}
+bool							getLocation::getAutoindex() {
+	return (_infos.autoindex);
 }
-std::string						getLocation::getIndex(ID id) {
-	try {
-		return (arr.at(id).index);
-	} catch (std::exception &e) {
-		return "";
-	}
-}
-std::string						getLocation::getCGIPath(ID id) {
-	try {
-		return (arr.at(id).cgi_path);
-	} catch (std::exception &e) {
-		return "";
-	}
-}
-/*
- - 
- - 
- - 
- - 
-*/
 
-std::ostream &operator<<(std::ostream & o, const getLocation& src) {
-	std::vector<_locations> array = src.get_locations();
+std::string						getLocation::getIndex() {
+	return (_infos.index);
+}
 
-	for (std::vector<_locations>::iterator it = array.begin(); it != array.end(); it++)
-		o << it->modifier << " " << it->access << std::endl;
-	return o;
+std::string						getLocation::getCGIPath() {
+	return (_infos.cgi_path);
 }
