@@ -96,7 +96,7 @@ size_t	Config::set_return( size_t i ) {
 		int code = std::atoi(_tokens.at(i).c_str());
 		if (code < 0 || code > 999)
 			throw ( ErrorReturn() );
-		_serv_config.back().locations.back().redirect.insert(std::pair<int, std::string>(code, _tokens.at(i + 1)));
+		_serv_config.back().locations.back().redirect.insert(std::pair<std::string, std::string>(_tokens.at(i), _tokens.at(i + 1)));
 	}
 	if ( _tokens.at(i + 2).compare(";") )
 		throw ( ErrorReturn() );
