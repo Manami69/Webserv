@@ -30,24 +30,43 @@ getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 getLocation::~getLocation() {}
 
 std::vector<_locations> 		getLocation::get_locations() const { return arr; }
+
 // get the best location id for this config so you can check all that you need in the configuration
-// ID getLocation::get_id( std::string requestline ) {
-// 	std::vector<_locations>::iterator it = arr.begin();
-// 	ID i = 0;
-// // cherche  les locations avec prefixe
-// 	for (; it != arr.end(); it++)
-// 	{
-// 		if (!it->modifier.compare("=") && !it->access.compare(_req))
-// 			return i;
-// 		else if (!it->modifier.compare("^~") && !it->access.compare(_req)) // pas vrai si chemin plus long trouve
-// 			return i;
-// 		else if (!it->modifier.compare("~") && _tildeisfound(it->access, true))
-// 			return i;
-// 		else if (!it->modifier.compare("~*") && _tildeisfound(it->access, false))
-// 			return i;
-// 		i++;
-// 	}
-// }
+ID getLocation::get_id() {
+	ID i = 0;
+// cherche  les locations avec prefixe et egalite parfaite
+	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
+	{
+		if (!it->modifier.compare("=") && !it->access.compare(_req))
+			return i;
+		else if (!it->modifier.compare("^~") && !it->access.compare(_req))
+			return i;
+		else if (!it->modifier.compare("~") && _tildeisfound(it->access, true))
+			return i;
+		else if (!it->modifier.compare("~*") && _tildeisfound(it->access, false))
+			return i;
+		else if (it->modifier.empty() && !it->access.compare(_req))
+			return i;
+		i++;
+	}
+	// si pas de super choix, choisir le - pire
+	size_t best = 0;
+	size_t iBest = 0;
+	i = 0;
+	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
+	{
+		if ((!it->modifier.compare("^~") || it->modifier.empty()) && it->access.find(_req) == 0)
+		{
+			if (_req.size() > best)
+			{
+				best = _req.size();
+				iBest = i;
+			}
+		}
+		i++;
+	}
+	return (iBest);
+}
 
 bool getLocation::_tildeisfound(std::string loc, bool isCaseSensitive)
 {
@@ -69,17 +88,61 @@ std::string	getLocation::strtoupper(std::string str) {
 		ret += static_cast<char>(toupper(str[i]));
 	return ret;
 }
-/*
 
-std::string getLocation::get_location_root(ID id) {
+std::string getLocation::getRoot(ID id) {
 	if (arr.size() <= id)
 	{
-		return "";
+		return ""; // DEFAULT_LOCATION
 	}
 	else
 		return arr.at(id).root;
-}*/
+}
 
+bool	getLocation::isAllowedMethod(ID id, int method) {
+	try {
+		if (method == DELETE) {
+			return arr.at(id).allow_methods[DELETE] == 1 ? true : false;
+		}
+		else {
+			return arr.at(id).allow_methods[method] != -1 ? true : false;
+		}
+	} catch (std::exception &e) {
+		return method == DELETE ? false : true;
+	}
+}
+
+
+std::string		getLocation::getRedirection(ID id) {
+	try {
+		if (arr.at(id).redirect.empty())
+			return "";
+		return arr.at(id).redirect.begin()->first + " " + arr.at(id).redirect.begin()->second;
+	} catch (std::exception &e) {
+		return "";
+	}
+}
+
+bool							getLocation::getAutoindex(ID id) {
+	try {
+		return (arr.at(id).autoindex);
+	} catch (std::exception &e) {
+		return false;
+	}
+}
+std::string						getLocation::getIndex(ID id) {
+	try {
+		return (arr.at(id).index);
+	} catch (std::exception &e) {
+		return "";
+	}
+}
+std::string						getLocation::getCGIPath(ID id) {
+	try {
+		return (arr.at(id).cgi_path);
+	} catch (std::exception &e) {
+		return "";
+	}
+}
 /*
  - 
  - 

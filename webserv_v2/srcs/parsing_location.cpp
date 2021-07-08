@@ -41,9 +41,9 @@ void		Config::init_config_location(void)
 	location.autoindex = false;
 	location.allowm = false;
 	location.limitm = false;
-	location.allow_methods[0] = 0;
-	location.allow_methods[1] = 0;
-	location.allow_methods[2] = 0;
+	location.allow_methods[GET] = 0;
+	location.allow_methods[POST] = 0;
+	location.allow_methods[DELETE] = 0;
 	location.root = "";
 	location.index = "";
 	location.cgi_path = "";
@@ -135,23 +135,23 @@ size_t	Config::set_allow_methods( size_t i, bool titre ) {
 		_serv_config.back().locations.back().allowm = true;
 	}
 	while (_tokens.at(++i).compare(";")) {
-		if (!isalready[0] && !_tokens.at(i).compare("GET"))
+		if (!isalready[GET] && !_tokens.at(i).compare("GET"))
 		{
-			isalready[0] = true;
-			if (_serv_config.back().locations.back().allow_methods[0] >= 0)
-				_serv_config.back().locations.back().allow_methods[0] = titre ? 0 : -1;
+			isalready[GET] = true;
+			if (_serv_config.back().locations.back().allow_methods[GET] >= 0)
+				_serv_config.back().locations.back().allow_methods[GET] = titre ? 0 : -1;
 		}
-		else if (!isalready[1] && !_tokens.at(i).compare("POST"))
+		else if (!isalready[POST] && !_tokens.at(i).compare("POST"))
 		{
-			isalready[1] = true;
-			if (_serv_config.back().locations.back().allow_methods[1] >= 0)
-				_serv_config.back().locations.back().allow_methods[1] = titre ? 0 : -1;
+			isalready[POST] = true;
+			if (_serv_config.back().locations.back().allow_methods[POST] >= 0)
+				_serv_config.back().locations.back().allow_methods[POST] = titre ? 0 : -1;
 		}
-		else if (!isalready[2] && !_tokens.at(i).compare("DELETE"))
+		else if (!isalready[DELETE] && !_tokens.at(i).compare("DELETE"))
 		{
-			isalready[2] = true;
-			if (_serv_config.back().locations.back().allow_methods[2] >= 0)
-				_serv_config.back().locations.back().allow_methods[2] = titre ? 1 : -1;
+			isalready[DELETE] = true;
+			if (_serv_config.back().locations.back().allow_methods[DELETE] >= 0)
+				_serv_config.back().locations.back().allow_methods[DELETE] = titre ? 1 : -1;
 		}
 		else
 			throw ErrorMethods();

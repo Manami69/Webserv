@@ -6,26 +6,32 @@
 /*
 struct						_locations
 {
-	std::string					modifier;
-	std::string					access;
-	bool						allowm;
-	bool						limitm;
-	int							allow_methods[3];
-	std::string					root;
-	std::string					index;
-	bool						autoindex;
-	std::string					cgi_path;
-	std::string					try_files;
-	std::map<std::string, std::string>	redirect;
+	std::string					modifier; // gere ici
+	std::string					access; // ici
+	bool						allowm; // pour les erreurs de conf
+	bool						limitm; // conf
+	int							allow_methods[3]; // OK lu ici et recup par requete
+	std::string					root; //OK a recuperer par requete
+	std::string					index; // a recuperer par requete si lecation finit par /
+	bool						autoindex; // bool a recuperer
+	std::string					cgi_path; // string a recuperer par requete
+	std::string					try_files; // OSEF
+	std::map<std::string, std::string>	redirect; //OK recuperer le premier
 };
 */
 class getLocation {
 	public:
 		getLocation(const Serv_config &s, const std::string& r);
 		~getLocation();
-		ID					get_id( std::string requestline );
+		ID					get_id();
 		std::vector<_locations> 		get_locations() const;
-		std::string			get_location_root(ID id);
+		std::string						getRoot(ID id);
+		bool							isAllowedMethod(ID id, int method);
+		std::string						getRedirection(ID id);
+		bool							getAutoindex(ID id);
+		std::string						getIndex(ID id);
+		std::string						getCGIPath(ID id);
+
 	
 	private:
 		std::vector<_locations> arr;

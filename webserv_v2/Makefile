@@ -25,7 +25,7 @@ HEADER_LIST	=		header.hpp config.hpp server.hpp getRequest.hpp getResponse.hpp C
 HEADER		=		$(addprefix $(PATH_HEADER), $(HEADER_LIST))
 CC			=		clang++
 RM			= 		rm -rf
-FLAGS 		= 		-Wall -Wextra -Werror -std=c++98
+FLAGS 		= 		-Wall -Wextra -Werror -std=c++98 -fsanitize=address
 FSANITIZE	=		-fsanitize=address
 
 ################################################################################

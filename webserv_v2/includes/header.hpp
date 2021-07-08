@@ -11,6 +11,10 @@
 # define WHITE   "\033[1m\033[37m"
 # define RESET   "\033[0m"
 # define NOTFOUND std::string::npos
+# define GET 0
+# define POST 1
+# define DELETE 2
+# define DEFAULT_LOCATION "./../www/"
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
