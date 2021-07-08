@@ -15,7 +15,7 @@ struct									_locations
 	bool								autoindex;
 	std::string							cgi_path;
 	std::string							try_files;
-	std::map<std::string, std::string>	redirect;
+	std::map<int, std::string>			redirect;
 };
 
 
