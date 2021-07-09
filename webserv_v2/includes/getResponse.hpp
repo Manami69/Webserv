@@ -4,7 +4,6 @@
 # include "getRequest.hpp"
 # include "CGI.hpp"
 # include "config.hpp"
-# include "getLocation.hpp"
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
 	# define ROOT "/Users/lolopez/Desktop/lolol/www"
@@ -49,6 +48,7 @@ struct t_index_file
 	long unsigned int	size;
 	unsigned char		type;
 };
+class getLocation;
 
 class getResponse {
 	public:
@@ -65,7 +65,8 @@ class getResponse {
 		int	_parse_status_line( void );
 		getResponse( void );
 		bool _fileExists(std::string fileStr);
-		std::string		_error_response(const std::map<int, std::string> err);
+		std::string	_error_response(const std::map<int, std::string> err);
+		std::string	_returnRedir();
 		// // GET MIMETYPE
 		std::string	_get_extension( void );
 		std::string _get_MIMEtype( const std::string& ext);
@@ -106,6 +107,7 @@ class getResponse {
 		bool								isloc;
 };
 
+# include "getLocation.hpp"
 //std::map<int, std::string> getResponse::error_code = getResponse::create_error();
 #endif
 

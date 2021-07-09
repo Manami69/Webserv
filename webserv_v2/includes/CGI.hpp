@@ -19,8 +19,8 @@ class CGI {
 		};
     private:
         std::map<std::string, std::string> _SERVER;\
+		getRequest	_req;
 		std::string	_CGIPath;
-		getRequest _req;
         void    _init_map();
         void    _fill_map_key(std::string key, std::string value);
         void    _fill_values( std::string port, std::string root);

@@ -111,6 +111,7 @@ std::string		getLocation::getRedirection() {
 
 	if (_infos.redirect.empty())
 		return "";
+	
 	return _infos.redirect.begin()->first + " " + _infos.redirect.begin()->second;
 
 }

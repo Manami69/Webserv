@@ -20,7 +20,10 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 		else
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
 		isloc = true;
-		// TODO si return existe alors il retourne direct le code;
+		if (!_locInfos->getRedirection().empty()) {
+			_status_code = atoi(_locInfos->getRedirection().c_str());
+			return ;
+		}
 		if (!this->_request["method"].compare("GET"))
 			_content = _method_get();
 		else if  (!this->_request["method"].compare("POST"))
@@ -65,7 +68,11 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::string str;
 	std::stringstream ss;
-
+	const int	error_code[] = { 100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
+, 302 , 303 , 304 , 305 , 307 , 308 , 400 , 401 , 402 , 403 , 404 , 405 , 406 , 407 , 408 , 409 , 410 , 411\
+, 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
+, 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};
+	std::vector<int> errcode(error_code, error_code + sizeof(error_code)/ sizeof(int));
 	//remove(_request["body"].c_str());
 	if (this->_status_code >= 300 && this->_status_code < 600 && !_conf.error_page[this->_status_code].empty())
 		return _redirectError();
@@ -78,9 +85,12 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	str+= " ";
 	str += err.find(this->_status_code)->second;
 	str += "\r\n";
-	///////////////////// a refaire
-	if (this->_status_code >= 200 && this->_status_code < 300)
+	if (this->_status_code >= 200 && _status_code < 204)
 		str += this->_content;
+	else if (this->_status_code >= 300 && this->_status_code < 400)
+		str += _returnRedir();
+	else if (std::find(errcode.begin(), errcode.end(), _status_code) == errcode.end()) 
+		str += _get_fill_headers(""); ///???
 	else
 		str += _error_response(err);
 	return str;
@@ -205,6 +215,21 @@ std::string	getResponse::_redirectError() {
 	return resp;
 }
 
+std::string	getResponse::_returnRedir() {
+	std::string reloc;
+	std::string resp;
+	resp.reserve(500);
+	size_t pos = 0;
+	if ((pos = _locInfos->getRedirection().find(" ")) == NOTFOUND || pos == _locInfos->getRedirection().size() - 1) // si egal a "301 "
+		reloc = "";
+	else
+		reloc =  _locInfos->getRedirection().substr(pos + 1);
+	resp += _get_serv_line();
+	resp += _get_date_line();
+	resp += "Connection: keep-alive\r\nLocation: ";
+	resp += reloc + CRLF + CRLF;
+	return resp;
+}
 
 std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 	std::string ret;
@@ -241,12 +266,12 @@ std::string		getResponse::_findIndex() {
 	while ((i = _locInfos->getIndex().find(" ", last)) != NOTFOUND)
 	{
 		test = _locInfos->getIndex().substr(last, i);
-		if (_fileExists(_locInfos->getRoot() + test));
+		if (_fileExists(_locInfos->getRoot() + test))
 			return test;
 		last = i + 1;
 	}
 	test = _locInfos->getIndex().substr(last);
-	if (_fileExists(_locInfos->getRoot() + test));
+	if (_fileExists(_locInfos->getRoot() + test))
 		return test;
 	return "";
 }
@@ -333,8 +358,8 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string ext = _get_extension();
 	if (ext.empty() || (this->_status_code < 200 || this->_status_code > 299))
 		ext = "html";
-	// TODO ajouter serv name
-	//headers += _get_date_line();
+	headers += _get_serv_line();
+	headers += _get_date_line();
 	if (!_locInfos->getCGIPath().empty()) {
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
@@ -352,9 +377,11 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	}
 	headers += "Content-Type: ";
 	headers += _get_MIMEtype(ext);
-	headers += "\nContent-Length: ";
-	ss << response.size();
-	headers += ss.str();
+	if (!response.empty()) {
+		headers += "\nContent-Length: ";
+		ss << response.size();
+		headers += ss.str();
+	}
 	if (response.find("\r\n\r\n") != response.npos)
 		headers += "\r\n";
 	else
@@ -462,7 +489,7 @@ std::string getResponse::_get_autoindex( std::string location ) {
 std::string	getResponse::_method_post( void ) {
 	// si activé mais pas vers une page statique >> vers get avec un corps
 	const std::string ext = _get_extension();
-	if (!ext.compare("php")) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
+	if (!_locInfos->getCGIPath().empty() && _locInfos->isAllowedMethod(POST)) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
 	{
 		return _method_get();
 	}
@@ -503,13 +530,6 @@ std::string	getResponse::_method_post( void ) {
 < Connection: keep-alive
 */
 
-std::string getResponse::_delete_fill_header( void ) {
-	std::string ret;
-
-	//TODO ret += header du nom du server
-	ret += _get_date_line();
-	return ret;
-}
 
 int			getResponse::_delete_file( void ) {
 	const std::string path = _locInfos->getRoot() + _request["request-target"];
@@ -522,10 +542,15 @@ int			getResponse::_delete_file( void ) {
 std::string getResponse::_method_delete( void )
 {
 	//TODO if delete enabled (sinon redirect vers get) return _method_get(); ???? a retester te refaire
+	if (!_locInfos->isAllowedMethod(DELETE))
+	{
+		_status_code = 405;
+		return "";
+	}
 	if ((this->_status_code = _delete_file()) == 404)
 		return _method_get();
 	else
-		return _delete_fill_header();
+		return "";
 }
 
 
