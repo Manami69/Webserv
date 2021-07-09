@@ -26,7 +26,13 @@ getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 			arr.push_back(*it);
 		}
 	}
-	_infos = arr.at(get_id(arr));
+	for (std::vector<_locations>::const_iterator it = arr.begin(); it != arr.end(); it++) // get nomod
+	{
+		std::cout << it->modifier << " " << it->access << std::endl;
+	}
+	int id = get_id(arr);
+	_infos = arr.at(id);
+	std::cout << _infos.access << " ID = " << id << std::endl;
 }
 
 getLocation::~getLocation() {}
@@ -42,8 +48,9 @@ ID getLocation::get_id(std::vector<_locations> & arr) {
 			return i;
 		else if (!it->modifier.compare("^~") && !it->access.compare(_req))
 			return i;
-		else if (!it->modifier.compare("~") && _tildeisfound(it->access, true))
+		else if (!it->modifier.compare("~") && _tildeisfound(it->access, true)){
 			return i;
+		}
 		else if (!it->modifier.compare("~*") && _tildeisfound(it->access, false))
 			return i;
 		else if (it->modifier.empty() && !it->access.compare(_req))
@@ -56,7 +63,7 @@ ID getLocation::get_id(std::vector<_locations> & arr) {
 	i = 0;
 	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
 	{
-		if ((!it->modifier.compare("^~") || it->modifier.empty()) && it->access.find(_req) == 0)
+		if ((!it->modifier.compare("^~") || it->modifier.empty()) && _req.find(it->access) == 0)
 		{
 			if (_req.size() > best)
 			{
@@ -77,10 +84,14 @@ bool getLocation::_tildeisfound(std::string loc, bool isCaseSensitive)
 		loc.erase(loc.size() - 1);
 		findFrom = _req.size() - loc.size();
 	}
-	if (isCaseSensitive)
+	if (isCaseSensitive) {
+		std::cout << "CASE" << std::endl;
 		return (_req.find(loc, findFrom) != NOTFOUND);
-	else
+	}
+	else {
+		std::cout << "NOT CASE" << std::endl;
 		return (strtoupper(_req).find(strtoupper(loc), findFrom) != NOTFOUND);
+	}
 }
 
 std::string	getLocation::strtoupper(std::string str) {
@@ -111,9 +122,7 @@ std::string		getLocation::getRedirection() {
 
 	if (_infos.redirect.empty())
 		return "";
-	
 	return _infos.redirect.begin()->first + " " + _infos.redirect.begin()->second;
-
 }
 
 bool							getLocation::getAutoindex() {

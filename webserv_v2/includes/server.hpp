@@ -21,6 +21,7 @@ class Server
 private:
     int								_sockfd;
 	int								_server_nbr;
+	
 	Listen							*_listen;
 	std::vector<Listen*>			_server_lst;
 	fd_set							_read_set;
