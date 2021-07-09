@@ -135,9 +135,9 @@ void	Config::check_location( void ) {
 		/* if there's nothing between location and open bracket */
 		if ( i < prefixe.size() - 1 && !prefixe.at(i).compare("location")
 			&& !prefixe.at(i + 1).compare("location"))
-			throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+			throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 		if ( i == prefixe.size() - 1 && !prefixe.at(i).compare("location"))
-			throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+			throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 		if ( !prefixe.at(i).compare("location") )
 		{
 			for ( ; prefixe.at(++i).compare("location") ;) {
@@ -146,7 +146,7 @@ void	Config::check_location( void ) {
 				|| (i == prefixe.size() - 1 && !prefixe.at(i - 1).compare("location")) ) {
 					if ((found = prefixe.at(i).find("/")) == NOTFOUND
 					|| ((found = prefixe.at(i).find("/")) != NOTFOUND && found > 0))
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 				}
 				/* there's two tokens between location and open bracket, if the 1st token is = or ^~, the 2nd token begin with a slash */
 				if ( (i < prefixe.size() - 2 && !prefixe.at(i + 2).compare("location")) 
@@ -154,12 +154,12 @@ void	Config::check_location( void ) {
 					if ( prefixe.at(i).size() == 1 && (found = prefixe.at(i).find("=")) != NOTFOUND) {
 						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
 						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
-							throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+							throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					}
 					if ( prefixe.at(i).size() == 2 && (found = prefixe.at(i).find("^~")) != NOTFOUND) {
 						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
 						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
-							throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+							throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					}
 				}
 				break ;
@@ -179,11 +179,11 @@ void	Config::check_location( void ) {
 		if ( i > 0 && i < prefixe.size() - 2 && !prefixe.at(i - 1).compare("location")
 		&& !prefixe.at(i + 2).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+				throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 
 		if	( i != 0 && i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+				throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 	}
 
 	/* remove location */
@@ -199,19 +199,19 @@ void	Config::check_location( void ) {
 			{
 	 			if ( prefixe.at(j - 1).compare("~") && prefixe.at(j - 1).compare("~*") ) {
 					if ( i != 0 && !prefixe.at(i - 1).compare("=") && !prefixe.at(j - 1).compare("="))
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && !prefixe.at(i - 1).compare("^~") && !prefixe.at(j - 1).compare("^~"))
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i == 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
 					&& std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i == 0 && !prefixe.at(j - 1).compare("^~"))
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
 					&& !prefixe.at(j - 1).compare("^~"))
-						throw ( ErrorMsg("Error : invalid number of arguments in " + prefixe.at(i) + ".") );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 				}
 			}
 		}
