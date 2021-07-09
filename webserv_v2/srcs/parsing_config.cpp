@@ -1,13 +1,5 @@
 #include "../includes/config.hpp"
 
-const char *Config::FailedToOpenFile::what() const throw() {
-	return ( "Error : Impossible to open config file." );
-}
-
-const char *Config::WrongConfig::what() const throw() {
-	return ( "Error : Wrong configuration." );
-}
-
 Config::Config( std::string filename ) :
 _filename( filename ),
 _nb_server( 0 ) {
@@ -29,7 +21,7 @@ void	Config::scan_file( void ) {
 	ifs.open(get_filename().c_str());
 	if ( !ifs.is_open() ) {
 		ifs.close();
-		throw ( FailedToOpenFile() );
+		throw ( ErrorMsg("Error : fail to open file " + get_filename() + ".") );
 	}
 	while ( !ifs.eof() ) {
 		std::getline( ifs, line );
@@ -39,9 +31,9 @@ void	Config::scan_file( void ) {
 	this->check_brackets();
 	this->check_location();
 	//////////////////////////////// delete later //////////////////////////////
-	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-		std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
-	}
+	// for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
+	// 	std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
+	// }
 	////////////////////////////////////////////////////////////////////////////
 	return ;
 }
@@ -119,7 +111,7 @@ void	Config::check_brackets( void ) {
 			close_bracket += 1;
 	}
 	if (open_bracket != close_bracket)
-		throw ( WrongConfig() );
+		throw ( ErrorMsg("Error : configuration file has unpaired brackets.") );
 }
 
 void	Config::check_location( void ) {
@@ -139,9 +131,9 @@ void	Config::check_location( void ) {
 		/* if there's nothing between location and open bracket */
 		if ( i < prefixe.size() - 1 && !prefixe.at(i).compare("location")
 			&& !prefixe.at(i + 1).compare("location"))
-			throw ( ErrorLocationPrefix() );
+			throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 		if ( i == prefixe.size() - 1 && !prefixe.at(i).compare("location"))
-			throw ( ErrorLocationPrefix() );
+			throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 		if ( !prefixe.at(i).compare("location") )
 		{
 			for ( ; prefixe.at(++i).compare("location") ;) {
@@ -150,7 +142,7 @@ void	Config::check_location( void ) {
 				|| (i == prefixe.size() - 1 && !prefixe.at(i - 1).compare("location")) ) {
 					if ((found = prefixe.at(i).find("/")) == NOTFOUND
 					|| ((found = prefixe.at(i).find("/")) != NOTFOUND && found > 0))
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 				}
 				/* there's two tokens between location and open bracket, if the 1st token is = or ^~, the 2nd token begin with a slash */
 				if ( (i < prefixe.size() - 2 && !prefixe.at(i + 2).compare("location")) 
@@ -158,12 +150,12 @@ void	Config::check_location( void ) {
 					if ( prefixe.at(i).size() == 1 && (found = prefixe.at(i).find("=")) != NOTFOUND) {
 						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
 						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
-							throw ( ErrorLocationPrefix() );
+							throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					}
 					if ( prefixe.at(i).size() == 2 && (found = prefixe.at(i).find("^~")) != NOTFOUND) {
 						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
 						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
-							throw ( ErrorLocationPrefix() );
+							throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					}
 				}
 				break ;
@@ -183,22 +175,17 @@ void	Config::check_location( void ) {
 		if ( i > 0 && i < prefixe.size() - 2 && !prefixe.at(i - 1).compare("location")
 		&& !prefixe.at(i + 2).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw ( ErrorLocationPrefix() );
+				throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 
 		if	( i != 0 && i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw ( ErrorLocationPrefix() );
+				throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 	}
 
 	/* remove location */
 	for ( unsigned long i = 0; i < prefixe.size(); i++ )
 		if ( !prefixe.at(i).compare("location") )
 			prefixe.erase (prefixe.begin() + i);
-
-	//////////////////////////////// delete later //////////////////////////////
-	// for ( unsigned long i = 0; i < prefixe.size(); i++ )
-	// 	std::cout << MAGENTA << "prefix : " << prefixe.at(i) << RESET << std::endl;
-	////////////////////////////////////////////////////////////////////////////
 
 	/* check duplicated prefixe */
 	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
@@ -208,19 +195,19 @@ void	Config::check_location( void ) {
 			{
 	 			if ( prefixe.at(j - 1).compare("~") && prefixe.at(j - 1).compare("~*") ) {
 					if ( i != 0 && !prefixe.at(i - 1).compare("=") && !prefixe.at(j - 1).compare("="))
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && !prefixe.at(i - 1).compare("^~") && !prefixe.at(j - 1).compare("^~"))
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i == 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
 					&& std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i == 0 && !prefixe.at(j - 1).compare("^~"))
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
 					&& !prefixe.at(j - 1).compare("^~"))
-						throw ( ErrorLocationPrefix() );
+						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 				}
 			}
 		}
@@ -246,14 +233,12 @@ void	Config::parse_config(void)
 {
 	for (size_t i = 0; i < _tokens.size(); i++)
 	{
-		//std::cout << GREEN << i << " " << _tokens.at(i) << RESET << std::endl;
-
 		if (!_tokens.at(i).compare("server"))
 		{
 			_nb_server++;
 			init_serv_config();
 			if (_tokens.at(++i).compare("{"))
-				throw ( WrongConfig() );
+				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
 				std::cout << i << " tokens " << _tokens.at(i) << std::endl;
@@ -268,7 +253,7 @@ void	Config::parse_config(void)
 				else if (this->_tokens.at(i) == "location")
 					i = parse_location(i);
 				else
-					throw ( WrongConfig() );
+					throw ( ErrorMsg("Error : unknown directive [ " + _tokens.at(i) + " ]") );
 			}
 			//checker si host et port sont set et si ils ne le sont pas les mettre a default
 		}
