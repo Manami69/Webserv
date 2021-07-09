@@ -171,7 +171,7 @@ void	CGI::_exec_body( void ) {
 	}
 	else {
 		int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK, 0777);
-		//pid = 0;man
+		//pid = 0;m
 		char **actionman = _get_action(false);
 		if (!actionman)
 		{	
