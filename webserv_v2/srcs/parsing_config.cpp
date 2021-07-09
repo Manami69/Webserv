@@ -1,9 +1,5 @@
 #include "../includes/config.hpp"
 
-const char *Config::WrongConfig::what() const throw() {
-	return ( "Error : Wrong configuration." );
-}
-
 Config::Config( std::string filename ) :
 _filename( filename ),
 _nb_server( 0 ) {
@@ -242,7 +238,7 @@ void	Config::parse_config(void)
 			_nb_server++;
 			init_serv_config();
 			if (_tokens.at(++i).compare("{"))
-				throw ( WrongConfig() );
+				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
 				std::cout << i << " tokens " << _tokens.at(i) << std::endl;

@@ -27,8 +27,6 @@ size_t		Config::parse_location(size_t i) {
 			i = set_index(i);
 		else if (!_tokens.at(i).compare("cgi_path"))
 			i = set_cgi_path(i);
-		else if (!_tokens.at(i).compare("try_files"))
-			i = set_try_files(i);
 	}
 	return ( i );
 }
@@ -47,7 +45,6 @@ void		Config::init_config_location(void)
 	location.root = "";
 	location.index = "";
 	location.cgi_path = "";
-	location.try_files = "";
 	_serv_config.back().locations.push_back(location);
 }
 
@@ -110,17 +107,6 @@ size_t	Config::set_cgi_path( size_t i ) {
 	_serv_config.back().locations.back().cgi_path = _tokens.at(i); // check if the cgi path end by php-cgi ?
 	if ( _tokens.at(++i).compare(";") )
 		throw	( ErrorMsg("Error : location cig_path.") );
-	return ( i );
-}
-
-size_t	Config::set_try_files( size_t i ) {
-	if ( !_tokens.at(++i).compare(";") )
-		throw ( ErrorTryFiles() );
-	while ( _tokens.at(i).compare(";") ) {
-		_serv_config.back().locations.back().try_files += _tokens.at(i);
-		_serv_config.back().locations.back().try_files += " ";
-		i++;
-	}
 	return ( i );
 }
 

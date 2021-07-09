@@ -15,7 +15,6 @@ struct									_locations
 	std::string							index;
 	bool								autoindex;
 	std::string							cgi_path;
-	std::string							try_files;
 	std::map<std::string, std::string>			redirect;
 };
 
@@ -44,58 +43,6 @@ private:
 	// Config &operation=(Config const &rhs);
 
 public:
-	class WrongConfig : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorListen : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorServerName : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorRoot : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorClientMaxBodySize : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorPage : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorAccess : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorMethods : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorIndex : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorAutoindex : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorReturn : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorCgiPath : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorTryFiles : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
 	Config( std::string filename );
 	~Config( void );
 	void								scan_file( void );
