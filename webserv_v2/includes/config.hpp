@@ -2,6 +2,7 @@
 # define CONFIG_HPP
 
 #include "header.hpp"
+#include "error_msg.hpp"
 
 struct									_locations
 {
@@ -43,10 +44,6 @@ private:
 	// Config &operation=(Config const &rhs);
 
 public:
-	class FailedToOpenFile : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
 	class WrongConfig : public std::exception {
 	public:
 		const char *what() const throw(); // override
@@ -96,10 +93,6 @@ public:
 		const char *what() const throw(); // override
 	};
 	class ErrorTryFiles : public std::exception {
-	public:
-		const char *what() const throw(); // override
-	};
-	class ErrorLocationPrefix : public std::exception {
 	public:
 		const char *what() const throw(); // override
 	};

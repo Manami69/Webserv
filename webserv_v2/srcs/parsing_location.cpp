@@ -10,7 +10,7 @@ size_t		Config::parse_location(size_t i) {
 		_serv_config.back().locations.back().access = _tokens.at(++i);
 	}
 	if (_tokens.at(++i).compare("{"))
-		throw	( ErrorLocationPrefix() );
+		throw	( WrongConfig() );
 	while (_tokens.at(++i).compare("}"))
 	{
 		if (!_tokens.at(i).compare("allow_methods"))
