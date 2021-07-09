@@ -261,16 +261,22 @@ std::string		getResponse::_findIndex() {
 	std::string test;
 	size_t i = 0;
 	size_t last = 0;
+	std::cout << _locInfos->getIndex() << std::endl;
 	if (_locInfos->getIndex().empty())
 		return "";
 	while ((i = _locInfos->getIndex().find(" ", last)) != NOTFOUND)
 	{
 		test = _locInfos->getIndex().substr(last, i);
+		if (test[0] != '/')
+			test.insert(0, "/");
+		std::cout << _locInfos->getRoot() + test << std::endl;
 		if (_fileExists(_locInfos->getRoot() + test))
 			return test;
 		last = i + 1;
 	}
 	test = _locInfos->getIndex().substr(last);
+	if (test[0] != '/')
+		test.insert(0, "/");
 	if (_fileExists(_locInfos->getRoot() + test))
 		return test;
 	return "";
