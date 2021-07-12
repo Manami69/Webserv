@@ -61,7 +61,6 @@ If no location is found, the webserv will use default settings;
 - `=`: The equal sign is used to match a location block exactly against a requested URI.
 - `~`: The tilde sign is used for case-sensitive regular expression match against a requested URI.
 - `~*`: The tilde followed by asterisk sign is used for case insensitive regular expression match against a requested URI.
-- `^~`: The carat followed by tilde sign is used to perform longest nonregular expression match against the requested URI. If the requested URI hits such a location block, no further matching will takes place.
 
 `location` can be defined by any route that match the requested `URI`. `$` symbol is used at the end of a route to say that nothing can be found after the last char.
 
