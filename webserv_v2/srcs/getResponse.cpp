@@ -14,11 +14,13 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 	this->_status_code = _parse_status_line();// verifie la status line
 	// continue checking with headers;
 	if (this->_status_code == 200) {
-		if (size_t mark = this->_request["request-target"].find("?") == NOTFOUND) // gere les GET avec infos
+		size_t mark;
+		if ((mark = this->_request["request-target"].find("?")) == NOTFOUND) // gere les GET avec infos
 		{
 			_locInfos = new getLocation(_conf, this->_request["request-target"]);
 		}
 		else {
+			std::cout << this->_request["request-target"].substr(0, mark) << " " << mark << std::endl;
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
 		}
 
@@ -33,9 +35,6 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			_content = _method_post();
 		else if (this->_request["method"].compare("DELETE"))
 			_content = _method_delete();
-
-		std::cout << "4 popo " << std::endl;
-
 	}
 	return ;
 }
@@ -79,7 +78,9 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 , 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
 , 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};
 	std::vector<int> errcode(error_code, error_code + sizeof(error_code)/ sizeof(int));
-	//remove(_request["body"].c_str());
+	remove(_request["body"].c_str());
+	if (!_request["body"].compare(PHP_CONTENT))
+		remove(PHP_CONTENT);
 	if (this->_status_code >= 300 && this->_status_code < 600 && !_conf.error_page[this->_status_code].empty())
 		return _redirectError();
 	str.reserve(30);
@@ -101,7 +102,6 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 		str += _error_response(err);
 	return str;
 }
-
 
 
 /*
@@ -303,7 +303,6 @@ bool		getResponse::_fileExists(std::string fileStr)
 }
 
 
-#define PHP_CONTENT "./tmp/php_content"
 std::string getResponse::_method_get( void )
 {
 	std::string location = _locInfos->getRoot() + this->_request["request-target"];
@@ -357,16 +356,6 @@ std::string getResponse::_method_get( void )
 }
 
 
-// std::string reformPHP(std::string response)
-// {
-// 	size_t headend = response.find("\r\n\r\n");
-// 	headend = headend == std::string::npos? 0 : headend + 4;
-
-// 	std::string body = response.substr(headend);
-
-// }
-
-// ptet revoir la gestion des headers via une map ???????????
 std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string headers;
 	std::stringstream ss;

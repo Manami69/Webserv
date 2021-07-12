@@ -1,6 +1,8 @@
 #include "./../includes/getLocation.hpp"
 
 getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
+
+	std::cout << CYN << _req << END << std::endl;
 	std::vector<_locations> arr;
 	for (std::list<_locations>::const_iterator it = s.locations.begin(); it != s.locations.end(); it++) // first loop, get = modifiers
 	{

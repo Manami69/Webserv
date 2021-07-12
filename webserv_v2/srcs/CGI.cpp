@@ -74,7 +74,7 @@ void    CGI::_fill_values( std::string port, std::string root) {
 	_fill_map_key("CONTENT_TYPE", _req["Content-Type"]);	// a remplir pour POST CONTENT_TYPE=application/x-www-form-urlencoded
 	_fill_map_key("REQUEST_METHOD", _req["method"]); // GET POUR L'instant a changer (getRequest)
 	_fill_map_key("QUERY_STRING", (cut ? _req["request-target"].substr(cut + 1) : "")); // ?
-	_fill_map_key("SCRIPT_FILENAME", root + (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
+	_fill_map_key("SCRIPT_FILENAME", root + (cut ? _req["request-target"].substr(0, cut) : _req["request-target"]));
 	_fill_map_key("PATH_TRANSLATED", root);
 	_fill_map_key("PATH_INFO", PATH_INFO);
 	_fill_map_key("PHP_SELF", (cut ? _req["request-target"].substr(0, cut) : _req["request-target"]));
