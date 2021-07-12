@@ -38,17 +38,24 @@ The following definitions are allowed:
 #### :cookie: Setup the server_names (optional)
 
 #### :cookie: setup default error pages
+you can set default error page for error from 300 to 599 (as nginx does). This is going to make a redirection to the choosen page.
+```
+error_page 404 /error/404.html;
+error_page 501 502 503 /error/50x.html;
+```
 
 #### :cookie: limit client body size
 
 #### :cookie: Location block (setup routes with one or multiple of the following rules/configuration (routes wont be using regexp))
 Like `server` blocks, `location` blocks begin and end with curvy brackets. Each `location` is defined with a `modifier` (optional) and an `URI` specification. Unlike Nginx, `.` for any char and wildcard `*` and `?` and `$any_var` are not implemented (nothing including regex).
+
 ```
 location [modifier] [URI] {
   ...
   ...
 }
 ```
+If no location is found, the webserv will use default settings;
 `modifier` can be :
 - none: If no modifiers are present in a location block then the requested URI will be matched against the beginning of the requested URI.
 - `=`: The equal sign is used to match a location block exactly against a requested URI.
@@ -74,7 +81,7 @@ return 301;
 ```
 
 ##### :cookie: define a directory or a file from where the file should be search (for example if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is /tmp/www/pouic/toto/pouet)
-with the `root` tag, define a directory with absolute path. 
+with the `root` tag, define a directory with absolute path. If no root is choosen, it goes by default on the /www folder of the project.
 
 ##### :cookie: turn on or off directory listing
 If no default file is found in this location and you requested a folder, then you can set an auto index with the `autoindex` tag.
@@ -86,7 +93,7 @@ autoindex off; #->> default setting
 ```
 
 ##### :cookie: default file to answer if the request is a directory
-Can be several file after the `index` tag.
+Can be several file after the `index` tag. If none is set, you'll have to type the page's name by hand.
 
 ##### :cookie: execute CGI based on certain file extension (for example .php)
 with `CGI_path` tag followed with an absolute path to the binary file.

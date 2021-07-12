@@ -35,7 +35,8 @@ class getLocation {
 		//std::vector<_locations> arr;
 		_locations			_infos;
 		std::string			_req;
-		ID					get_id(std::vector<_locations> & arr);
+		int					get_id(std::vector<_locations> & arr);
+		_locations 			_returnDefault();
 		getLocation(const getLocation& src);
 		getLocation();
 		getLocation &operator=(const getLocation &rhs);

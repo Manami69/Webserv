@@ -12,13 +12,16 @@
 
 getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
 	this->_status_code = _parse_status_line();// verifie la status line
-	
 	// continue checking with headers;
 	if (this->_status_code == 200) {
 		if (size_t mark = this->_request["request-target"].find("?") == NOTFOUND) // gere les GET avec infos
+		{
 			_locInfos = new getLocation(_conf, this->_request["request-target"]);
-		else
+		}
+		else {
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
+		}
+
 		isloc = true;
 		if (!_locInfos->getRedirection().empty()) {
 			_status_code = atoi(_locInfos->getRedirection().c_str());
@@ -30,6 +33,9 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			_content = _method_post();
 		else if (this->_request["method"].compare("DELETE"))
 			_content = _method_delete();
+
+		std::cout << "4 popo " << std::endl;
+
 	}
 	return ;
 }
@@ -270,14 +276,14 @@ std::string		getResponse::_findIndex() {
 		if (test[0] != '/')
 			test.insert(0, "/");
 		std::cout << _locInfos->getRoot() + test << std::endl;
-		if (_fileExists(_locInfos->getRoot() + test))
+		if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
 			return test;
 		last = i + 1;
 	}
 	test = _locInfos->getIndex().substr(last);
 	if (test[0] != '/')
 		test.insert(0, "/");
-	if (_fileExists(_locInfos->getRoot() + test))
+	if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
 		return test;
 	return "";
 }
@@ -307,10 +313,13 @@ std::string getResponse::_method_get( void )
 
 	response_body.reserve(10000);
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
+		std::cout << "OKOK<<" << std::endl;
 		if ((index = _findIndex()).empty())
 		{	
+			std::cout << index + " isindex "  <<_locInfos->getAutoindex() << std::endl;
 			if (_locInfos->getAutoindex()) {
 				response_body += _get_autoindex(_locInfos->getRoot() + this->_request["request-target"]);
+				std::cout << "HEYHEY  " << response_body << std::endl ;
 				return _get_fill_headers(response_body);
 			}
 			else {
@@ -423,9 +432,19 @@ std::string getResponse::_fill_index_body(std::list<t_index_file> files) // TODO
 			ret.append("<a href=\"");
 			ret.append((*it).name);
 			ret.append("/\">");
-			ret.append((*it).name);
-			ret.append("/</a>");
-			ret.append((*it).spaceL - 1, ' ');
+			if ((*it).name.size() < 50) {
+				ret.append((*it).name);
+				ret.append("/</a>");
+				ret.append((*it).spaceL - 1, ' ');
+			}
+			else if ((*it).name.size() == 50) {
+				ret.append((*it).name);
+				ret.append("</a> ");
+			}
+			else {
+				ret.append(it->name.substr(0, 47));
+				ret.append("..></a> ");
+			}
 			ret.append((*it).date);
 			ss << std::setfill(' ') << std::setw(20);
 			ss << "-\n";
@@ -439,9 +458,15 @@ std::string getResponse::_fill_index_body(std::list<t_index_file> files) // TODO
 			ret.append("<a href=\"");
 			ret.append((*it).name);
 			ret.append("\">");
-			ret.append((*it).name);
-			ret.append("</a>");
-			ret.append((*it).spaceL, ' ');
+			if ((*it).name.size() < 51) {
+				ret.append((*it).name);
+				ret.append("</a>");
+				ret.append((*it).spaceL, ' ');
+			}
+			else {
+				ret.append(it->name.substr(0, 47));
+				ret.append("..></a> ");
+			}
 			ret.append((*it).date);
 			ss << std::setfill(' ') << std::setw(20);
 			ss << (*it).size << "\n";
@@ -561,18 +586,11 @@ std::string getResponse::_method_delete( void )
 
 
 /*
- TODO- structure par location : boucle qui cherche la location la plus proche de l'URI demandée et qui adapte la reponse selon les options de la config
  	 - GET
- TODO	** faire une boucle qui choppe le bon index avec les differents index renseignés dans la config (par defaut index.html)
  	 - POST
- TODO	** POST si vers les ext gerées par cgi
- TODO	** POST si autre que les ext gerées par un cgi
  	 - DELETE
- TODO	** Renvoie GET si non autorisée explicitement
- TODO	** supprime si explicitement autorisée dans un dossier precis
  TODO- FORBIDDEN METHOD (explicite dans la config) + toutes les methodes qui ne sont pas a faire
  TODO- constructeur par erreur 400 ( qui prend un int uniquement ) pour preparer la reponse directe en cas de premiere ligne fausse (lecture ligne par ligne via telnet)
- TODO- page d'erreur par defaut
 */
 
 /* METHODES AUTORISEES

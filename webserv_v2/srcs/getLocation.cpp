@@ -31,7 +31,10 @@ getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 		std::cout << it->modifier << " " << it->access << std::endl;
 	}
 	int id = get_id(arr);
-	_infos = arr.at(id);
+	if (id < 0)
+		_infos = _returnDefault();
+	else
+		_infos = arr.at(id);
 	std::cout << _infos.access << " ID = " << id << std::endl;
 }
 
@@ -39,8 +42,10 @@ getLocation::~getLocation() {}
 
 
 // get the best location id for this config so you can check all that you need in the configuration
-ID getLocation::get_id(std::vector<_locations> & arr) {
-	ID i = 0;
+int getLocation::get_id(std::vector<_locations> & arr) {
+	int i = 0;
+	if (arr.empty())
+		return -1;
 // cherche  les locations avec prefixe et egalite parfaite
 	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
 	{
@@ -58,14 +63,14 @@ ID getLocation::get_id(std::vector<_locations> & arr) {
 		i++;
 	}
 	// si pas de super choix, choisir le - pire
-	size_t best = 0;
-	size_t iBest = 0;
+	int best = 0;
+	int iBest = -1;
 	i = 0;
 	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
 	{
 		if ((!it->modifier.compare("^~") || it->modifier.empty()) && _req.find(it->access) == 0)
 		{
-			if (_req.size() > best)
+			if (_req.size() > static_cast<size_t>(best))
 			{
 				best = _req.size();
 				iBest = i;
@@ -85,11 +90,9 @@ bool getLocation::_tildeisfound(std::string loc, bool isCaseSensitive)
 		findFrom = _req.size() - loc.size();
 	}
 	if (isCaseSensitive) {
-		std::cout << "CASE" << std::endl;
 		return (_req.find(loc, findFrom) != NOTFOUND);
 	}
 	else {
-		std::cout << "NOT CASE" << std::endl;
 		return (strtoupper(_req).find(strtoupper(loc), findFrom) != NOTFOUND);
 	}
 }
@@ -135,4 +138,15 @@ std::string						getLocation::getIndex() {
 
 std::string						getLocation::getCGIPath() {
 	return (_infos.cgi_path);
+}
+
+_locations getLocation::_returnDefault() {
+	_locations loc;
+	loc.access = "/";
+	loc.allow_methods[GET] = 0;
+	loc.allow_methods[POST] = 0;
+	loc.allow_methods[DELETE] = 0;
+	loc.root = DEFAULT_LOCATION;
+	loc.autoindex = false;
+	return loc;
 }

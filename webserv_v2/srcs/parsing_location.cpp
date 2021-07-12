@@ -42,7 +42,7 @@ void		Config::init_config_location(void)
 	location.allow_methods[GET] = 0;
 	location.allow_methods[POST] = 0;
 	location.allow_methods[DELETE] = 0;
-	location.root = "";
+	location.root = DEFAULT_LOCATION;
 	location.index = "";
 	location.cgi_path = "";
 	_serv_config.back().locations.push_back(location);

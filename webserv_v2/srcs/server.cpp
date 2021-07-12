@@ -202,8 +202,9 @@ void	Server::process_socket(Config conf, int fd) {
 			//use fd to find server idx in _client_lst<int(fd), int(server idx)>,
 			// and use the server idx for the function conf.get_config(idx)
 			(void)conf;
-			std::cout << _client_lst[fd] << std::endl;
+			std::cout << _client_lst[fd] - 1 << conf.get_config(_client_lst[fd] - 1)->host << std::endl;
 			getResponse response(a, *conf.get_config(_client_lst[fd] - 1));
+			std::cout << "HELLO" << std::endl;
 			this->error_code();
 			std::cout << a << response.responsetosend(_err);
 			send(fd, response.responsetosend(_err));

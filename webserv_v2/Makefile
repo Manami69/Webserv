@@ -40,7 +40,7 @@ $(PATH_OBJS)%.o	:	$(PATH_SRCS)%.cpp $(HEADER)
 
 $(NAME):			$(OBJS) $(HEADER)
 					$(CC) $(FLAGS) $(OBJS) -o $(NAME)
-					@rm ./tmp/php_content
+					@rm -f ./tmp/php_content
 					@echo "MODIFIER ICI AVANT DE PUSH POUR QUE WWW soit dans le bon dossier"
 					@mkdir -p ./../www/upload
 					@echo "$(BLUE)webserv : \t:\t$(GREEN)[OK]$(WHITE)"

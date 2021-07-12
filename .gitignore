@@ -36,4 +36,4 @@
 */tmp/php_content
 webserv
 */upload/*
-webserv.conf
+*/config/webserv.conf
