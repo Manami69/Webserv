@@ -10,12 +10,12 @@ size_t		Config::parse_location(size_t i) {
 		_serv_config.back().locations.back().access = _tokens.at(++i);
 	}
 	if (_tokens.at(++i).compare("{"))
-		throw	( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
+		throw ( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
 	while (_tokens.at(++i).compare("}"))
 	{
 		if (!_tokens.at(i).compare("allow_methods"))
 			i = set_allow_methods(i, true);
-		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
+		else if (!_tokens.at(i).compare("limit_methods"))
 			i = set_allow_methods(i, false);
 		if (!_tokens.at(i).compare("root"))
 			i = set_root(i);
@@ -27,6 +27,8 @@ size_t		Config::parse_location(size_t i) {
 			i = set_index(i);
 		else if (!_tokens.at(i).compare("cgi_path"))
 			i = set_cgi_path(i);
+		else
+			throw ( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
 	}
 	return ( i );
 }
@@ -144,7 +146,8 @@ size_t	Config::set_allow_methods( size_t i, bool titre ) {
 				_serv_config.back().locations.back().allow_methods[DELETE] = titre ? 1 : -1;
 		}
 		else
-			throw	( ErrorMsg("Error : location allow_methods.") );
+			throw ( ErrorMsg("Error : location allow_methods.") );
 	}
+	++i;
 	return ( i );
 }
