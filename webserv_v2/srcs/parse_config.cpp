@@ -1,81 +1,93 @@
 #include "../includes/config.hpp"
 
-const int	Config::error_code[] = { 100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
-, 302 , 303 , 304 , 305 , 307 , 308 , 400 , 401 , 402 , 403 , 404 , 405 , 406 , 407 , 408 , 409 , 410 , 411\
-, 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
-, 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};
+void	Config::init_serv_config( void )
+{
+	Serv_config	serv_config;
 
-// static ?
-bool 	Config::check_host(std::string host) {
-	int 		count = 0; 
-	size_t		pos = 0;
-	size_t		next = 0;
-	std::string tmp;
-
-	if (!host.compare("localhost"))
-		return true;
-	else
-	{
-		next = host.find(".");
-		while (next != NOTFOUND)
-		{
-			count++;
-			tmp = host.substr(pos, next - pos);
-	 		if (!is_number(tmp) || std::atoi(tmp.c_str()) > 255)
-	 			return false;
-			pos = next + 1;
-			next = host.find(".", next + 1);
-		}
-		if (count != 3)
-			return false;
-	}
-	return true;
+	// serv_config.host = "0.0.0.0";
+	// serv_config.port = "80";
+	serv_config.server_name = "";
+	serv_config.client_max_body_size = 1000000; /* nginx default upload limit 1MB */
+	serv_config._nb_location = 0;
+	_serv_config.push_back(serv_config);
+	return ;
 }
+
+void	Config::parse_config(void)
+{
+	for (size_t i = 0; i < _tokens.size(); i++)
+	{
+		if (!_tokens.at(i).compare("server"))
+		{
+			_nb_server++;
+			init_serv_config();
+			if (_tokens.at(++i).compare("{"))
+				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
+			while (++i < _tokens.size() && _tokens.at(i) != "}")
+			{
+				if (!_tokens.at(i).compare("listen"))
+					i = set_listen(i);
+				else if (!_tokens.at(i).compare("server_name"))
+					i = set_server_name(i);
+				else if (!_tokens.at(i).compare("client_max_body_size"))
+					i = set_client_max_body_size(i);
+				else if (this->_tokens.at(i) == "error_page")
+					i = set_error_page(i);
+				else if (this->_tokens.at(i) == "location")
+					i = parse_location(i);
+				else
+					throw ( ErrorMsg("Error : unknown directive [ " + _tokens.at(i) + " ]") );
+			}
+		}
+	}
+}
+
+/* //////////////////////////////// SETTERS ////////////////////////////////// */
 
 size_t	Config::set_listen(size_t i)
 {
-	std::string		host = _serv_config.back().host;
-	std::string		port = _serv_config.back().port;
+	std::string		host = _serv_config.back().host; // ??
+	std::string		port = _serv_config.back().port; // ??
 	std::string		tmp;
 	size_t 			found = 0;
 
 	i++;
 	if (!_tokens.at(i).compare(";"))
-		throw	( ErrorMsg("Error : listen.") );
+		throw ( ErrorMsg("Error : listen.") );
 	while (_tokens.at(i).compare(";")) {
 		if ((found = _tokens.at(i).find(":")) != NOTFOUND && _tokens.at(i).find("[") == NOTFOUND)
 		{
 			if (!host.empty() || !port.empty())
-				throw	( ErrorMsg("Error : listen.") );	
+				throw ( ErrorMsg("Error : listen.") );	
 			host = _tokens.at(i).substr(0, found);
 			port = _tokens.at(i).substr(found + 1);
 			if (!check_host(host)){
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 			}
 			if (!is_number(port) || std::atoi(port.c_str()) > 65535)
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 			found = 0;
 		}
 		else if (is_number(_tokens.at(i))) //check 2 times ???
 		{
 			if (!port.empty())
-				throw	( ErrorMsg("Error : listen.") );	
+				throw ( ErrorMsg("Error : listen.") );	
 			port = _tokens.at(i);
 			if (!is_number(port) || std::atoi(port.c_str()) > 65535) //check 2 times ???
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 		}
 		else if (!_tokens.at(i).compare("default_server")) // [::]:80 default_server
 			;
 		else if (!_tokens.at(i).compare("localhost") || _tokens.at(i).find(".") != NOTFOUND)
 		{
 			if (!host.empty())
-				throw	( ErrorMsg("Error : listen.") );	
+				throw ( ErrorMsg("Error : listen.") );	
 			host = _tokens.at(i);
 			if (!check_host(host))
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 		}
 		else
-			throw	( ErrorMsg("Error : listen.") );
+			throw ( ErrorMsg("Error : listen.") );
 		i++;
 	}
 	_serv_config.back().host = !host.compare("localhost") ? "127.0.0.1" : host;
@@ -87,7 +99,7 @@ size_t	Config::set_server_name( size_t i )
 {
 	i++;
 	if (!_tokens.at(i).compare(";"))
-		throw	( ErrorMsg("Error : server_name.") );
+		throw ( ErrorMsg("Error : server_name.") );
 	while (_tokens.at(i).compare(";")) {
 		_serv_config.back().server_name += _tokens.at(i);
 		_serv_config.back().server_name += " ";
@@ -96,16 +108,11 @@ size_t	Config::set_server_name( size_t i )
 	return (i);
 }
 
-// static ?
-size_t count_digit( std::string str ) {
-	return std::count_if( str.begin(), str.end(), static_cast<int(*)(int)>(std::isdigit ));
-}
-
 size_t	Config::set_client_max_body_size( size_t i )
 {
 	if (!_tokens.at(++i).compare(";"))
-		throw	( ErrorMsg("Error : client_max_body_size.") );
-	size_t digit = count_digit(_tokens.at(i));
+		throw ( ErrorMsg("Error : client_max_body_size.") );
+	size_t digit = this->count_digit(_tokens.at(i));
 	if (digit == _tokens.at(i).size())
 		_serv_config.back().client_max_body_size = atoi(_tokens.at(i).c_str());
 	else {
@@ -120,11 +127,11 @@ size_t	Config::set_client_max_body_size( size_t i )
 		else if (_tokens.at(i).at(digit) == 'M' || _tokens.at(i).at(digit) == 'm')
 			_serv_config.back().client_max_body_size *= 1000000;
 		else if (_tokens.at(i).at(digit) == 'G' || _tokens.at(i).at(digit) == 'g')
-			_serv_config.back().client_max_body_size *= 1000000000; // do we need ?
+			_serv_config.back().client_max_body_size *= 1000000000;
 		else
-			throw	( ErrorMsg("Error : client_max_body_size.") );
+			throw ( ErrorMsg("Error : client_max_body_size.") );
 		if (digit != _tokens.at(i).size() - 1)
-			throw	( ErrorMsg("Error : client_max_body_size.") );
+			throw ( ErrorMsg("Error : client_max_body_size.") );
 	}
 	i++;
 	return (i);
@@ -135,13 +142,12 @@ size_t	Config::set_error_page(size_t i)
 	std::list<int> num;
 	std::string page;
 	std::string redirect;
-	//std::list<int> errorcode(error_code, error_code + sizeof(error_code)/sizeof(int));
 	int count = 0;
 
 	while (_tokens.at(++i).compare(";"))
 	{
 		if (!count && !is_number(_tokens.at(i)))
-			throw	( ErrorMsg("Error : error_page.") );
+			throw ( ErrorMsg("Error : error_page.") );
 		else if (!is_number(_tokens.at(i)) && _tokens.at(i)[0] != '=' && page.empty())
 			page = _tokens.at(i);
 		else if (_tokens.at(i)[0] == '=' && is_number(_tokens.at(i).substr(1)) && \
@@ -153,12 +159,12 @@ size_t	Config::set_error_page(size_t i)
 			num.push_back(atoi(_tokens.at(i).c_str()));
 		}
 		else
-			throw	( ErrorMsg("Error : error_page.") );
+			throw ( ErrorMsg("Error : error_page.") );
 	}
 	if (!redirect.empty())
 		page = redirect + " " + page; // a tester mdr
 	if (page.empty())
-		throw	( ErrorMsg("Error : error_page.") );
+		throw ( ErrorMsg("Error : error_page.") );
 	for (std::list<int>::iterator it = num.begin(); it != num.end(); it++)
 		this->_serv_config.back().error_page[*it] = page;
 	return i;

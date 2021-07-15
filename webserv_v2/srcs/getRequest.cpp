@@ -93,8 +93,8 @@ void			getRequest::fillRequest( std::string request ) {
 		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
-	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
-		_fill_body(request);
+	// if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
+	// 	_fill_body(request);
 }
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
 	if (_is_used_key(key))
@@ -132,7 +132,7 @@ void	getRequest::_construct_empty_map( void ) {
 		this->_request_tokens[this->headers[i]] = "";
 }
 
-void	getRequest::_fill_body(std::string buffer) {
+void	getRequest::fill_body(std::string buffer) {
 	size_t start;
 	std::string filename;
 	std::fstream fs;

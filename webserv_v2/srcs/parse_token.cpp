@@ -10,10 +10,6 @@ Config::~Config( void ) {
 	return ;
 }
 
-std::string	Config::get_filename( void ) const {
-	return ( _filename );
-}
-
 void	Config::scan_file( void ) {
 	std::ifstream	ifs;
 	std::string		line;
@@ -30,25 +26,11 @@ void	Config::scan_file( void ) {
 	ifs.close();
 	this->check_brackets();
 	this->check_location();
-	//////////////////////////////// delete later //////////////////////////////
-	// for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-	// 	std::cout << BLUE << "token : " << _tokens.at(i) << RESET << std::endl;
-	// }
-	////////////////////////////////////////////////////////////////////////////
 	return ;
 }
 
-void	Config::_split(size_t found, int i, std::string s, int len) {
-	std::string temp;
-
-	temp = _tokens.at(i).substr(0, found);
-	_tokens.insert(_tokens.begin() + i + 1, s);
-	if ( _tokens.at(i).size() - 1 > found )
-		_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + len, _tokens.at(i).size() - found));
-	_tokens.at(i) = temp;
-}
-
 void	Config::tokenize( std::string line ) {
+
 	/* Replace all space into tab */
 	std::replace( line.begin(), line.end(), ' ', '\t' );
 	
@@ -73,33 +55,30 @@ void	Config::tokenize( std::string line ) {
 	for ( unsigned long i = 0; i < _tokens.size(); i++ ) 
 	{
 		if ((found = _tokens.at(i).find(";")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, ";", 1);
+			this->split(found, i, ";", 1);
 		if ((found = _tokens.at(i).find("{")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, "{", 1);
+			this->split(found, i, "{", 1);
 		if ((found = _tokens.at(i).find("}")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, "}", 1);
+			this->split(found, i, "}", 1);
 		if ((found = _tokens.at(i).find("=")) != std::string::npos && _tokens.at(i).size() != 1)
-			this->_split(found, i, "=", 1);
+			this->split(found, i, "=", 1);
 		if ((found = _tokens.at(i).find("~")) != std::string::npos && _tokens.at(i).size() != 1) {
 			size_t next;
 			if (found == 0 && (next = _tokens.at(i).find("/")) != std::string::npos && next == 1)
-				this->_split(found, i, "~", 1);
+				this->split(found, i, "~", 1);
 			if (found == 0 && (next = _tokens.at(i).find("*")) != std::string::npos && next == 1
 			&& _tokens.at(i).size() != 2)
-				this->_split(found, i, "~*", 2);
+				this->split(found, i, "~*", 2);
 			if (found == 1 && (next = _tokens.at(i).find("^")) != std::string::npos && next == 0
 			&& _tokens.at(i).size() != 2)
-				this->_split(0, i, "^~", 2);
+				this->split(0, i, "^~", 2);
 		}
 	}
 	return ;
 }
 
-std::vector<std::string>	Config::get_tokens( void ) const {
-	return ( _tokens );
-}
-
 void	Config::check_brackets( void ) {
+
 	std::vector<std::string>::iterator it;
 	int open_bracket = 0;
 	int	close_bracket = 0;
@@ -216,85 +195,89 @@ void	Config::check_location( void ) {
 	prefixe.clear();
 }
 
-void	Config::init_serv_config( void )
-{
-	Serv_config	serv_config;
-
-	// serv_config.host = "0.0.0.0";
-	// serv_config.port = "80";
-	serv_config.server_name = "";
-	serv_config.client_max_body_size = 1000000; //nginx default upload limit 1MB
-	serv_config._nb_location = 0;
-	_serv_config.push_back(serv_config);
-	return ;
+/* ///////////////////////////////// GETTERS ///////////////////////////////// */
+std::string	Config::get_filename( void ) const {
+	return ( _filename );
 }
 
-void	Config::parse_config(void)
-{
-	for (size_t i = 0; i < _tokens.size(); i++)
-	{
-		if (!_tokens.at(i).compare("server"))
-		{
-			_nb_server++;
-			init_serv_config();
-			if (_tokens.at(++i).compare("{"))
-				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
-			while (++i < _tokens.size() && _tokens.at(i) != "}")
-			{
-				std::cout << i << " tokens " << _tokens.at(i) << std::endl;
-				if (!_tokens.at(i).compare("listen"))
-					i = set_listen(i);
-				else if (!_tokens.at(i).compare("server_name"))
-					i = set_server_name(i);
-				else if (!_tokens.at(i).compare("client_max_body_size"))
-					i = set_client_max_body_size(i);
-				else if (this->_tokens.at(i) == "error_page")
-					i = set_error_page(i);
-				else if (this->_tokens.at(i) == "location")
-					i = parse_location(i);
-				else
-					throw ( ErrorMsg("Error : unknown directive [ " + _tokens.at(i) + " ]") );
-			}
-			//checker si host et port sont set et si ils ne le sont pas les mettre a default
-		}
-	}
-}
-
-bool	Config::is_number(const std::string& s)
-{
-    std::string::const_iterator it = s.begin();
-    while (it != s.end() && std::isdigit(*it))
-		++it;
-    return (!s.empty() && it == s.end());
+std::vector<std::string>	Config::get_tokens( void ) const {
+	return ( _tokens );
 }
 
 int		Config::get_nb_server( void ) const {
-	return (this->_nb_server);
+	return ( this->_nb_server );
 }
 
 std::list<Serv_config>::iterator	Config::get_config( size_t idx ) {
 	/*	if idx > nb of server, than it will get the last server in .config */
 	if (idx > this->_nb_server)
 		idx = this->_nb_server;
-
 	std::list<Serv_config>::iterator it = this->_serv_config.begin();
-	while (idx > 0)
-	{
+	while (idx > 0) {
 		idx--;
 	 	it++;
 	}
-	return (it);
+	return ( it );
 };
 
-std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx )
-{
+std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx ) {
 	if (idx > it->locations.size())
 		return (*it).locations.end();
 	std::list<_locations>::iterator its = (*it).locations.begin();
-	while (idx > 0)
-	{
+	while (idx > 0) {
 		idx--;
 	 	its++;
 	}
-	return (its);
+	return ( its );
 }
+
+/* ///////////////////////////////// UTILS /////////////////////////////////// */
+void	Config::split( size_t found, int i, std::string s, int len ) {
+	std::string temp;
+
+	temp = _tokens.at(i).substr(0, found);
+	_tokens.insert(_tokens.begin() + i + 1, s);
+	if ( _tokens.at(i).size() - 1 > found )
+		_tokens.insert(_tokens.begin() + i + 2, _tokens.at(i).substr(found + len, _tokens.at(i).size() - found));
+	_tokens.at(i) = temp;
+}
+
+bool	Config::is_number( const std::string& s ) {
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it))
+		++it;
+    return (!s.empty() && it == s.end());
+}
+
+bool 	Config::check_host( std::string host ) {
+	int 		count = 0; 
+	size_t		pos = 0;
+	size_t		next = 0;
+	std::string tmp;
+
+	if (!host.compare("localhost"))
+		return ( true );
+	else {
+		next = host.find(".");
+		while (next != NOTFOUND) {
+			count++;
+			tmp = host.substr(pos, next - pos);
+	 		if (!is_number(tmp) || std::atoi(tmp.c_str()) > 255)
+	 			return ( false );
+			pos = next + 1;
+			next = host.find(".", next + 1);
+		}
+		if (count != 3)
+			return ( false );
+	}
+	return ( true );
+}
+
+size_t Config::count_digit( std::string str ) {
+	return std::count_if( str.begin(), str.end(), static_cast<int(*)(int)>(std::isdigit ));
+}
+
+const int	Config::error_code[] = { 100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
+, 302 , 303 , 304 , 305 , 307 , 308 , 400 , 401 , 402 , 403 , 404 , 405 , 406 , 407 , 408 , 409 , 410 , 411\
+, 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
+, 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};

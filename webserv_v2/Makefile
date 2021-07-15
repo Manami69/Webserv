@@ -19,7 +19,7 @@ NAME		= 		webserv
 PATH_HEADER	=		includes/
 PATH_SRCS	=		srcs/
 PATH_OBJS	=		objs/
-SRCS_LIST	= 		main.cpp parsing_config.cpp parsing_error.cpp parsing_location.cpp server.cpp getRequest.cpp getResponse.cpp CGI.cpp getLocation.cpp
+SRCS_LIST	= 		main.cpp parse_token.cpp parse_config.cpp parse_location.cpp server.cpp getRequest.cpp getResponse.cpp CGI.cpp getLocation.cpp
 OBJS		= 		$(addprefix $(PATH_OBJS), $(SRCS_LIST:.cpp=.o))
 HEADER_LIST	=		header.hpp config.hpp server.hpp getRequest.hpp getResponse.hpp CGI.hpp getLocation.hpp error_msg.hpp
 HEADER		=		$(addprefix $(PATH_HEADER), $(HEADER_LIST))
