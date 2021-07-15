@@ -43,6 +43,11 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 	return (*this);
 }
 
+void			getResponse::set_status_code(int status) {
+	this->_status_code   = status;
+}
+
+
 /*
 ██████╗░██╗░░░██╗██████╗░██╗░░░░░██╗░█████╗░  ███████╗████████╗
 ██╔══██╗██║░░░██║██╔══██╗██║░░░░░██║██╔══██╗  ██╔════╝╚══██╔══╝
