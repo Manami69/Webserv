@@ -27,6 +27,7 @@ class getRequest {
 		// Setters
 		void			fillRequest( std::string buffer );
 		void			setKeyValue( std::string key, std::string val );
+		void			fill_body(std::string buffer);
 
 		// Getters
 		std::string		getKeyValue( std::string key ) const;
@@ -38,7 +39,6 @@ class getRequest {
 		void	_setKeyValueOnce( std::string key, std::string val );
 		void	_construct_array( void );
 		void	_construct_empty_map( void );
-		void	_fill_body(std::string buffer);
 		bool	_is_used_key(std::string key) const;
 		std::string	_new_file();
 };

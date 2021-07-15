@@ -163,22 +163,26 @@ void	Server::process_socket(Config conf, int fd) {
 			size_recv = recv(fd, buf, sizeof(buf), 0);
 			for (ssize_t j = 0; j < size_recv ; j++)
 				buffff->push_back(buf[j]);
-			getRequest a(*buffff);
-			std::cout << YELLOW << a << RESET << std::endl;
-			// if content-length found
-			// body_size += size_recv
-			// if body_size == content-length
-			// break
-			getResponse response(a, *conf.get_config(_client_lst[fd] - 1)); //move out of loop ?
+
 			this->error_code();
-			send(fd, response.responsetosend(_err));
-			if (buffff->find("\r\n\r\n") != std::string::npos)
+			if ( int ret = buffff->find("\r\n\r\n") != std::string::npos)
 				break ;
 			// if buffff->find("0\r\n")
 			// int end = counter
 			// if buffff->find("\r\n") && counter - end == 1
 			// break;	
 		}
+		getRequest a(*buffff);
+		std::cout << YELLOW << a << RESET << std::endl;
+		// boucle pour lire le body selon length buff.size() == body lenght + ret + 4
+		// {}
+		a.fill_body(*buffff);
+		getResponse response(a, *conf.get_config(_client_lst[fd] - 1)); //move out of loop ?
+		send(fd, response.responsetosend(_err));
+			// if content-length found
+			// body_size += size_recv
+			// if body_size == content-length
+			// break
 		_iter = _client_lst.find(fd);
 		if (_iter != _client_lst.end())
 			_client_lst.erase(_iter);
