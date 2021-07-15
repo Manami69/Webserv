@@ -3,7 +3,7 @@
 # include "header.hpp"
 # include "getRequest.hpp"
 # include "CGI.hpp"
-
+# include "config.hpp"
 #if defined (__APPLE__)
 	# define st_mtim st_mtimespec
 	# define ROOT "/Users/lolopez/Desktop/lolol/www"
@@ -48,12 +48,13 @@ struct t_index_file
 	long unsigned int	size;
 	unsigned char		type;
 };
+class getLocation;
 
 class getResponse {
 	public:
 		~getResponse( void );
 		//getResponse(); TODO constructeur qui prend uniquement la status line et renvoie directement 400 si besoin
-		getResponse( getRequest const &request);
+		getResponse( getRequest const &request, Serv_config conf);
 		getResponse( getResponse const & src );
 
 		getResponse &	operator=( getResponse const & rhs );
@@ -64,21 +65,27 @@ class getResponse {
 		// 🅤🅣🅘🅛🅢
 		int	_parse_status_line( void );
 		getResponse( void );
-		std::string		_error_response(const std::map<int, std::string> err);
+		bool _fileExists(std::string fileStr);
+		std::string	_error_response(const std::map<int, std::string> err);
+		std::string	_returnRedir();
 		// // GET MIMETYPE
 		std::string	_get_extension( void );
 		std::string _get_MIMEtype( const std::string& ext);
 		// // GET HEADERS LINE
 		std::string	_get_date_line( void );
-		//TODO std::string _get_serv_line( void );
+		std::string _get_serv_line( void );
 		// // USE PHP-CGI (if enabled)
 		std::string _use_php();
+		// // ERROR REDIRECT
+		std::string	_redirectError();
 
-
+		
 		// 🅜🅔🅣🅗🅞🅓🅢
 		// // GET METHOD
 		std::string	_get_fill_headers( std::string response );
 		std::string _method_get( void );
+		// // // FIND INDEX
+		std::string	_findIndex();
 		// // // AUTOINDEX PAGE GENERATOR
 		std::string _get_autoindex( std::string location );
 		std::string _fill_index_body(std::list<t_index_file> files);
@@ -93,12 +100,15 @@ class getResponse {
 
 		// 🅥🅐🅡🅘🅐🅑🅛🅔🅢
 		std::vector<std::string>			_keys;
+		getLocation							*_locInfos;
 		int									_status_code;
 		getRequest							_request;
 		std::string							_content;
+		Serv_config							_conf;
+		bool								isloc;
 };
 
+# include "getLocation.hpp"
 //std::map<int, std::string> getResponse::error_code = getResponse::create_error();
 #endif
-
 

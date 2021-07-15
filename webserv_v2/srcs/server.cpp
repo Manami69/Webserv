@@ -13,6 +13,7 @@ void	Server::setup_server_socket(Config conf, int idx) {
 	get_master_socket_fd();
 	_listen = new Listen();
 	_listen->sockfd = _sockfd;
+
 	_listen->port = atoi(conf.get_config(idx)->port.c_str());
 	_listen->host = conf.get_config(idx)->host;
 	
@@ -25,7 +26,6 @@ void	Server::setup_server_socket(Config conf, int idx) {
 	_listen->addr.sin_family = AF_INET;
 	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
-	return ;
 }
 
 void	Server::get_master_socket_fd(void) {
@@ -94,7 +94,7 @@ std::vector<Listen*>	Server::get_server_lst(void) const {
 	return (_server_lst);
 }
 
-void	Server::selected(void) {
+void	Server::selected(Config conf) {
 	while (true) {
 		FD_ZERO(&_read_set);
     	FD_ZERO(&_read_copy);
@@ -126,12 +126,12 @@ void	Server::selected(void) {
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
 		for (int fd = 0; fd <= _max_fd; ++fd) {
             if (FD_ISSET(fd, &_read_copy))
-				this->process_socket(fd);
+				this->process_socket(conf, fd);
         }
 	}
 }
 
-void	Server::process_socket(int fd) {
+void	Server::process_socket(Config conf, int fd) {
 
 	//std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
 
@@ -148,7 +148,6 @@ void	Server::process_socket(int fd) {
 		else {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			fcntl(comm, F_SETFL, O_NONBLOCK);
-			//FD_SET(comm, &_read_set);
 			_client_lst.insert(std::pair<int, int>(comm, server_order));
 		}
     }
@@ -177,13 +176,15 @@ void	Server::process_socket(int fd) {
 			if ((size_recv = recv(fd, buf, sizeof(buf), 0)) < 0)
 			{
 				usleep(100000);
-				
 			}
 			else
 			{
+				// std::cout << GREEN << buf << RESET;
 				total_size += size_recv;
 				for (ssize_t j = 0; j < size_recv ; j++)
 					buffff->push_back(buf[j]);
+				if (buffff->find("\r\n\r\n") != std::string::npos)
+					break ;
 				gettimeofday(&begin , NULL);
 			}
 		}
@@ -196,13 +197,23 @@ void	Server::process_socket(int fd) {
 		if (!buffff->empty()) //// a changer
 		{
 			getRequest a(*buffff);
-			std::cout <<YEL << a["Content-Type"] << END << std::endl;
+			//std::cout << "GOGOGOGO" << a.get_content_length() << std::endl;
 			delete buffff;
-			getResponse response(a);
+			//use fd to find server idx in _client_lst<int(fd), int(server idx)>,
+			// and use the server idx for the function conf.get_config(idx)
+			(void)conf;
+			std::cout << _client_lst[fd] - 1 << conf.get_config(_client_lst[fd] - 1)->host << std::endl;
+			getResponse response(a, *conf.get_config(_client_lst[fd] - 1));
+			std::cout << "HELLO" << std::endl;
 			this->error_code();
-		//std::cout << a << response.responsetosend(_err);
+			std::cout << a << response.responsetosend(_err);
 			send(fd, response.responsetosend(_err));
 			// close and clear fd
+			_iter = _client_lst.find(fd);
+			if (_iter != _client_lst.end())
+				_client_lst.erase(_iter);
+			FD_CLR(fd, &_read_set);
+			close(fd);
 		}
 		else
 
@@ -238,9 +249,64 @@ int		Server::get_client_socket_size() const {
 
 std::map<int, std::string> Server::error_code(void) {
 	_err[200] = "OK";
+	_err[201] = "Created";
+	_err[202] = "Accepted";
+	_err[203] = "Non-Authoritative Information";
+	_err[204] = "No Content";
+	_err[205] = "Reset Content";
+	_err[206] = "Partial Content";
+	_err[207] = "Multi-Status";
+	_err[208] = "Already Reported";
+	_err[226] = "IM Used";
+	_err[300] = "Multiple Choices";
+	_err[301] = "Moved Permanently";
+	_err[302] = "Found";
+	_err[303] = "See Other";
+	_err[304] = "Not Modified";
+	_err[305] = "Use Proxy";
+	_err[306] = "Switch Proxy";
+	_err[307] = "Temporary Redirect";
+	_err[308] = "Permanent Redirect";
 	_err[400] = "Bad Request";
+	_err[401] = "Unauthorized";
+	_err[402] = "Payment Required";
+	_err[403] = "Forbidden";
 	_err[404] = "Not Found";
+	_err[405] = "Method Not Allowed";
+	_err[406] = "Not Acceptable";
+	_err[407] = "Proxy Authentication Required";
+	_err[408] = "Request Timeout";
+	_err[409] = "Conflict";
+	_err[410] = "Gone";
+	_err[411] = "Length Required";
+	_err[412] = "Precondition Failed";
+	_err[413] = "Payload Too Large";
+	_err[414] = "URI Too Long";
+	_err[415] = "Unsupported Media Type";
+	_err[416] = "Range Not Satisfiable";
+	_err[417] = "Expectation Failed";
+	_err[418] = "I'm a teapot";
+	_err[421] = "Misdirected Reques";
+	_err[422] = "Unprocessable Entity";
+	_err[423] = "Locked";
+	_err[424] = "Failed Dependency";
+	_err[425] = "Too Early";
+	_err[426] = "Upgrade Required";
+	_err[428] = "Precondition Required";
+	_err[429] = "Too Many Requests";
+	_err[431] = "Request Header Fields Too Large";
+	_err[451] = "Unavailable For Legal Reasons";
+	_err[500] = "Internal Server Error";
+	_err[501] = "Not Implemented";
+	_err[502] = "Bad Gateway";
+	_err[503] = "Service Unavailable";
+	_err[504] = "Gateway Timeout";
 	_err[505] = "HTTP Version Not Supported";
+	_err[506] = "Variant Also Negotiates";
+	_err[507] = "Insufficient Storage";
+	_err[508] = "Loop Detected";
+	_err[510] = "Not Extended";
+	_err[511] = "Network Authentication Required";
 	return _err;
 }
 

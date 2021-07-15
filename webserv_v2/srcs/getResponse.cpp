@@ -10,9 +10,25 @@
 ░╚════╝░╚══════╝╚═╝░░╚═╝╚═════╝░╚═════╝░  ░╚═════╝░░░░╚═╝░░░╚═╝╚══════╝╚═════╝░
 */
 
-getResponse::getResponse( getRequest const &request ) : _request(request) {
-	this->_status_code = _parse_status_line();
+getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
+	this->_status_code = _parse_status_line();// verifie la status line
+	// continue checking with headers;
 	if (this->_status_code == 200) {
+		size_t mark;
+		if ((mark = this->_request["request-target"].find("?")) == NOTFOUND) // gere les GET avec infos
+		{
+			_locInfos = new getLocation(_conf, this->_request["request-target"]);
+		}
+		else {
+			std::cout << this->_request["request-target"].substr(0, mark) << " " << mark << std::endl;
+			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
+		}
+
+		isloc = true;
+		if (!_locInfos->getRedirection().empty()) {
+			_status_code = atoi(_locInfos->getRedirection().c_str());
+			return ;
+		}
 		if (!this->_request["method"].compare("GET"))
 			_content = _method_get();
 		else if  (!this->_request["method"].compare("POST"))
@@ -20,7 +36,6 @@ getResponse::getResponse( getRequest const &request ) : _request(request) {
 		else if (this->_request["method"].compare("DELETE"))
 			_content = _method_delete();
 	}
-	// continue checking with headers;
 	return ;
 }
 
@@ -30,6 +45,8 @@ getResponse::getResponse( getResponse const & src ) {
 }
 
 getResponse::~getResponse( void ) {
+	if (isloc)
+		delete _locInfos;
 	return ;
 }
 
@@ -37,6 +54,7 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 	// put your equality here eg.: this->_xx = rhs._xx
 	if (this != &rhs) {
 		this->_request = rhs._request;
+		this->_conf = rhs._conf;
 		this->_keys= rhs._keys;
 		this->_status_code = rhs._status_code;
 	}
@@ -60,8 +78,16 @@ void			getResponse::set_status_code(int status) {
 std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::string str;
 	std::stringstream ss;
-
-	//remove(_request["body"].c_str());
+	const int	error_code[] = { 100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
+, 302 , 303 , 304 , 305 , 307 , 308 , 400 , 401 , 402 , 403 , 404 , 405 , 406 , 407 , 408 , 409 , 410 , 411\
+, 412 , 413 , 414 , 415 , 416 , 417 , 418 , 421 , 422 , 423 , 424 , 426 , 428 , 429 , 431 , 444 , 451 , 499\
+, 500 , 501 , 502 , 503 , 504 , 505 , 506 , 507 , 508 , 510 , 511 , 599};
+	std::vector<int> errcode(error_code, error_code + sizeof(error_code)/ sizeof(int));
+	remove(_request["body"].c_str());
+	if (!_request["body"].compare(PHP_CONTENT))
+		remove(PHP_CONTENT);
+	if (this->_status_code >= 300 && this->_status_code < 600 && !_conf.error_page[this->_status_code].empty())
+		return _redirectError();
 	str.reserve(30);
 	if (!this->_status_code)
 		return this->_content;/////////////////////
@@ -71,14 +97,16 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	str+= " ";
 	str += err.find(this->_status_code)->second;
 	str += "\r\n";
-	///////////////////// a refaire
-	if (this->_status_code >= 200 && this->_status_code < 300)
+	if (this->_status_code >= 200 && _status_code < 204)
 		str += this->_content;
+	else if (this->_status_code >= 300 && this->_status_code < 400)
+		str += _returnRedir();
+	else if (std::find(errcode.begin(), errcode.end(), _status_code) == errcode.end()) 
+		str += _get_fill_headers(""); ///???
 	else
 		str += _error_response(err);
 	return str;
 }
-
 
 
 /*
@@ -177,12 +205,48 @@ std::string	getResponse::_get_date_line( void ) {
 	return (ret);
 }
 
+std::string getResponse::_get_serv_line( void ) {
+	return "Server: Webserv/v1.0\r\n";
+}
+
+std::string	getResponse::_redirectError() {
+	std::string reloc;
+	std::string resp;
+	resp.reserve(500);
+	size_t pos = 0;
+	if (_conf.error_page[this->_status_code][0] == '=' && (pos = _conf.error_page[this->_status_code].find(" ")) != NOTFOUND)
+			reloc = _conf.error_page[this->_status_code].substr(pos + 1);
+	else
+		reloc = _conf.error_page[this->_status_code];
+	resp += "HTTP/1.1 302 Moved Temporarily\r\n";
+	resp += _get_serv_line();
+	resp += _get_date_line();
+	resp += "Connection: keep-alive\r\nLocation: ";
+	resp += reloc + CRLF + CRLF;
+	return resp;
+}
+
+std::string	getResponse::_returnRedir() {
+	std::string reloc;
+	std::string resp;
+	resp.reserve(500);
+	size_t pos = 0;
+	if ((pos = _locInfos->getRedirection().find(" ")) == NOTFOUND || pos == _locInfos->getRedirection().size() - 1) // si egal a "301 "
+		reloc = "";
+	else
+		reloc =  _locInfos->getRedirection().substr(pos + 1);
+	resp += _get_serv_line();
+	resp += _get_date_line();
+	resp += "Connection: keep-alive\r\nLocation: ";
+	resp += reloc + CRLF + CRLF;
+	return resp;
+}
 
 std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 	std::string ret;
 	size_t f = 0;
 	std::stringstream ss;
-	// si pas de fichier personalisé
+
 	ret.reserve(200);
 	ret += "<html>\n<head><title>xx yy</title></head>\n<body>\n\
 <center><h1>xx yy</h1></center>\n<hr><center>Webserv/1.0</center>\n\
@@ -204,23 +268,74 @@ std::string	getResponse::_error_response(const std::map<int, std::string> err) {
 ░╚═════╝░╚══════╝░░░╚═╝░░░  ╚═╝░░░░░╚═╝╚══════╝░░░╚═╝░░░╚═╝░░╚═╝░╚════╝░╚═════╝░
 */
 
-#define PHP_CONTENT "./tmp/php_content"
+std::string		getResponse::_findIndex() {
+	std::string test;
+	size_t i = 0;
+	size_t last = 0;
+	std::cout << _locInfos->getIndex() << std::endl;
+	if (_locInfos->getIndex().empty())
+		return "";
+	while ((i = _locInfos->getIndex().find(" ", last)) != NOTFOUND)
+	{
+		test = _locInfos->getIndex().substr(last, i);
+		if (test[0] != '/')
+			test.insert(0, "/");
+		std::cout << _locInfos->getRoot() + test << std::endl;
+		if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
+			return test;
+		last = i + 1;
+	}
+	test = _locInfos->getIndex().substr(last);
+	if (test[0] != '/')
+		test.insert(0, "/");
+	if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
+		return test;
+	return "";
+}
+
+bool		getResponse::_fileExists(std::string fileStr)
+{
+	std::fstream fs;
+
+	fs.open(fileStr.c_str(), std::fstream::in);
+	if (fs.is_open())
+	{
+		fs.close();
+		return true;
+	}
+	else
+		return false;
+}
+
+
 std::string getResponse::_method_get( void )
 {
-	std::string location = CURRDIR + this->_request["request-target"];
-	bool	isindex = false;
+	std::string location = _locInfos->getRoot() + this->_request["request-target"];
+	std::string	index;
 	std::string response_body;
 	std::ifstream ifs;
 
 	response_body.reserve(10000);
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
-		location += PAGE;
-		isindex = true;
+		std::cout << "OKOK<<" << std::endl;
+		if ((index = _findIndex()).empty())
+		{	
+			std::cout << index + " isindex "  <<_locInfos->getAutoindex() << std::endl;
+			if (_locInfos->getAutoindex()) {
+				response_body += _get_autoindex(_locInfos->getRoot() + this->_request["request-target"]);
+				std::cout << "HEYHEY  " << response_body << std::endl ;
+				return _get_fill_headers(response_body);
+			}
+			else {
+				_status_code = 404;
+				return "";
+			}
+		}
+		location += index;
 	}
-	else if (!_get_extension().compare("php") || _request["request-target"].find(".php?") != std::string::npos)
+	if (!_locInfos->getCGIPath().empty())
 	{
-		// if cgi is on
-		CGI cgi(_request, "8080", ROOT);
+		CGI cgi(_request, _conf.port, _locInfos->getRoot(), _locInfos->getCGIPath());
 		try {
 			cgi.cgi_exec();
 		}
@@ -233,11 +348,6 @@ std::string getResponse::_method_get( void )
 	}
 	ifs.open(location.c_str(), std::ifstream::in);
 	if (ifs.fail()) {
-		if (isindex)
-		{
-			response_body += _get_autoindex(CURRDIR + this->_request["request-target"]);
-			return _get_fill_headers(response_body);
-		}
 		ifs.clear();
 		this->_status_code = 404;
 		return "";
@@ -251,29 +361,18 @@ std::string getResponse::_method_get( void )
 }
 
 
-// std::string reformPHP(std::string response)
-// {
-// 	size_t headend = response.find("\r\n\r\n");
-// 	headend = headend == std::string::npos? 0 : headend + 4;
-
-// 	std::string body = response.substr(headend);
-
-// }
-
-// ptet revoir la gestion des headers via une map ???????????
 std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string headers;
 	std::stringstream ss;
 	std::string ext = _get_extension();
-	if (ext.empty() || (this->_status_code < 200 && this->_status_code > 299))
+	if (ext.empty() || (this->_status_code < 200 || this->_status_code > 299))
 		ext = "html";
-	// TODO ajouter serv name
-	//headers += _get_date_line();
-	if (!ext.compare("php") || _request["request-target"].find(".php?") != std::string::npos /* et cgi on */) {
+	headers += _get_serv_line();
+	headers += _get_date_line();
+	if (!_locInfos->getCGIPath().empty()) {
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
 		headend = headend == std::string::npos? 0 : headend + 4;
-		//std::cout << "SIZE = " << response.size() << "HEADEND= " << headend;
 		ss << response.size() - headend;
 		headers += ss.str();
 		if (response.find("\r\n\r\n") != response.npos)
@@ -287,9 +386,11 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	}
 	headers += "Content-Type: ";
 	headers += _get_MIMEtype(ext);
-	headers += "\nContent-Length: ";
-	ss << response.size();
-	headers += ss.str();
+	if (!response.empty()) {
+		headers += "\nContent-Length: ";
+		ss << response.size();
+		headers += ss.str();
+	}
 	if (response.find("\r\n\r\n") != response.npos)
 		headers += "\r\n";
 	else
@@ -325,9 +426,19 @@ std::string getResponse::_fill_index_body(std::list<t_index_file> files) // TODO
 			ret.append("<a href=\"");
 			ret.append((*it).name);
 			ret.append("/\">");
-			ret.append((*it).name);
-			ret.append("/</a>");
-			ret.append((*it).spaceL - 1, ' ');
+			if ((*it).name.size() < 50) {
+				ret.append((*it).name);
+				ret.append("/</a>");
+				ret.append((*it).spaceL - 1, ' ');
+			}
+			else if ((*it).name.size() == 50) {
+				ret.append((*it).name);
+				ret.append("</a> ");
+			}
+			else {
+				ret.append(it->name.substr(0, 47));
+				ret.append("..></a> ");
+			}
 			ret.append((*it).date);
 			ss << std::setfill(' ') << std::setw(20);
 			ss << "-\n";
@@ -341,9 +452,15 @@ std::string getResponse::_fill_index_body(std::list<t_index_file> files) // TODO
 			ret.append("<a href=\"");
 			ret.append((*it).name);
 			ret.append("\">");
-			ret.append((*it).name);
-			ret.append("</a>");
-			ret.append((*it).spaceL, ' ');
+			if ((*it).name.size() < 51) {
+				ret.append((*it).name);
+				ret.append("</a>");
+				ret.append((*it).spaceL, ' ');
+			}
+			else {
+				ret.append(it->name.substr(0, 47));
+				ret.append("..></a> ");
+			}
 			ret.append((*it).date);
 			ss << std::setfill(' ') << std::setw(20);
 			ss << (*it).size << "\n";
@@ -364,7 +481,7 @@ std::string getResponse::_get_autoindex( std::string location ) {
 	if ((dir = opendir(location.c_str())) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
 			memset(&st, 0, sizeof(st));
-			std::string path = ROOT + this->_request["request-target"];
+			std::string path = _locInfos->getRoot() + this->_request["request-target"];
 			path += ent->d_name;
 			stat(path.c_str(), &st);
 			char strNow[ 19 ];
@@ -379,7 +496,8 @@ std::string getResponse::_get_autoindex( std::string location ) {
   		closedir (dir);
 	}
 	else {
-		std::cout << "Errrr" << std::endl; //////////////////////TODO return error 404 si page non existante ???????????????
+		_status_code = 500;
+		return "";
 	}
 	return _fill_index_body(files);
 }
@@ -396,7 +514,7 @@ std::string getResponse::_get_autoindex( std::string location ) {
 std::string	getResponse::_method_post( void ) {
 	// si activé mais pas vers une page statique >> vers get avec un corps
 	const std::string ext = _get_extension();
-	if (!ext.compare("php")) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
+	if (!_locInfos->getCGIPath().empty() && _locInfos->isAllowedMethod(POST)) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
 	{
 		return _method_get();
 	}
@@ -437,16 +555,9 @@ std::string	getResponse::_method_post( void ) {
 < Connection: keep-alive
 */
 
-std::string getResponse::_delete_fill_header( void ) {
-	std::string ret;
-
-	//TODO ret += header du nom du server
-	ret += _get_date_line();
-	return ret;
-}
 
 int			getResponse::_delete_file( void ) {
-	const std::string path = ROOT + _request["request-target"];
+	const std::string path = _locInfos->getRoot() + _request["request-target"];
 	if ( remove(path.c_str()) )
 		return 404;
 	else
@@ -456,26 +567,24 @@ int			getResponse::_delete_file( void ) {
 std::string getResponse::_method_delete( void )
 {
 	//TODO if delete enabled (sinon redirect vers get) return _method_get(); ???? a retester te refaire
+	if (!_locInfos->isAllowedMethod(DELETE))
+	{
+		_status_code = 405;
+		return "";
+	}
 	if ((this->_status_code = _delete_file()) == 404)
 		return _method_get();
 	else
-		return _delete_fill_header();
+		return "";
 }
 
 
 /*
- TODO- structure par location : boucle qui cherche la location la plus proche de l'URI demandée et qui adapte la reponse selon les options de la config
  	 - GET
- TODO	** faire une boucle qui choppe le bon index avec les differents index renseignés dans la config (par defaut index.html)
  	 - POST
- TODO	** POST si vers les ext gerées par cgi
- TODO	** POST si autre que les ext gerées par un cgi
  	 - DELETE
- TODO	** Renvoie GET si non autorisée explicitement
- TODO	** supprime si explicitement autorisée dans un dossier precis
  TODO- FORBIDDEN METHOD (explicite dans la config) + toutes les methodes qui ne sont pas a faire
  TODO- constructeur par erreur 400 ( qui prend un int uniquement ) pour preparer la reponse directe en cas de premiere ligne fausse (lecture ligne par ligne via telnet)
- TODO- page d'erreur par defaut
 */
 
 /* METHODES AUTORISEES

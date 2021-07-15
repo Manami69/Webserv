@@ -8,8 +8,7 @@ const std::string CGI::arr[] = {"HTTP_CACHE_CONTROL", "HTTP_UPGRADE_INSECURE_REQ
     "DOCUMENT_URI", "REQUEST_URI", "SCRIPT_NAME", "CONTENT_LENGTH", "CONTENT_TYPE", "REQUEST_METHOD", "QUERY_STRING",\
     "SCRIPT_FILENAME", "PATH_TRANSLATED", "PATH_INFO", "FCGI_ROLE", "PHP_SELF"};
 
-CGI::CGI( getRequest req, std::string port, std::string root) : _req(req) {
-
+CGI::CGI( getRequest req, std::string port, std::string root, std::string path_cgi) : _req(req), _CGIPath(path_cgi)  {
     _init_map();
     _fill_values( port, root);
 }
@@ -29,87 +28,56 @@ void CGI::_fill_map_key( std::string key , std::string value) {
 
 #ifndef STATIC_VALUES
 # define STATIC_VALUES
-    # define HOME "/Users/lolopez"
     # define HTTP_CACHE_CONTROL ""
     # define HTTP_UPGRADE_INSECURE_REQUESTS ""
     # define HTTP_CONNECTION ""
-    # define HTTP_ORIGIN "http://127.0.0.1:7000"
-    # define HTTP_CONTENT_LENGTH ""
-    # define HTTP_CONTENT_TYPE ""
-    # define HTTP_REFERER "http://127.0.0.1:7000/index.php"
-    # define HTTP_ACCEPT_ENCODING ""
-    # define HTTP_ACCEPT_LANGUAGE ""
-    # define HTTP_ACCEPT ""
-    # define HTTP_USER_AGENT ""
-    # define HTTP_HOST "localhost"
     # define REDIRECT_STATUS "200"
-    # define SERVER_NAME "localhost"
-    # define SERVER_PORT "7000"
-    # define SERVER_ADDR "127.0.0.1"
+    # define SERVER_NAME "webserv/v1.0"
     # define GATEWAY_INTERFACE "CGI/1.1"
     # define REQUEST_SCHEME "http"
+	# define PATH_INFO ""
     # define SERVER_PROTOCOL "HTTP/1.1"
-    # define DOCUMENT_URI "/index.php"
-    # define REQUEST_URI DOCUMENT_URI
-    # define SCRIPT_NAME DOCUMENT_URI
-    # define CONTENT_LENGTH ""
-    # define CONTENT_TYPE ""
-    # define REQUEST_METHOD "GET"
-    # define QUERY_STRING ""
-    # define SCRIPT_FILENAME "/Users/lolopez/Documents/Webserv/www/index.php"
-    # define PATH_TRANSLATED DOCUMENT_ROOT
-    # define PATH_INFO ""
-    # define FCGI_ROLE ""
-    # define PHP_SELF DOCUMENT_URI
-	#if defined (__APPLE__)
-		#define PHP_CGI HOME"/.brew/bin/php-cgi"
-    	# define DOCUMENT_ROOT "/Users/lolopez/Desktop/lolol/www"
-	#else
-		#define PHP_CGI "/usr/bin/php-cgi"
-		#define DOCUMENT_ROOT "/home/lolo/Documents/Webserv/www"
-	#endif
 # endif
 
 
 void    CGI::_fill_values( std::string port, std::string root) {
     ////// A REFAIRE AVEC LA CONF
-	_fill_map_key("USER", "lolopez");
-	_fill_map_key("HOME", HOME);
-   _fill_map_key("HTTP_CACHE_CONTROL", HTTP_CACHE_CONTROL);
-   _fill_map_key("HTTP_UPGRADE_INSECURE_REQUESTS", HTTP_UPGRADE_INSECURE_REQUESTS);
-   _fill_map_key("HTTP_CONNECTION", HTTP_CONNECTION);
-   _fill_map_key("HTTP_ORIGIN", "http://" + _req["Host"]);
-   _fill_map_key("HTTP_CONTENT_LENGTH", _req["Content-Length"]);
-   _fill_map_key("HTTP_CONTENT_TYPE" , _req["Content-Type"]);
-   _fill_map_key("HTTP_REFERER", _req["Referer"]);
-   _fill_map_key("HTTP_ACCEPT_ENCODING", _req["Accept-Encoding"]);
-   _fill_map_key("HTTP_ACCEPT_LANGUAGE", _req["Accept-Language"]);
-   _fill_map_key("HTTP_ACCEPT", _req["Accept"]);
-   _fill_map_key("HTTP_USER_AGENT", _req["User-Agent"]);
-   _fill_map_key("HTTP_HOST", _req["Host"]); // a changer pour le resultat du requestHeader "_req["Host""
-   _fill_map_key("REDIRECT_STATUS", REDIRECT_STATUS); // a changer pour le retour de getResponse mais globalement c'est 200 a ce stade
-   _fill_map_key("SERVER_NAME", SERVER_NAME); // a changer selon la conf
-   _fill_map_key("SERVER_PORT", port);
-   _fill_map_key("SERVER_ADDR", _req["Host"]);
-   _fill_map_key("GATEWAY_INTERFACE", GATEWAY_INTERFACE); // ne changera pas
-   _fill_map_key("REQUEST_SCHEME", REQUEST_SCHEME); // ne changera pas
-   _fill_map_key("SERVER_PROTOCOL", SERVER_PROTOCOL); // ne changera pas
-   _fill_map_key("DOCUMENT_ROOT", root);
+	_fill_map_key("USER", getenv("USER"));
+	_fill_map_key("HOME", getenv("HOME"));
+	_fill_map_key("HTTP_CACHE_CONTROL", HTTP_CACHE_CONTROL);
+	_fill_map_key("HTTP_UPGRADE_INSECURE_REQUESTS", HTTP_UPGRADE_INSECURE_REQUESTS);
+	_fill_map_key("HTTP_CONNECTION", HTTP_CONNECTION);
+	_fill_map_key("HTTP_ORIGIN", "http://" + _req["Host"]);
+	_fill_map_key("HTTP_CONTENT_LENGTH", _req["Content-Length"]);
+	_fill_map_key("HTTP_CONTENT_TYPE" , _req["Content-Type"]);
+	_fill_map_key("HTTP_REFERER", _req["Referer"]);
+	_fill_map_key("HTTP_ACCEPT_ENCODING", _req["Accept-Encoding"]);
+	_fill_map_key("HTTP_ACCEPT_LANGUAGE", _req["Accept-Language"]);
+	_fill_map_key("HTTP_ACCEPT", _req["Accept"]);
+	_fill_map_key("HTTP_USER_AGENT", _req["User-Agent"]);
+	_fill_map_key("HTTP_HOST", _req["Host"]);
+	_fill_map_key("REDIRECT_STATUS", REDIRECT_STATUS); // a changer pour le retour de getResponse mais globalement c'est 200 a ce stade
+	_fill_map_key("SERVER_NAME", SERVER_NAME); // a changer selon la conf
+	_fill_map_key("SERVER_PORT", port);
+	_fill_map_key("SERVER_ADDR", _req["Host"]);
+	_fill_map_key("GATEWAY_INTERFACE", GATEWAY_INTERFACE); // ne changera pas
+	_fill_map_key("REQUEST_SCHEME", REQUEST_SCHEME); // ne changera pas
+	_fill_map_key("SERVER_PROTOCOL", SERVER_PROTOCOL); // ne changera pas
+	_fill_map_key("DOCUMENT_ROOT", root);
 	size_t cut;
-   if ((cut = _req["request-target"].find(".php?")) == std::string::npos)
+	if ((cut = _req["request-target"].find("?")) == std::string::npos)
 		cut = 0;
-   _fill_map_key("DOCUMENT_URI", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
-   _fill_map_key("REQUEST_URI", _req["request-target"]);
-   _fill_map_key("SCRIPT_NAME", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
-   _fill_map_key("CONTENT_LENGTH", _req["Content-Length"]); // a changer pour method POST
-   _fill_map_key("CONTENT_TYPE", _req["Content-Type"]);	// a remplir pour POST CONTENT_TYPE=application/x-www-form-urlencoded
-   _fill_map_key("REQUEST_METHOD", _req["method"]); // GET POUR L'instant a changer (getRequest)
-   _fill_map_key("QUERY_STRING", (cut ? _req["request-target"].substr(cut + 5) : "")); // ?
-   _fill_map_key("SCRIPT_FILENAME", root + (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
-   _fill_map_key("PATH_TRANSLATED", PATH_TRANSLATED);
-   _fill_map_key("PATH_INFO", PATH_INFO);
-   _fill_map_key("FCGI_ROLE", "RESPONDER");
-   _fill_map_key("PHP_SELF", (cut ? _req["request-target"].substr(0, cut + 4) : _req["request-target"]));
+	_fill_map_key("DOCUMENT_URI", (cut ? _req["request-target"].substr(0, cut) : _req["request-target"]));
+	_fill_map_key("REQUEST_URI", _req["request-target"]);
+	_fill_map_key("SCRIPT_NAME", (cut ? _req["request-target"].substr(0, cut) : _req["request-target"]));
+	_fill_map_key("CONTENT_LENGTH", _req["Content-Length"]); // a changer pour method POST
+	_fill_map_key("CONTENT_TYPE", _req["Content-Type"]);	// a remplir pour POST CONTENT_TYPE=application/x-www-form-urlencoded
+	_fill_map_key("REQUEST_METHOD", _req["method"]); // GET POUR L'instant a changer (getRequest)
+	_fill_map_key("QUERY_STRING", (cut ? _req["request-target"].substr(cut + 1) : "")); // ?
+	_fill_map_key("SCRIPT_FILENAME", root + (cut ? _req["request-target"].substr(0, cut) : _req["request-target"]));
+	_fill_map_key("PATH_TRANSLATED", root);
+	_fill_map_key("PATH_INFO", PATH_INFO);
+	_fill_map_key("PHP_SELF", (cut ? _req["request-target"].substr(0, cut) : _req["request-target"]));
 }
 
 static char	*ft_strjoin(char const *s1, char const *s2)
@@ -159,8 +127,8 @@ char **CGI::env() {
 }
 
 char **CGI::_get_action(bool act) {
-	std::string ret[2];// = (act ? {"/bin/cat", _req["body"]} : {PHP_CGI, _SERVER["SCRIPT_FILENAME"]});
-	ret[0] = act ? "/bin/cat" : PHP_CGI;
+	std::string ret[2];// = (act ? {"/bin/cat", _req["body"]} : {_CGIPath, _SERVER["SCRIPT_FILENAME"]});
+	ret[0] = act ? "/bin/cat" : _CGIPath;
 	ret[1] = act ? _req["body"]: _SERVER["SCRIPT_FILENAME"];
 	size_t		len = 2;
 	char **action = (char **)malloc((len + 1) * sizeof(char *));
@@ -192,7 +160,6 @@ void	CGI::_exec_body( void ) {
 		_dstrfree(env);
 		throw CGI::Error();
 	}
-	std::cout << YEL << "PIPE 1" << END << std::endl;
 	pipe(pipefd);
 	if ((pod = fork()) == 0)
 	{
@@ -203,9 +170,8 @@ void	CGI::_exec_body( void ) {
 		exit(0);
 	}
 	else {
-		std::cout << YEL << "PIPE @" << END << std::endl;
 		int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK, 0777);
-		//pid = 0;man
+		//pid = 0;m
 		char **actionman = _get_action(false);
 		if (!actionman)
 		{	
@@ -243,7 +209,7 @@ void	CGI::_exec_nobody( void ) {
 	char **env = _get_env();
 	if (!env)
 		throw CGI::Error();
-	std::string ret[] = {PHP_CGI};
+	std::string ret[] = {_CGIPath};
 	char **action = _get_action(false);
 	if (!action)
 	{
@@ -266,9 +232,8 @@ void	CGI::_exec_nobody( void ) {
 }
 
 // C type shell
-void	CGI::cgi_exec() // TODO pipe avec cat du content
+void	CGI::cgi_exec()
 {
-	std::cout << "HELLOOOOOOOOOO" << std::endl;
 	if (!_req["body"].empty() && !_req["method"].compare("POST"))
 		_exec_body();
 	else

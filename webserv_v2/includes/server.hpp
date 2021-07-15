@@ -21,6 +21,7 @@ class Server
 private:
     int								_sockfd;
 	int								_server_nbr;
+	
 	Listen							*_listen;
 	std::vector<Listen*>			_server_lst;
 	fd_set							_read_set;
@@ -43,8 +44,8 @@ public:
 	void					add_server_lst(void);
 	int						get_server_nbr(void) const;
 	std::vector<Listen*>	get_server_lst(void) const;
-	void					selected(void);
-	void 					process_socket(int fd);
+	void					selected(Config conf);
+	void 					process_socket(Config conf, int fd);
 	int						is_sockfd_found(int fd);
 	int						get_client_socket_size() const;
 	std::map<int, std::string> 	error_code(void);

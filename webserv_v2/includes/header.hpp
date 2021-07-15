@@ -10,6 +10,12 @@
 # define CYAN    "\033[1m\033[36m"	    /* Bold Cyan */
 # define WHITE   "\033[1m\033[37m"
 # define RESET   "\033[0m"
+# define NOTFOUND std::string::npos
+# define GET 0
+# define POST 1
+# define DELETE 2
+# define DEFAULT_LOCATION "./../www"
+# define PHP_CONTENT "./tmp/php_content"
 
 # include <sys/socket.h> // For socket functions
 # include <netinet/in.h> // For sockaddr_in
@@ -39,6 +45,6 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <string.h>
-
+# include <locale>
 
 #endif

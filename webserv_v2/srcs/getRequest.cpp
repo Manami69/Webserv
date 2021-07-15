@@ -96,7 +96,6 @@ void			getRequest::fillRequest( std::string request ) {
 	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
 		_fill_body(request);
 }
-
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
 	if (_is_used_key(key))
 	{
@@ -186,6 +185,6 @@ std::ostream & operator<<( std::ostream & o, getRequest const & rhs ) {
 		if (!rhs.getKeyValue(rhs.headers[i]).empty())
 			o << rhs.headers[i] << ": " << rhs.getKeyValue(rhs.headers[i]) << std::endl;
 	}
-	o << END << std::endl;;
+	o << END << std::endl;
 	return o;
 }
