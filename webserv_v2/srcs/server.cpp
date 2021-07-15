@@ -152,37 +152,36 @@ void	Server::process_socket(Config conf, int fd) {
 		}
     }
 	else {
-		ssize_t size_recv;
+		ssize_t size_recv, body_size = 0;
+		size_t ret;
 		char	buf[BUFSIZE + 1];
-		std::string *buffff = new std::string;
+		std::string *save_buf = new std::string;
 		FD_SET(fd, &_read_set);
 		while(true)
 		{
-			// add a counter 
+			memset(&buf, 0, sizeof(buf));
+			size_recv = recv(fd, buf, sizeof(buf), 0); // check return value
+			for (ssize_t j = 0; j < size_recv ; j++)
+				save_buf->push_back(buf[j]);
+			if ((ret = save_buf->find("\r\n\r\n")) != std::string::npos)
+				break ;
+		}
+		getRequest req(*save_buf);
+		std::cout << YELLOW << req.getKeyValue("Content-Length") << RESET << std::endl;
+		while (true) {
 			memset(&buf, 0, sizeof(buf));
 			size_recv = recv(fd, buf, sizeof(buf), 0);
+			body_size += size_recv;
 			for (ssize_t j = 0; j < size_recv ; j++)
-				buffff->push_back(buf[j]);
-
-			this->error_code();
-			if ( int ret = buffff->find("\r\n\r\n") != std::string::npos)
+				save_buf->push_back(buf[j]);
+			if (save_buf->size() == std::atoi(req.getKeyValue("Content-Length").c_str()) + ret + 4)
 				break ;
-			// if buffff->find("0\r\n")
-			// int end = counter
-			// if buffff->find("\r\n") && counter - end == 1
-			// break;	
 		}
-		getRequest a(*buffff);
-		std::cout << YELLOW << a << RESET << std::endl;
-		// boucle pour lire le body selon length buff.size() == body lenght + ret + 4
-		// {}
-		a.fill_body(*buffff);
-		getResponse response(a, *conf.get_config(_client_lst[fd] - 1)); //move out of loop ?
-		send(fd, response.responsetosend(_err));
-			// if content-length found
-			// body_size += size_recv
-			// if body_size == content-length
-			// break
+		req.fill_body(*save_buf);
+		getResponse response(req, *conf.get_config(_client_lst[fd] - 1));
+		this->error_code();
+		send(fd, response.responsetosend(_err)); // check return value
+		
 		_iter = _client_lst.find(fd);
 		if (_iter != _client_lst.end())
 			_client_lst.erase(_iter);
