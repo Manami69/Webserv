@@ -8,7 +8,7 @@
 
 const std::string getRequest::headers[] = {"method", "request-target", "http-version", \
 	"Accept", "Accept-Encoding", "Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", \
-	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body"};
+	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body", "body_size"};
 
 
 getRequest::getRequest( void ) {
@@ -149,9 +149,14 @@ void	getRequest::fill_body(std::string buffer) {
 		}
 		filename = _new_file();
 		fs.open(filename.c_str(), std::fstream::out);
+		size_t size = this->_request_tokens["body"].size();
 		fs << this->_request_tokens["body"];
 		fs.close();
 		this->_request_tokens["body"] = filename;
+		std::stringstream ss;
+		ss << size;
+		this->_request_tokens["body_size"] = ss.str();
+		
 	}
 }
 

@@ -13,6 +13,11 @@
 getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
 	this->_status_code = _parse_status_line();// verifie la status line
 	// continue checking with headers;
+	if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
+	{
+		this->_status_code = 413;
+		return ;
+	}
 	if (this->_status_code == 200) {
 		size_t mark;
 		if ((mark = this->_request["request-target"].find("?")) == NOTFOUND) // gere les GET avec infos
@@ -62,7 +67,8 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 }
 
 void			getResponse::set_status_code(int status) {
-	this->_status_code   = status;
+	if (this->_status_code == 200)
+		this->_status_code  = status;
 }
 
 
@@ -149,6 +155,8 @@ int getResponse::_parse_status_line( void )
 	else if (atof(http.substr(5).c_str()) >= 2)
 		return 505;
 	else
+		return 400;
+	if (this->_request["Host"].empty())
 		return 400;
 }
 

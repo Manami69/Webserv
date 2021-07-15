@@ -220,6 +220,11 @@ std::list<Serv_config>::iterator	Config::get_config( size_t idx ) {
 	return ( it );
 };
 
+// size_t getConfigByName(std::string host, std::string port, std::string server_name)
+// {
+
+// }
+
 std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx ) {
 	if (idx > it->locations.size())
 		return (*it).locations.end();
