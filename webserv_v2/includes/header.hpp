@@ -17,24 +17,24 @@
 # define DEFAULT_LOCATION "./../www"
 # define PHP_CONTENT "./tmp/php_content"
 
-# include <sys/socket.h> // For socket functions
-# include <netinet/in.h> // For sockaddr_in
-# include <arpa/inet.h> // For inet_addr
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h> 
 # include <iostream>
 # include <cstring>
 # include <sys/select.h>
-# include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
+# include <sys/time.h>
 # include <list>
 # include <cerrno>
 # include <map>
 # include <vector>
 # include <string>
 # include <unistd.h>
-# include <cstdlib> // exit() and EXIT_FAILURE
+# include <cstdlib>
 # include <fcntl.h>
 # include <stdexcept> 
-# include <stdlib.h> //DELETE LATER
-# include <iterator> // distance
+# include <stdlib.h>
+# include <iterator>
 # include <fstream>
 # include <sstream>
 # include <algorithm>

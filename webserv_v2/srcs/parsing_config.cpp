@@ -241,7 +241,7 @@ void	Config::parse_config(void)
 				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
-				std::cout << i << " tokens " << _tokens.at(i) << std::endl;
+				//std::cout << i << " tokens " << _tokens.at(i) << std::endl;
 				if (!_tokens.at(i).compare("listen"))
 					i = set_listen(i);
 				else if (!_tokens.at(i).compare("server_name"))
