@@ -93,8 +93,6 @@ void			getRequest::fillRequest( std::string request ) {
 		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
-	// if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
-	// 	_fill_body(request);
 }
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
 	if (_is_used_key(key))
@@ -139,6 +137,8 @@ void	getRequest::fill_body(std::string buffer) {
 	if ((start = buffer.find("\r\n\r\n")) != std::string::npos)
 	{
 		start += 4;
+		if (start == buffer.size())
+			return;
 		try {
 			this->_request_tokens["body"] = buffer.substr(start);
 		}
