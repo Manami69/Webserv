@@ -59,6 +59,7 @@ class getResponse {
 
 		getResponse &	operator=( getResponse const & rhs );
 		std::string		responsetosend(const std::map<int, std::string> err);
+		void			set_status_code(int status);
 	private:
 
 		// 🅤🅣🅘🅛🅢

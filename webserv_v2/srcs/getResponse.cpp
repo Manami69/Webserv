@@ -23,8 +23,13 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			std::cout << this->_request["request-target"].substr(0, mark) << " " << mark << std::endl;
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
 		}
-
 		isloc = true;
+
+		if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
+		{
+			this->_status_code = 413;
+			return ;
+		}
 		if (!_locInfos->getRedirection().empty()) {
 			_status_code = atoi(_locInfos->getRedirection().c_str());
 			return ;
@@ -60,6 +65,12 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 	}
 	return (*this);
 }
+
+void			getResponse::set_status_code(int status) {
+	if (this->_status_code == 200)
+		this->_status_code  = status;
+}
+
 
 /*
 ██████╗░██╗░░░██╗██████╗░██╗░░░░░██╗░█████╗░  ███████╗████████╗
@@ -137,6 +148,8 @@ int getResponse::_parse_status_line( void )
 	// check http-version
 	if (http.compare(0, 5, "HTTP/") || http.size() <= 5)
 		return 400; // si different alors 400
+	// if (this->_request.getKeyValue("Host").empty())
+	// 	return 400;
 	if (!http.compare(5, 2, "1.") && atoi(http.substr(7).c_str()) < 1000)
 		return 200; // si HTTP/1.x avec atoi(x) < 1000 alors c'est bon
 	else if (atof(http.substr(5).c_str()) < 2)
@@ -364,7 +377,8 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	headers += _get_serv_line();
 	headers += _get_date_line();
-	if (!_locInfos->getCGIPath().empty()) {
+	if ((this->_status_code <= 200 && this->_status_code < 300) && !_locInfos->getCGIPath().empty()) {
+		std::cout << "pouet" << std::endl;
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
 		headend = headend == std::string::npos? 0 : headend + 4;

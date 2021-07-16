@@ -8,7 +8,7 @@
 
 const std::string getRequest::headers[] = {"method", "request-target", "http-version", \
 	"Accept", "Accept-Encoding", "Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", \
-	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body"};
+	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body", "body_size"};
 
 
 getRequest::getRequest( void ) {
@@ -93,8 +93,8 @@ void			getRequest::fillRequest( std::string request ) {
 		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
-	if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
-		_fill_body(request);
+	// if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
+	// 	_fill_body(request);
 }
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
 	if (_is_used_key(key))
@@ -132,7 +132,7 @@ void	getRequest::_construct_empty_map( void ) {
 		this->_request_tokens[this->headers[i]] = "";
 }
 
-void	getRequest::_fill_body(std::string buffer) {
+void	getRequest::fill_body(std::string buffer) {
 	size_t start;
 	std::string filename;
 	std::fstream fs;
@@ -149,9 +149,14 @@ void	getRequest::_fill_body(std::string buffer) {
 		}
 		filename = _new_file();
 		fs.open(filename.c_str(), std::fstream::out);
+		size_t size = this->_request_tokens["body"].size();
 		fs << this->_request_tokens["body"];
 		fs.close();
 		this->_request_tokens["body"] = filename;
+		std::stringstream ss;
+		ss << size;
+		this->_request_tokens["body_size"] = ss.str();
+		
 	}
 }
 
