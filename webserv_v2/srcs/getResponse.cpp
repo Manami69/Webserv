@@ -23,13 +23,8 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			std::cout << this->_request["request-target"].substr(0, mark) << " " << mark << std::endl;
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
 		}
-		isloc = true;
 
-		if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
-		{
-			this->_status_code = 413;
-			return ;
-		}
+		isloc = true;
 		if (!_locInfos->getRedirection().empty()) {
 			_status_code = atoi(_locInfos->getRedirection().c_str());
 			return ;
@@ -65,12 +60,6 @@ getResponse & getResponse::operator=( getResponse const & rhs ) {
 	}
 	return (*this);
 }
-
-void			getResponse::set_status_code(int status) {
-	if (this->_status_code == 200)
-		this->_status_code  = status;
-}
-
 
 /*
 ██████╗░██╗░░░██╗██████╗░██╗░░░░░██╗░█████╗░  ███████╗████████╗
@@ -155,8 +144,6 @@ int getResponse::_parse_status_line( void )
 	else if (atof(http.substr(5).c_str()) >= 2)
 		return 505;
 	else
-		return 400;
-	if (this->_request["Host"].empty())
 		return 400;
 }
 
@@ -377,8 +364,7 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	headers += _get_serv_line();
 	headers += _get_date_line();
-	if ((this->_status_code <= 200 && this->_status_code < 300) && !_locInfos->getCGIPath().empty()) {
-		std::cout << "pouet" << std::endl;
+	if (!_locInfos->getCGIPath().empty()) {
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
 		headend = headend == std::string::npos? 0 : headend + 4;

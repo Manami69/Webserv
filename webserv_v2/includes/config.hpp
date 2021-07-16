@@ -37,6 +37,7 @@ private:
 	std::vector<std::string>			_tokens;
 	unsigned	int						_nb_server;
 	std::list<Serv_config>				_serv_config;
+	void								_split(size_t found, int i, std::string s, int len);
 	Config( void );
 	// Config(Config const &copy);
 	// Config &operation=(Config const &rhs);
@@ -51,6 +52,8 @@ public:
 	void								init_serv_config( void );
 	void								init_config_location( void );
 	void								parse_config( void );
+	bool								is_number(const std::string& s);
+	bool 								check_host(std::string host);
 	size_t								parse_location( size_t i );
 	//////////////////		GETTERS		//////////////////
 	std::string							get_filename( void ) const;
@@ -71,11 +74,6 @@ public:
 	size_t								set_cgi_path( size_t i );
 	size_t								set_try_files( size_t i );
 
-	//////////////////		UTILS		//////////////////
-	void								split( size_t found, int i, std::string s, int len );
-	bool								is_number( const std::string& s );
-	bool 								check_host( std::string host );
-	size_t								count_digit( std::string str );
 	static const int					error_code[];
 };
 
