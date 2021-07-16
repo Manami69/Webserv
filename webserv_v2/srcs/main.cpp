@@ -30,7 +30,7 @@ int		main(int ac, char **av)
 			server.binded();
 			server.listened();
 			server.add_server_lst();
-			}
+		}
 		server.selected(conf);
 	}
 	catch(const std::exception& e) {
