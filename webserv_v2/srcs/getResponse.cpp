@@ -13,11 +13,6 @@
 getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
 	this->_status_code = _parse_status_line();// verifie la status line
 	// continue checking with headers;
-	if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
-	{
-		this->_status_code = 413;
-		return ;
-	}
 	if (this->_status_code == 200) {
 		size_t mark;
 		if ((mark = this->_request["request-target"].find("?")) == NOTFOUND) // gere les GET avec infos
@@ -28,8 +23,13 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			std::cout << this->_request["request-target"].substr(0, mark) << " " << mark << std::endl;
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
 		}
-
 		isloc = true;
+
+		if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
+		{
+			this->_status_code = 413;
+			return ;
+		}
 		if (!_locInfos->getRedirection().empty()) {
 			_status_code = atoi(_locInfos->getRedirection().c_str());
 			return ;
@@ -377,7 +377,8 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	headers += _get_serv_line();
 	headers += _get_date_line();
-	if (!_locInfos->getCGIPath().empty()) {
+	if ((this->_status_code <= 200 && this->_status_code < 300) && !_locInfos->getCGIPath().empty()) {
+		std::cout << "pouet" << std::endl;
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
 		headend = headend == std::string::npos? 0 : headend + 4;
