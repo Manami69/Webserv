@@ -132,12 +132,11 @@ void	Server::selected(Config conf) {
 }
 
 void	Server::process_socket(Config conf, int fd) {
-
-	//std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
+	std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
 
 	int	server_order = this->is_sockfd_found(fd);
 
-	//std::cout << "server_order : " << server_order << std::endl;
+	std::cout << "server_order : " << server_order << std::endl;
 
 	if (server_order > 0) {
         // listener socket is readable => accept the connection and create communication socket
@@ -152,83 +151,43 @@ void	Server::process_socket(Config conf, int fd) {
 		}
     }
 	else {
-		ssize_t size_recv, total_size = 0;
-		struct timeval begin , now;
+		ssize_t size_recv, body_size = 0;
+		size_t ret;
 		char	buf[BUFSIZE + 1];
-		double	timediff;
-		std::string *buffff = new std::string;
+		std::string *save_buf = new std::string;
 		FD_SET(fd, &_read_set);
-		gettimeofday(&begin , NULL);
 		while(true)
 		{
-			//std::cout << "readddddd" << std::endl;
-			gettimeofday(&now , NULL);
-			timediff = (now.tv_sec - begin.tv_sec) + 1e-6 * (now.tv_usec - begin.tv_usec);
-			if( total_size > 0 && timediff > 4 )
-			{
-				break;
-			}
-			else if( timediff > 4*2)
-			{
-				break;
-			}
 			memset(&buf, 0, sizeof(buf));
-			if ((size_recv = recv(fd, buf, sizeof(buf), 0)) < 0)
-			{
-				usleep(100000);
-			}
-			else
-			{
-				// std::cout << GREEN << buf << RESET;
-				total_size += size_recv;
-				for (ssize_t j = 0; j < size_recv ; j++)
-					buffff->push_back(buf[j]);
-				if (buffff->find("\r\n\r\n") != std::string::npos)
-					break ;
-				gettimeofday(&begin , NULL);
-			}
+			size_recv = recv(fd, buf, sizeof(buf), 0); // check return value
+			for (ssize_t j = 0; j < size_recv ; j++)
+				save_buf->push_back(buf[j]);
+			if ((ret = save_buf->find("\r\n\r\n")) != std::string::npos)
+				break ;
 		}
-		
-
-		std::cout << YELLOW << *buffff << RESET;
-
-		std::cout << "total_size : " << total_size << std::endl;
-
-		if (!buffff->empty()) //// a changer
-		{
-			getRequest a(*buffff);
-			//std::cout << "GOGOGOGO" << a.get_content_length() << std::endl;
-			delete buffff;
-			//use fd to find server idx in _client_lst<int(fd), int(server idx)>,
-			// and use the server idx for the function conf.get_config(idx)
-			(void)conf;
-			std::cout << _client_lst[fd] - 1 << conf.get_config(_client_lst[fd] - 1)->host << std::endl;
-			getResponse response(a, *conf.get_config(_client_lst[fd] - 1));
-			std::cout << "HELLO" << std::endl;
-			this->error_code();
-			std::cout << a << response.responsetosend(_err);
-			send(fd, response.responsetosend(_err));
-			// close and clear fd
-			_iter = _client_lst.find(fd);
-			if (_iter != _client_lst.end())
-				_client_lst.erase(_iter);
-			FD_CLR(fd, &_read_set);
-			close(fd);
+		getRequest req(*save_buf);
+		//std::cout << YELLOW << req.getKeyValue("Content-Length") << RESET << std::endl;
+		while (true) {
+			memset(&buf, 0, sizeof(buf));
+			size_recv = recv(fd, buf, sizeof(buf), 0);
+			body_size += size_recv;
+			for (ssize_t j = 0; j < size_recv ; j++)
+				save_buf->push_back(buf[j]);
+			if (save_buf->size() == std::atoi(req.getKeyValue("Content-Length").c_str()) + ret + 4)
+				break ;
 		}
-		else
-
-			delete buffff;
-		
-		// memset(&buf, 0, sizeof(buf));
-		//}
-		if (size_recv == 0) {
-			std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-			_iter = _client_lst.find(fd);
-			if (_iter != _client_lst.end())
-				_client_lst.erase(_iter);
-			FD_CLR(fd, &_read_set);
-			close(fd);
-		}
+		req.fill_body(*save_buf);
+		getResponse response(req, *conf.get_config(_client_lst[fd] - 1));
+		this->error_code();
+		std::cout << req << response.responsetosend(_err);
+		send(fd, response.responsetosend(_err)); // check return value
+		delete save_buf;
+		std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+		_iter = _client_lst.find(fd);
+		if (_iter != _client_lst.end())
+			_client_lst.erase(_iter);
+		FD_CLR(fd, &_read_set);
+		close(fd);
 	}
 }
 
