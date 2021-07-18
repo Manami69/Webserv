@@ -21,15 +21,7 @@ int		main(int ac, char **av) {
 		remove(PHP_CONTENT);
 
 		std::cout << WHITE << "Webserv server preparing ... " << RESET << std::endl;
-		//Server	server;
-	
-		for ( int i = 0; i < conf.get_nb_server(); i++ ) {
-			server.setup_server_socket(conf, i);
-			server.set_socket_reuse();
-			server.binded();
-			server.listened();
-			server.add_server_lst();
-		}
+		server.setupServer(conf);
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;

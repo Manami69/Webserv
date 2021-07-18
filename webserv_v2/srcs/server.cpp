@@ -13,7 +13,6 @@ Server::Server(Server const &copy) {
 Server &Server::operator=(Server const &rhs) {
 	if (this != &rhs) {
 		this->_sockfd = rhs._sockfd;
-		//this->_server_nbr = rhs._server_nbr;
 		this->_listen = rhs._listen;
 		this->_server_lst = rhs._server_lst;
 		this->_read_set = rhs._read_set;
@@ -27,6 +26,18 @@ Server &Server::operator=(Server const &rhs) {
 }
 
 Server::~Server( void ) {
+	return ;
+}
+
+void	Server::setupServer(Config conf) {
+	for ( int i = 0; i < conf.get_nb_server(); i++ ) {
+		this->setup_server_socket(conf, i);
+		this->set_socket_reuse();
+		this->binded();
+		this->listened();
+		this->add_server_lst();
+	}
+	return ;
 }
 
 void	Server::setup_server_socket(Config conf, int idx) {

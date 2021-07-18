@@ -35,6 +35,7 @@ public:
 	Server(Server const &copy);
 	Server &operator=(Server const &rhs);
 	~Server( void );
+	void					setupServer(Config conf);
 	void					setup_server_socket(Config conf, int idx);
 	void					get_master_socket_fd(void);
 	void					set_socket_reuse(void);
