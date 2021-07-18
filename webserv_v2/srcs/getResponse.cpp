@@ -25,13 +25,14 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 		}
 		isloc = true;
 
+		std::cout << RED << _locInfos->getCGIPath() << END << std::endl;
+		if (!_locInfos->getRedirection().empty()) {
+			_status_code = atoi(_locInfos->getRedirection().c_str());
+			return ;
+		}
 		if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
 		{
 			this->_status_code = 413;
-			return ;
-		}
-		if (!_locInfos->getRedirection().empty()) {
-			_status_code = atoi(_locInfos->getRedirection().c_str());
 			return ;
 		}
 		if (!this->_request["method"].compare("GET"))
@@ -91,7 +92,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	std::vector<int> errcode(error_code, error_code + sizeof(error_code)/ sizeof(int));
 	remove(_request["body"].c_str());
 	if (!_request["body"].compare(PHP_CONTENT))
-		remove(PHP_CONTENT);
+	 	remove(PHP_CONTENT);
 	if (this->_status_code >= 300 && this->_status_code < 600 && !_conf.error_page[this->_status_code].empty())
 		return _redirectError();
 	str.reserve(30);
@@ -148,6 +149,8 @@ int getResponse::_parse_status_line( void )
 	// check http-version
 	if (http.compare(0, 5, "HTTP/") || http.size() <= 5)
 		return 400; // si different alors 400
+	if (this->_request["Host"].empty())
+	 	return 400;
 	if (!http.compare(5, 2, "1.") && atoi(http.substr(7).c_str()) < 1000)
 		return 200; // si HTTP/1.x avec atoi(x) < 1000 alors c'est bon
 	else if (atof(http.substr(5).c_str()) < 2)
@@ -155,8 +158,6 @@ int getResponse::_parse_status_line( void )
 	else if (atof(http.substr(5).c_str()) >= 2)
 		return 505;
 	else
-		return 400;
-	if (this->_request["Host"].empty())
 		return 400;
 }
 
@@ -377,7 +378,7 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		ext = "html";
 	headers += _get_serv_line();
 	headers += _get_date_line();
-	if ((this->_status_code <= 200 && this->_status_code < 300) && !_locInfos->getCGIPath().empty()) {
+	if ((_status_code >= 200 && _status_code < 300) && !_locInfos->getCGIPath().empty()) {
 		std::cout << "pouet" << std::endl;
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
@@ -599,3 +600,5 @@ std::string getResponse::_method_delete( void )
 /* METHODES AUTORISEES
  - All HTTP protocol compliance checks are enabled by default except for GET with body and POST without body. 
 */
+
+

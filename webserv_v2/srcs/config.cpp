@@ -25,12 +25,11 @@ void	Config::scan_file( void ) {
 	}
 	ifs.close();
 	this->check_brackets();
-	this->check_location();
+	this->check_prefixe();
 	return ;
 }
 
 void	Config::tokenize( std::string line ) {
-
 	/* Replace all space into tab */
 	std::replace( line.begin(), line.end(), ' ', '\t' );
 	
@@ -78,7 +77,6 @@ void	Config::tokenize( std::string line ) {
 }
 
 void	Config::check_brackets( void ) {
-
 	std::vector<std::string>::iterator it;
 	int open_bracket = 0;
 	int	close_bracket = 0;
@@ -93,7 +91,7 @@ void	Config::check_brackets( void ) {
 		throw ( ErrorMsg("Error : configuration file has unpaired brackets.") );
 }
 
-void	Config::check_location( void ) {
+void	Config::check_prefixe( void ) {
 	std::vector<std::string> prefixe;
 	size_t found;
 
@@ -141,7 +139,7 @@ void	Config::check_location( void ) {
 			}
 		}
 	}
-	
+
 	/* Check prefixe "=", "~", "~*", "^~" */
 	std::vector<std::string>	modifiers;
 	modifiers.push_back ("=");
@@ -166,7 +164,7 @@ void	Config::check_location( void ) {
 		if ( !prefixe.at(i).compare("location") )
 			prefixe.erase (prefixe.begin() + i);
 
-	/* check duplicated prefixe */
+	/* check duplicated URI */ // FIX DIFFERENT SERVER BUG LATER
 	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
 		for ( unsigned long j = 1; j < prefixe.size(); j++ ) {
 			if ( !prefixe.at(i).compare(prefixe.at(j)) && i != j
@@ -193,51 +191,115 @@ void	Config::check_location( void ) {
 	}
 	modifiers.clear();
 	prefixe.clear();
+	return ;
 }
 
-/* ///////////////////////////////// GETTERS ///////////////////////////////// */
-std::string	Config::get_filename( void ) const {
-	return ( _filename );
+void	Config::InitConfig( void )
+{
+	Serv_config	serv_config;
+
+	// serv_config.host = "0.0.0.0";
+	// serv_config.port = "80";
+	serv_config.server_name = "";
+	serv_config.client_max_body_size = 1000000; //nginx default upload limit 1MB
+	serv_config._nb_location = 0;
+	_serv_config.push_back(serv_config);
+	return ;
 }
 
-std::vector<std::string>	Config::get_tokens( void ) const {
-	return ( _tokens );
+
+void		Config::InitLocation(void)
+{
+	_locations		location;
+
+	location.access = "";
+	location.autoindex = false;
+	location.allowm = false;
+	location.limitm = false;
+	location.allow_methods[GET] = 0;
+	location.allow_methods[POST] = 0;
+	location.allow_methods[DELETE] = 0;
+	location.root = DEFAULT_LOCATION;
+	location.index = "";
+	location.cgi_path = "";
+	_serv_config.back().locations.push_back(location);
 }
 
-int		Config::get_nb_server( void ) const {
-	return ( this->_nb_server );
-}
 
-std::list<Serv_config>::iterator	Config::get_config( size_t idx ) {
-	/*	if idx > nb of server, than it will get the last server in .config */
-	if (idx > this->_nb_server)
-		idx = this->_nb_server;
-	std::list<Serv_config>::iterator it = this->_serv_config.begin();
-	while (idx > 0) {
-		idx--;
-	 	it++;
+void	Config::parse_config(void)
+{
+	for (size_t i = 0; i < _tokens.size(); i++)
+	{
+		if (!_tokens.at(i).compare("server"))
+		{
+			_nb_server++;
+			InitConfig();
+			if (_tokens.at(++i).compare("{"))
+				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
+			while (++i < _tokens.size() && _tokens.at(i) != "}")
+			{
+				if (!_tokens.at(i).compare("listen"))
+					i = set_listen(i);
+				else if (!_tokens.at(i).compare("server_name"))
+					i = set_server_name(i);
+				else if (!_tokens.at(i).compare("client_max_body_size"))
+					i = set_client_max_body_size(i);
+				else if (this->_tokens.at(i) == "error_page")
+					i = set_error_page(i);
+				else if (this->_tokens.at(i) == "location")
+					i = parse_location(i);
+				else
+					throw ( ErrorMsg("Error : unknown directive [ " + _tokens.at(i) + " ]") );
+			}
+			//checker si host et port sont set et si ils ne le sont pas les mettre a default
+		}
 	}
-	return ( it );
-};
-
-// size_t getConfigByName(std::string host, std::string port, std::string server_name)
-// {
-
-// }
-
-std::list<_locations>::iterator		Config::get_location( std::list<Serv_config>::iterator it, unsigned int idx ) {
-	if (idx > it->locations.size())
-		return (*it).locations.end();
-	std::list<_locations>::iterator its = (*it).locations.begin();
-	while (idx > 0) {
-		idx--;
-	 	its++;
-	}
-	return ( its );
+	return ;
 }
 
-/* ///////////////////////////////// UTILS /////////////////////////////////// */
-void	Config::split( size_t found, int i, std::string s, int len ) {
+size_t		Config::parse_location(size_t i) {
+	InitLocation();
+	if ( !_tokens.at(i + 2).compare("{") )
+		_serv_config.back().locations.back().access += _tokens.at(++i);
+	else if ( !_tokens.at(i + 3).compare("{") )
+	{
+		_serv_config.back().locations.back().modifier = _tokens.at(++i);
+		_serv_config.back().locations.back().access = _tokens.at(++i);
+	}
+	if (_tokens.at(++i).compare("{"))
+		throw	( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
+	while (_tokens.at(++i).compare("}"))
+	{
+		if (!_tokens.at(i).compare("allow_methods"))
+			i = set_allow_methods(i, true);
+		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
+			i = set_allow_methods(i, false);
+		if (!_tokens.at(i).compare("root"))
+			i = set_root(i);
+		else if (!_tokens.at(i).compare("return"))
+			i = set_return(i);
+		else if (!_tokens.at(i).compare("autoindex"))
+			i = set_autoindex(i);
+		else if (!_tokens.at(i).compare("index"))
+			i = set_index(i);
+		else if (!_tokens.at(i).compare("cgi_path"))
+			i = set_cgi_path(i);
+		else
+			throw	( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
+	}
+	return ( i );
+}
+
+
+
+
+/* ---------------------------------------------- UTILS --------------------------------------------------------- */
+
+
+
+
+
+void	Config::split(size_t found, int i, std::string s, int len) {
 	std::string temp;
 
 	temp = _tokens.at(i).substr(0, found);
@@ -247,38 +309,41 @@ void	Config::split( size_t found, int i, std::string s, int len ) {
 	_tokens.at(i) = temp;
 }
 
-bool	Config::is_number( const std::string& s ) {
+bool	Config::is_number(const std::string& s) {
+
     std::string::const_iterator it = s.begin();
     while (it != s.end() && std::isdigit(*it))
 		++it;
     return (!s.empty() && it == s.end());
 }
 
-bool 	Config::check_host( std::string host ) {
+bool 	Config::check_host(std::string host) {
 	int 		count = 0; 
 	size_t		pos = 0;
 	size_t		next = 0;
 	std::string tmp;
 
 	if (!host.compare("localhost"))
-		return ( true );
-	else {
+		return (true);
+	else
+	{
 		next = host.find(".");
-		while (next != NOTFOUND) {
+		while (next != NOTFOUND)
+		{
 			count++;
 			tmp = host.substr(pos, next - pos);
 	 		if (!is_number(tmp) || std::atoi(tmp.c_str()) > 255)
-	 			return ( false );
+	 			return (false);
 			pos = next + 1;
 			next = host.find(".", next + 1);
 		}
 		if (count != 3)
-			return ( false );
+			return (false);
 	}
-	return ( true );
+	return (true);
 }
 
-size_t Config::count_digit( std::string str ) {
+size_t	Config::count_digit( std::string str ) {
 	return std::count_if( str.begin(), str.end(), static_cast<int(*)(int)>(std::isdigit ));
 }
 

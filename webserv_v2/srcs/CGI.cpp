@@ -164,14 +164,12 @@ void	CGI::_exec_body( void ) {
 	if ((pod = fork()) == 0)
 	{
 		dup2(pipefd[1], 1);
-		// close(pipefd[1]);
 		close(pipefd[0]);
 		execve(action[0], action, env);
 		exit(0);
 	}
 	else {
 		int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK, 0777);
-		//pid = 0;m
 		char **actionman = _get_action(false);
 		if (!actionman)
 		{	
@@ -184,9 +182,7 @@ void	CGI::_exec_body( void ) {
 		{
 			dup2(pipefd[0], 0);
 			dup2(fd, 1);
-			// close(pipefd[0]);
 			close(pipefd[1]);
-			//close(fd);
 			execve(actionman[0], actionman, env);
 			exit(0);
 		}

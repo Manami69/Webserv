@@ -6,9 +6,11 @@
  * Les autres sont les headers imposés par le sujet, qu'on retrouvera ou non dans la requete
 **/
 
+//const std::string getRequest::headers[] = {"method", "request-target", "http-version", "Accept", "Accept-Encoding", "Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", "Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body", "body_size"};
+
 const std::string getRequest::headers[] = {"method", "request-target", "http-version", \
-	"Accept", "Accept-Encoding", "Accept-Charsets", "Accept-Language", "Allow", "Authorization", "Content-Language", "Content-Length", "Content-Location", \
-	"Content-Type", "Date", "Host", "Last-Modified", "Location", "Referer", "Retry-After", "Server", "Transfer-Encoding", "User-Agent", "WWW-Authenticate", "body", "body_size"};
+	"accept", "accept-encoding", "accept-charsets", "accept-language", "allow", "authorization", "content-language", "content-length", "content-location", \
+	"content-type", "date", "host", "last-modified", "location", "referer", "retry-after", "server", "transfer-Encoding", "user-agent", "www-authenticate", "body", "body_size"};
 
 
 getRequest::getRequest( void ) {
@@ -39,9 +41,18 @@ getRequest & getRequest::operator=( getRequest const & rhs ) {
 	return (*this);
 }
 
+std::string keyform(std::string key)
+{
+	std::string res;
+	for (size_t i = 0; i < key.size() ; i++)
+	{
+		res += static_cast<char>(tolower(key[i]));
+	}
+	return res;
+}
 
 std::string&	getRequest::operator[] ( const std::string& key ) {
-	return this->_request_tokens[key];
+	return this->_request_tokens[keyform(key)];
 }
 
 // const std::string&	getRequest::operator[] ( const std::string& key ) const {
@@ -93,28 +104,26 @@ void			getRequest::fillRequest( std::string request ) {
 		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
-	// if (!this->_request_tokens["Content-Type"].empty() || !this->_request_tokens["Content-Length"].empty())
-	// 	_fill_body(request);
 }
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
 	if (_is_used_key(key))
 	{
-		if (this->_request_tokens[key].empty())
-			this->_request_tokens[key] = val;
+		if (this->_request_tokens[keyform(key)].empty())
+			this->_request_tokens[keyform(key)] = val;
 	}
 }
 
 void			getRequest::setKeyValue( std::string key, std::string val ) {
 	if (_is_used_key(key))
 	{
-		this->_request_tokens[key] = val;
+		this->_request_tokens[keyform(key)] = val;
 	}
 }
 
 std::string		getRequest::getKeyValue( std::string key ) const {
 	
 	if (_is_used_key(key))
-		return this->_request_tokens.find(key)->second;
+		return this->_request_tokens.find(keyform(key))->second;
 	return std::string();
 }
 
@@ -139,6 +148,8 @@ void	getRequest::fill_body(std::string buffer) {
 	if ((start = buffer.find("\r\n\r\n")) != std::string::npos)
 	{
 		start += 4;
+		if (start == buffer.size())
+			return;
 		try {
 			this->_request_tokens["body"] = buffer.substr(start);
 		}
@@ -179,7 +190,7 @@ std::string getRequest::_new_file()
 }
 
 bool	getRequest::_is_used_key(std::string key) const {
-	return (std::find(this->_array.begin(), this->_array.end(), key) != this->_array.end());
+	return (std::find(this->_array.begin(), this->_array.end(), keyform(key)) != this->_array.end());
 }
 
 

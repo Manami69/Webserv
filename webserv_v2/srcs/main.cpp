@@ -21,6 +21,7 @@ int		main(int ac, char **av)
 		conf.parse_config();
 		
 		std::cout << GREEN << "Webserv configuration OK" << RESET << std::endl;
+		remove(PHP_CONTENT);
 		/* Launch Server */
 		Server	server;
 	
@@ -30,7 +31,7 @@ int		main(int ac, char **av)
 			server.binded();
 			server.listened();
 			server.add_server_lst();
-			}
+		}
 		server.selected(conf);
 	}
 	catch(const std::exception& e) {
