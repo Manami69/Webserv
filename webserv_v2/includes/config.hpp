@@ -41,8 +41,8 @@ private:
 
 public:
 	Config( std::string filename );
-	// Config( Config const &copy );
-	// Config &operator=(Config const &rhs);
+	Config( Config const &copy );
+	Config &operator=(Config const &rhs);
 	~Config( void );
 	void								scan_file( void );
 	void								tokenize( std::string line );

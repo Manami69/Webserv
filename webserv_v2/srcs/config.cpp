@@ -3,7 +3,24 @@
 Config::Config( std::string filename ) :
 _filename( filename ),
 _nb_server( 0 ) {
+	this->scan_file();
+	this->parse_config();
 	return ;
+}
+
+Config::Config( Config const &copy ) {
+	*this = copy;
+	return ;
+}
+
+Config	&Config::operator=(Config const &rhs) {
+	if (this != &rhs) {
+		this->_filename = rhs._filename;
+		this->_tokens = rhs._tokens;
+		this->_nb_server = rhs._nb_server;
+		this->_serv_config = rhs._serv_config;
+	}
+	return (*this);
 }
 
 Config::~Config( void ) {

@@ -1,28 +1,25 @@
 #include "../includes/config.hpp"
 #include "../includes/server.hpp"
 
-int		main(int ac, char **av)
-{
+int		main(int ac, char **av) {
+	
+	std::string	config_path ("config/webserv.conf");
+	
 	if (ac > 2) {
 		std::cout << RED << av[0] << " can take one argument <configuration file> only. "
 		<< "If no argument has been entered, it will launch with the default configuration file."
 		<< RESET << std::endl;
 		return (1);
 	}
+	
+	config_path = (ac == 1) ? config_path : av[1];
+	
 	try {
-		/* Get server config content */
-		std::string	file;
-		if ( ac == 1 )
-			file = "config/webserv.conf";
-		else
-			file = av[1];
-		Config	conf( file );
-		conf.scan_file();
-		conf.parse_config();
-		
-		std::cout << GREEN << "Webserv configuration OK" << RESET << std::endl;
+		std::cout << WHITE << "Webserv configuration preparing ... " << RESET << std::endl;
+		Config	conf( config_path );
 		remove(PHP_CONTENT);
-		/* Launch Server */
+
+		std::cout << WHITE << "Webserv server preparing ... " << RESET << std::endl;
 		Server	server;
 	
 		for ( int i = 0; i < conf.get_nb_server(); i++ ) {
