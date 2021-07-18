@@ -123,9 +123,9 @@ void	Config::check_prefixe( void ) {
 		/* if there's nothing between location and open bracket */
 		if ( i < prefixe.size() - 1 && !prefixe.at(i).compare("location")
 			&& !prefixe.at(i + 1).compare("location"))
-			throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+			throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 		if ( i == prefixe.size() - 1 && !prefixe.at(i).compare("location"))
-			throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+			throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 		if ( !prefixe.at(i).compare("location") )
 		{
 			for ( ; prefixe.at(++i).compare("location") ;) {
@@ -134,7 +134,7 @@ void	Config::check_prefixe( void ) {
 				|| (i == prefixe.size() - 1 && !prefixe.at(i - 1).compare("location")) ) {
 					if ((found = prefixe.at(i).find("/")) == NOTFOUND
 					|| ((found = prefixe.at(i).find("/")) != NOTFOUND && found > 0))
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 				}
 				/* there's two tokens between location and open bracket, if the 1st token is = or ^~, the 2nd token begin with a slash */
 				if ( (i < prefixe.size() - 2 && !prefixe.at(i + 2).compare("location")) 
@@ -142,12 +142,12 @@ void	Config::check_prefixe( void ) {
 					if ( prefixe.at(i).size() == 1 && (found = prefixe.at(i).find("=")) != NOTFOUND) {
 						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
 						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
-							throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+							throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					}
 					if ( prefixe.at(i).size() == 2 && (found = prefixe.at(i).find("^~")) != NOTFOUND) {
 						if ((found = prefixe.at(i + 1).find("/")) == NOTFOUND 
 						|| ((found = prefixe.at(i + 1).find("/")) != NOTFOUND && found > 0))
-							throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+							throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					}
 				}
 				break ;
@@ -167,11 +167,11 @@ void	Config::check_prefixe( void ) {
 		if ( i > 0 && i < prefixe.size() - 2 && !prefixe.at(i - 1).compare("location")
 		&& !prefixe.at(i + 2).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+				throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 
 		if	( i != 0 && i == prefixe.size() - 2 && !prefixe.at(i - 1).compare("location") )
 			if (std::find(modifiers.begin(), modifiers.end(), prefixe.at(i)) == modifiers.end())
-				throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+				throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 	}
 
 	/* remove location */
@@ -187,19 +187,19 @@ void	Config::check_prefixe( void ) {
 			{
 	 			if ( prefixe.at(j - 1).compare("~") && prefixe.at(j - 1).compare("~*") ) {
 					if ( i != 0 && !prefixe.at(i - 1).compare("=") && !prefixe.at(j - 1).compare("="))
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && !prefixe.at(i - 1).compare("^~") && !prefixe.at(j - 1).compare("^~"))
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i == 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
 					&& std::find(modifiers.begin(), modifiers.end(), prefixe.at(j - 1)) == modifiers.end())
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i == 0 && !prefixe.at(j - 1).compare("^~"))
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 					else if ( i != 0 && std::find(modifiers.begin(), modifiers.end(), prefixe.at(i - 1)) == modifiers.end()
 					&& !prefixe.at(j - 1).compare("^~"))
-						throw	( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
+						throw ( ErrorMsg("Error : invalid location modifier " + prefixe.at(i) + ".") );
 				}
 			}
 		}
@@ -250,7 +250,7 @@ void	Config::parse_config(void)
 			_nb_server++;
 			InitConfig();
 			if (_tokens.at(++i).compare("{"))
-				throw	( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
+				throw ( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
 			while (++i < _tokens.size() && _tokens.at(i) != "}")
 			{
 				if (!_tokens.at(i).compare("listen"))
@@ -282,7 +282,7 @@ size_t		Config::parse_location(size_t i) {
 		_serv_config.back().locations.back().access = _tokens.at(++i);
 	}
 	if (_tokens.at(++i).compare("{"))
-		throw	( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
+		throw ( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
 	while (_tokens.at(++i).compare("}"))
 	{
 		if (!_tokens.at(i).compare("allow_methods"))
@@ -300,7 +300,7 @@ size_t		Config::parse_location(size_t i) {
 		else if (!_tokens.at(i).compare("cgi_path"))
 			i = set_cgi_path(i);
 		else
-			throw	( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
+			throw ( ErrorMsg("Error : invalid location element " + _tokens.at(i) + ".") );
 	}
 	return ( i );
 }

@@ -16,16 +16,21 @@ int		main(int ac, char **av) {
 	Config	conf( config_path );
 	Server	server;
 	try {
-		std::cout << WHITE << "Webserv configuration preparing ... " << RESET << std::endl;
+		std::cout << WHITE << "Loading configuration file ... " << RESET;
 		conf.scan();
+		std::cout << GREEN << "SUCCESS" << RESET << std::endl;
+		
 		remove(PHP_CONTENT);
 
-		std::cout << WHITE << "Webserv server preparing ... " << RESET << std::endl;
-		server.setupServer(conf);
+		std::cout << WHITE << "Setup server ... " << RESET;
+		for ( int i = 0; i < conf.get_nb_server(); i++ )
+			server.setup_server(conf, i);
+		std::cout << GREEN << "READY" << RESET << std::endl;
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
-	server.selected(conf);
+	//std::cout << server.get_server_lst().size() << std::endl;
+	//server.selected(conf);
 	return (0);
 }
