@@ -22,6 +22,7 @@ class Server
 private:
 	Listen							*_listen;
 	std::vector<Listen*>			_server_lst;
+	int								_server_size;
 	fd_set							_read_set;
 	fd_set							_read_copy;
 	int								_max_fd;
@@ -36,13 +37,22 @@ public:
 	~Server( void );
 	void					setup_server(Config conf, int idx);
 	bool					dup_listen(short port, std::string host);
-	std::vector<Listen*>	get_server_lst(void) const;
 	void					selected(Config conf);
 	void 					process_socket(Config conf, int fd);
 	int						is_sockfd_found(int fd);
 	int						get_client_socket_size() const;
 	std::map<int, std::string> 	error_code(void);
 	void					send(int connection, const std::string s);
+
+	/* ------------------------------------------ GETTERS ------------------------------------------*/
+	
+	std::vector<Listen*>	get_server_lst(void) const;
+	int						get_server_size(void) const;
+	int						get_server_sockfd(int idx) const;
+	short					get_server_port(int idx) const;
+	std::string				get_server_host(int idx) const;
+	std::string				get_servername(int idx) const;
+
 };
 
 #endif

@@ -1,7 +1,7 @@
 #include "../includes/server.hpp"
 
 Server::Server( void ) : 
-_max_fd(0) {
+_server_size(0), _max_fd(0) {
 	return ;
 }
 
@@ -14,6 +14,7 @@ Server &Server::operator=(Server const &rhs) {
 	if (this != &rhs) {
 		this->_listen = rhs._listen;
 		this->_server_lst = rhs._server_lst;
+		this->_server_size = rhs._server_size;
 		this->_read_set = rhs._read_set;
 		this->_read_copy = rhs._read_copy;
 		this->_max_fd = rhs._max_fd;
@@ -85,14 +86,10 @@ void	Server::setup_server(Config conf, int idx) {
 }
 
 bool	Server::dup_listen( short port, std::string host ) {
-	for (int i = 0; get_server_lst().size(); i++)
+	for (int i = 0; this->get_server_size(); i++)
 		if (get_server_lst().at(i)->port == port && !get_server_lst().at(i)->host.compare(host))
 			return (true);
 	return (false);
-}
-
-std::vector<Listen*>	Server::get_server_lst(void) const {
-	return (_server_lst);
 }
 
 void	Server::selected(Config conf) {
@@ -275,4 +272,30 @@ void	Server::send(int connection, const std::string s)
 {
 	::send(connection, s.c_str(), s.size(), 0);
 	return ;
+}
+
+/* ------------------------------------------ GETTERS ------------------------------------------*/
+
+std::vector<Listen*>	Server::get_server_lst(void) const {
+	return (_server_lst);
+}
+
+int		Server::get_server_size(void) const {
+	return (this->get_server_lst().size());	
+}
+
+int		Server::get_server_sockfd(int idx) const {
+	return (get_server_lst().at(idx)->sockfd);
+}
+
+short	Server::get_server_port(int idx) const {
+	return (get_server_lst().at(idx)->port);
+}
+
+std::string	Server::get_server_host(int idx) const {
+	return (get_server_lst().at(idx)->host);
+}
+
+std::string	Server::get_servername(int idx) const {
+	return (get_server_lst().at(idx)->server_name);
 }
