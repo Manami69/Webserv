@@ -1,10 +1,7 @@
 #include "../includes/config.hpp"
 
 Config::Config( std::string filename ) :
-_filename( filename ),
-_nb_server( 0 ) {
-	this->scan_file();
-	this->parse_config();
+_filename( filename ), _nb_server( 0 ) {
 	return ;
 }
 
@@ -27,7 +24,7 @@ Config::~Config( void ) {
 	return ;
 }
 
-void	Config::scan_file( void ) {
+void	Config::scan( void ) {
 	std::ifstream	ifs;
 	std::string		line;
 
@@ -43,6 +40,7 @@ void	Config::scan_file( void ) {
 	ifs.close();
 	this->check_brackets();
 	this->check_prefixe();
+	this->parse_config();
 	return ;
 }
 

@@ -13,14 +13,15 @@ int		main(int ac, char **av) {
 	}
 	
 	config_path = (ac == 1) ? config_path : av[1];
-	
+	Config	conf( config_path );
+	Server	server;
 	try {
 		std::cout << WHITE << "Webserv configuration preparing ... " << RESET << std::endl;
-		Config	conf( config_path );
+		conf.scan();
 		remove(PHP_CONTENT);
 
 		std::cout << WHITE << "Webserv server preparing ... " << RESET << std::endl;
-		Server	server;
+		//Server	server;
 	
 		for ( int i = 0; i < conf.get_nb_server(); i++ ) {
 			server.setup_server_socket(conf, i);
@@ -29,10 +30,10 @@ int		main(int ac, char **av) {
 			server.listened();
 			server.add_server_lst();
 		}
-		server.selected(conf);
 	}
 	catch(const std::exception& e) {
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
+	server.selected(conf);
 	return (0);
 }

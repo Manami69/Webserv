@@ -44,7 +44,7 @@ public:
 	Config( Config const &copy );
 	Config &operator=(Config const &rhs);
 	~Config( void );
-	void								scan_file( void );
+	void								scan( void );
 	void								tokenize( std::string line );
 	void								check_brackets( void );
 	void								check_prefixe( void );

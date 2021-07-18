@@ -1,9 +1,29 @@
 #include "../includes/server.hpp"
 
-Server::Server( void ) {
-	_sockfd = 0;
-	_server_nbr = 0;
+Server::Server( void ) : 
+_sockfd(0), _max_fd(0) {
 	return ;
+}
+
+Server::Server(Server const &copy) {
+	*this = copy;
+	return ;
+}
+
+Server &Server::operator=(Server const &rhs) {
+	if (this != &rhs) {
+		this->_sockfd = rhs._sockfd;
+		//this->_server_nbr = rhs._server_nbr;
+		this->_listen = rhs._listen;
+		this->_server_lst = rhs._server_lst;
+		this->_read_set = rhs._read_set;
+		this->_read_copy = rhs._read_copy;
+		this->_max_fd = rhs._max_fd;
+		this->_client_lst = rhs._client_lst;
+		this->_iter = rhs._iter;
+		this->_err = rhs._err;
+	}
+	return (*this);
 }
 
 Server::~Server( void ) {
@@ -82,13 +102,13 @@ void	Server::listened(void) {
 
 void	Server::add_server_lst(void) {
 	_server_lst.push_back(_listen);
-	_server_nbr = this->get_server_nbr();
+	//_server_nbr = this->get_server_nbr();
 	return ;
 }
 
-int		Server::get_server_nbr(void) const {
-	return (_server_lst.size());
-}
+// int		Server::get_server_nbr(void) const {
+// 	return (_server_lst.size());
+// }
 
 std::vector<Listen*>	Server::get_server_lst(void) const {
 	return (_server_lst);

@@ -20,8 +20,7 @@ class Server
 {
 private:
     int								_sockfd;
-	int								_server_nbr;
-	
+	//int								_server_nbr;
 	Listen							*_listen;
 	std::vector<Listen*>			_server_lst;
 	fd_set							_read_set;
@@ -29,12 +28,12 @@ private:
 	int								_max_fd;
 	std::map<int, int>				_client_lst;
 	std::map<int, int>::iterator	_iter;
-	Server(Server const &copy);
-	Server &operator=(Server const &rhs);
-	std::map<int, std::string>	_err;
+	std::map<int, std::string>		_err;
 
 public:
 	Server( void );
+	Server(Server const &copy);
+	Server &operator=(Server const &rhs);
 	~Server( void );
 	void					setup_server_socket(Config conf, int idx);
 	void					get_master_socket_fd(void);
