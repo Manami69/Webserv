@@ -28,9 +28,9 @@ int		main(int ac, char **av) {
 		std::cout << GREEN << "READY" << RESET << std::endl;
 	}
 	catch(const std::exception& e) {
-		std::cerr << RED << e.what() << RESET << std::endl;
+		std::cerr << std::endl << RED << e.what() << RESET << std::endl;
+		return (1);
 	}
-	//std::cout << server.get_server_lst().size() << std::endl;
 	server.selected(conf);
 	return (0);
 }

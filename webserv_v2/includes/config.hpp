@@ -47,7 +47,7 @@ public:
 	void								scan( void );
 	void								tokenize( std::string line );
 	void								check_brackets( void );
-	void								check_prefixe( void );
+	size_t								check_prefixe( size_t idx );
 	void								InitConfig( void );
 	void								InitLocation( void );
 	void								parse_config( void );
@@ -58,6 +58,7 @@ public:
 	bool								is_number( const std::string& s );
 	bool 								check_host( std::string host );
 	size_t								count_digit( std::string str );
+	size_t								found_idx( std::string, size_t i);
 	static const int					error_code[];
 
 	/* ------------------------------------------ GETTERS ------------------------------------------*/

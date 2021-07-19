@@ -92,7 +92,6 @@ bool	Server::check_listen_duplicated( short port, std::string host ) {
 }
 
 void	Server::selected(Config conf) {
-	//add check server running 
 	while (true) {
 		FD_ZERO(&_read_set);
     	FD_ZERO(&_read_copy);
