@@ -1,100 +1,98 @@
 #include "../includes/server.hpp"
 
-Server::Server( void ) {
-	_sockfd = 0;
-	_server_nbr = 0;
+Server::Server( void ) : 
+_server_size(0), _max_fd(0) {
 	return ;
 }
 
-Server::~Server( void ) {
+Server::Server(Server const &copy) {
+	*this = copy;
+	return ;
 }
 
-void	Server::setup_server_socket(Config conf, int idx) {
-	get_master_socket_fd();
-	_listen = new Listen();
-	_listen->sockfd = _sockfd;
+Server &Server::operator=(Server const &rhs) {
+	if (this != &rhs) {
+		this->_listen = rhs._listen;
+		this->_server_lst = rhs._server_lst;
+		this->_server_size = rhs._server_size;
+		this->_read_set = rhs._read_set;
+		this->_read_copy = rhs._read_copy;
+		this->_max_fd = rhs._max_fd;
+		this->_client_lst = rhs._client_lst;
+		this->_iter = rhs._iter;
+		this->_err = rhs._err;
+	}
+	return (*this);
+}
 
+Server::~Server( void ) { //close fd and delete
+	return ;
+}
+
+void	Server::setup_server(Config conf, int idx) {
+
+	int	ret;
+
+	/* ------------------------------ TCP, IPv4 ------------------------------ */
+	in_addr_t address = inet_addr(conf.get_config(idx)->host.c_str());
+	if (address == INADDR_NONE)
+		throw ( ErrorMsg ("Bad ip address. <" + std::string(strerror(errno)) + ">"));
+	
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		close(sockfd);
+		throw ( ErrorMsg ("Failed to create socket. <" + std::string(strerror(errno)) + ">"));
+	}
+
+	/* --------------- set socket to allow multiple connections -------------- */
+	int opt = true;
+	ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&opt), sizeof(opt));
+	if (ret == -1) {
+		close(sockfd);
+		throw ( ErrorMsg ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">"));
+	}
+
+	/* -------------------------- Check before bind -------------------------- */
+	if (this->get_server_size() > 0) {
+		if (check_listen_duplicated(atoi(conf.get_config(idx)->port.c_str()), conf.get_config(idx)->host)) {
+			close(sockfd);
+			return ;
+		}
+	}
+
+	/* --------------------------------- Bind -------------------------------- */
+	_listen = new Listen();
+	_listen->sockfd = sockfd;
 	_listen->port = atoi(conf.get_config(idx)->port.c_str());
 	_listen->host = conf.get_config(idx)->host;
+	_listen->server_name = conf.get_config(idx)->server_name;
 	
 	memset(&_listen->addr, 0, sizeof(sockaddr_in));
-	in_addr_t address = inet_addr(_listen->host.c_str());
-	if (address == INADDR_NONE)
-	{
-		throw std::runtime_error ("Bad ip address. <" + std::string(strerror(errno)) + ">");
-	}
 	_listen->addr.sin_family = AF_INET;
 	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
-}
-
-void	Server::get_master_socket_fd(void) {
-	/* TCP, IPv4 */
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	//std::cout << "Socket FD : " << sockfd << std::endl; // DELETE LATER
-	if (sockfd == -1)
-	{
-		close(sockfd);
-		//throw std::runtime_error ("Failed to create socket. <" + std::string(strerror(errno)) + ">");
-	}
-	_sockfd = sockfd;
-	std::cout << GREEN << "Socket successfully created... " << RESET << std::endl;
-	return ;
-}
-
-void	Server::set_socket_reuse(void) {
-	// set socket to allow multiple connections
-	int opt = true;
-	int	ret = setsockopt(_sockfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&opt), sizeof(opt));
+	ret = bind(_listen->sockfd, (const struct sockaddr*)&_listen->addr, sizeof(_listen->addr));
 	if (ret == -1)
-	{
-		close(_sockfd);
-		throw std::runtime_error ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">");
-	}
-	std::cout << GREEN << "Set socket reuse successfully... " << RESET << std::endl;
-}
+		throw ( ErrorMsg ("Failed to bind to port " + conf.get_config(idx)->port + "<" + std::string(strerror(errno)) + ">"));
 
-void	Server::binded(void) {
-	// bind the socket to localhost port 8080
-	int	ret = bind(_listen->sockfd, (const struct sockaddr*)&_listen->addr, sizeof(_listen->addr));
+	/* -------------------------------- Listen ------------------------------- */
+	ret = listen(_listen->sockfd, 128);
 	if (ret == -1)
-	{
-		close(_listen->sockfd);
-		std::stringstream ss;
-		ss << _listen->port;
-		throw std::runtime_error ("Failed to bind to port " + ss.str() + "<" + std::string(strerror(errno)) + ">");
-	}
-	std::cout << GREEN << "Socket successfully binded..." << RESET << std::endl;
-	return ;
-}
-
-void	Server::listened(void) {
-	// try to specify maximum of 128 pending connections for the socket
-    int ret = ::listen(_listen->sockfd, 128);
-	if (ret == -1)
-	{
-		close(_listen->sockfd);
-		throw std::runtime_error ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">");
-	}
-	std::cout << GREEN << "Socket successfully listened..." << RESET << std::endl << std::endl;
-	return ;
-}
-
-void	Server::add_server_lst(void) {
+		throw ( ErrorMsg ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">"));
 	_server_lst.push_back(_listen);
-	_server_nbr = this->get_server_nbr();
 	return ;
 }
 
-int		Server::get_server_nbr(void) const {
-	return (_server_lst.size());
-}
-
-std::vector<Listen*>	Server::get_server_lst(void) const {
-	return (_server_lst);
+bool	Server::check_listen_duplicated( short port, std::string host ) {
+	for (int i = 0; this->get_server_size(); i++) {
+		if (get_server_lst().at(i)->port == port && !get_server_lst().at(i)->host.compare(host))
+			return (true);
+	}
+	return (false);
 }
 
 void	Server::selected(Config conf) {
+	//add check server running 
 	while (true) {
 		FD_ZERO(&_read_set);
     	FD_ZERO(&_read_copy);
@@ -273,4 +271,30 @@ void	Server::send(int connection, const std::string s)
 {
 	::send(connection, s.c_str(), s.size(), 0);
 	return ;
+}
+
+/* ------------------------------------------ GETTERS ------------------------------------------*/
+
+std::vector<Listen*>	Server::get_server_lst(void) const {
+	return (_server_lst);
+}
+
+int		Server::get_server_size(void) const {
+	return (this->get_server_lst().size());	
+}
+
+int		Server::get_server_sockfd(int idx) const {
+	return (get_server_lst().at(idx)->sockfd);
+}
+
+short	Server::get_server_port(int idx) const {
+	return (get_server_lst().at(idx)->port);
+}
+
+std::string	Server::get_server_host(int idx) const {
+	return (get_server_lst().at(idx)->host);
+}
+
+std::string	Server::get_servername(int idx) const {
+	return (get_server_lst().at(idx)->server_name);
 }
