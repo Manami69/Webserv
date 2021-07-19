@@ -39,7 +39,10 @@ void	Config::scan( void ) {
 	}
 	ifs.close();
 	this->check_brackets();
-	this->check_prefixe();
+
+	for ( unsigned long i = 0; i < _tokens.size(); )
+		if (!_tokens.at(i).compare("server"))
+			i = this->check_prefixe(++i);
 	this->parse_config();
 	return ;
 }
@@ -106,15 +109,18 @@ void	Config::check_brackets( void ) {
 		throw ( ErrorMsg("Error : configuration file has unpaired brackets.") );
 }
 
-void	Config::check_prefixe( void ) {
+size_t	Config::check_prefixe( size_t idx ) {
+
 	std::vector<std::string> prefixe;
 	size_t found;
+	size_t next_server = this->found_idx("server", idx);
+	next_server = (next_server > 0 ) ? next_server : _tokens.size();
 
 	/* Get prefixe */
-	for ( unsigned long i = 0; i < _tokens.size(); i++ ) {
-		if ( !_tokens.at(i).compare("location") ) {
-			for ( ; _tokens.at(i).compare("{") ; i++ )
-				prefixe.push_back(_tokens.at(i));
+	for ( ; idx < next_server; idx++ ) {
+		if ( !_tokens.at(idx).compare("location") ) {
+			for ( ; _tokens.at(idx).compare("{") ; idx++ )
+				prefixe.push_back(_tokens.at(idx));
 		}
 	}
 
@@ -179,7 +185,7 @@ void	Config::check_prefixe( void ) {
 		if ( !prefixe.at(i).compare("location") )
 			prefixe.erase (prefixe.begin() + i);
 
-	/* check duplicated URI */ // FIX DIFFERENT SERVER BUG LATER
+	/* check duplicated URI */
 	for ( unsigned long i = 0; i < prefixe.size(); i++ ) {
 		for ( unsigned long j = 1; j < prefixe.size(); j++ ) {
 			if ( !prefixe.at(i).compare(prefixe.at(j)) && i != j
@@ -206,7 +212,7 @@ void	Config::check_prefixe( void ) {
 	}
 	modifiers.clear();
 	prefixe.clear();
-	return ;
+	return (next_server);
 }
 
 void	Config::InitConfig( void )
@@ -360,6 +366,13 @@ bool 	Config::check_host(std::string host) {
 
 size_t	Config::count_digit( std::string str ) {
 	return std::count_if( str.begin(), str.end(), static_cast<int(*)(int)>(std::isdigit ));
+}
+
+size_t	Config::found_idx( std::string str, size_t i) {
+	for (; i < _tokens.size(); i++)
+		if (!_tokens.at(i).compare(str))
+			return (i);
+	return (0);
 }
 
 const int	Config::error_code[] = { 100, 101, 102, 200 , 201 , 202 , 203 , 204 , 205 , 206 , 207 , 208 , 226 , 300 , 301\
