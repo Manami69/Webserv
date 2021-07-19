@@ -66,6 +66,7 @@ public:
 	std::vector<std::string>			get_tokens( void ) const;
 	int									get_config_size( void ) const;
 	std::list<Serv_config>::iterator	get_config( size_t idx );
+	Serv_config							get_conf_by_name(std::string host, short port, std::string serv_name);
 	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
 	
 	/* ------------------------------------------ SETTERS ------------------------------------------*/

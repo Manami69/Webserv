@@ -174,7 +174,7 @@ void	Server::process_socket(Config conf, int fd) {
 				break ;
 		}
 		req.fill_body(*save_buf);
-		getResponse response(req, *conf.get_config(_client_lst[fd] - 1));
+		getResponse response(req, conf.get_conf_by_name(get_server_host(_client_lst[fd] - 1), get_server_port(_client_lst[fd] - 1), req["Host"]));
 		this->error_code();
 		std::cout << req << response.responsetosend(_err);
 		send(fd, response.responsetosend(_err)); // check return value
