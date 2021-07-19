@@ -36,7 +36,7 @@ public:
 	Server &operator=(Server const &rhs);
 	~Server( void );
 	void					setup_server(Config conf, int idx);
-	bool					dup_listen(short port, std::string host);
+	bool					check_listen_duplicated(short port, std::string host);
 	void					selected(Config conf);
 	void 					process_socket(Config conf, int fd);
 	int						is_sockfd_found(int fd);

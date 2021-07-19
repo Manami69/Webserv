@@ -31,6 +31,6 @@ int		main(int ac, char **av) {
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
 	//std::cout << server.get_server_lst().size() << std::endl;
-	//server.selected(conf);
+	server.selected(conf);
 	return (0);
 }

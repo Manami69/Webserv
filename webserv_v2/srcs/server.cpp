@@ -25,8 +25,7 @@ Server &Server::operator=(Server const &rhs) {
 	return (*this);
 }
 
-Server::~Server( void ) {
-	close(_listen->sockfd);
+Server::~Server( void ) { //close fd and delete
 	return ;
 }
 
@@ -53,6 +52,14 @@ void	Server::setup_server(Config conf, int idx) {
 		throw ( ErrorMsg ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">"));
 	}
 
+	/* -------------------------- Check before bind -------------------------- */
+	if (this->get_server_size() > 0) {
+		if (check_listen_duplicated(atoi(conf.get_config(idx)->port.c_str()), conf.get_config(idx)->host)) {
+			close(sockfd);
+			return ;
+		}
+	}
+
 	/* --------------------------------- Bind -------------------------------- */
 	_listen = new Listen();
 	_listen->sockfd = sockfd;
@@ -65,17 +72,8 @@ void	Server::setup_server(Config conf, int idx) {
 	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
 	ret = bind(_listen->sockfd, (const struct sockaddr*)&_listen->addr, sizeof(_listen->addr));
-	if (ret == -1) 
-	{
-		if (_server_lst.size() > 0) {
-			if (!dup_listen(_listen->port, _listen->host))
-				throw ( ErrorMsg ("Failed to bind to port " + conf.get_config(idx)->port + "<" + std::string(strerror(errno)) + ">"));
-			else
-				return ;
-		}
-		else
-			throw ( ErrorMsg ("Failed to bind to port " + conf.get_config(idx)->port + "<" + std::string(strerror(errno)) + ">"));
-	}
+	if (ret == -1)
+		throw ( ErrorMsg ("Failed to bind to port " + conf.get_config(idx)->port + "<" + std::string(strerror(errno)) + ">"));
 
 	/* -------------------------------- Listen ------------------------------- */
 	ret = listen(_listen->sockfd, 128);
@@ -85,10 +83,11 @@ void	Server::setup_server(Config conf, int idx) {
 	return ;
 }
 
-bool	Server::dup_listen( short port, std::string host ) {
-	for (int i = 0; this->get_server_size(); i++)
+bool	Server::check_listen_duplicated( short port, std::string host ) {
+	for (int i = 0; this->get_server_size(); i++) {
 		if (get_server_lst().at(i)->port == port && !get_server_lst().at(i)->host.compare(host))
 			return (true);
+	}
 	return (false);
 }
 
