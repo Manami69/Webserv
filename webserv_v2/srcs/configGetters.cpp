@@ -8,14 +8,14 @@ std::vector<std::string>	Config::get_tokens( void ) const {
 	return ( _tokens );
 }
 
-int		Config::get_nb_server( void ) const {
-	return (this->_nb_server);
+int		Config::get_config_size( void ) const {
+	return (this->_nb_config);
 }
 
 std::list<Serv_config>::iterator	Config::get_config( size_t idx ) {
 	/*	if idx > nb of server, than it will get the last server in .config */
-	if (idx > this->_nb_server)
-		idx = this->_nb_server;
+	if (idx > this->_nb_config)
+		idx = this->_nb_config;
 
 	std::list<Serv_config>::iterator it = this->_serv_config.begin();
 	while (idx > 0)

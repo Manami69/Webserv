@@ -35,7 +35,7 @@ class Config
 private:
 	std::string								_filename;
 	std::vector<std::string>				_tokens;
-	unsigned	int							_nb_server;
+	unsigned	int							_nb_config;
 	std::list<Serv_config>					_serv_config;
 	Config( void );
 
@@ -63,7 +63,7 @@ public:
 	/* ------------------------------------------ GETTERS ------------------------------------------*/
 	std::string							get_filename( void ) const;
 	std::vector<std::string>			get_tokens( void ) const;
-	int									get_nb_server( void ) const;
+	int									get_config_size( void ) const;
 	std::list<Serv_config>::iterator	get_config( size_t idx );
 	std::list<_locations>::iterator		get_location( std::list<Serv_config>::iterator it, unsigned int idx );
 	

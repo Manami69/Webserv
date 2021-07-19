@@ -1,7 +1,7 @@
 #include "../includes/config.hpp"
 
 Config::Config( std::string filename ) :
-_filename( filename ), _nb_server( 0 ) {
+_filename( filename ), _nb_config( 0 ) {
 	return ;
 }
 
@@ -14,7 +14,7 @@ Config	&Config::operator=(Config const &rhs) {
 	if (this != &rhs) {
 		this->_filename = rhs._filename;
 		this->_tokens = rhs._tokens;
-		this->_nb_server = rhs._nb_server;
+		this->_nb_config = rhs._nb_config;
 		this->_serv_config = rhs._serv_config;
 	}
 	return (*this);
@@ -247,7 +247,7 @@ void	Config::parse_config(void)
 	{
 		if (!_tokens.at(i).compare("server"))
 		{
-			_nb_server++;
+			_nb_config++;
 			InitConfig();
 			if (_tokens.at(++i).compare("{"))
 				throw ( ErrorMsg("Error : invalid element " + _tokens.at(i) + ".") );
