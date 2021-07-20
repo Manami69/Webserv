@@ -84,7 +84,7 @@ void	Server::setup_server(Config conf, int idx) {
 }
 
 bool	Server::check_listen_duplicated( short port, std::string host ) {
-	for (int i = 0; this->get_server_size(); i++) {
+	for (int i = 0; i < this->get_server_size(); i++) {
 		if (get_server_lst().at(i)->port == port && !get_server_lst().at(i)->host.compare(host))
 			return (true);
 	}
@@ -100,24 +100,19 @@ void	Server::selected(Config conf) {
 		for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
 			FD_SET((*it)->sockfd, &_read_set);
 			_max_fd = (*it)->sockfd;
-			//std::cout << "Max sd server: " << _max_fd << std::endl;
 		}
 
-		//std::cout << std::endl << "//// CLIENT LIST ////" << std::endl;
 		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
 			int sd = (*_iter).first;
-			//std::cout << "client sd : " << (*_iter).first  << " and its server order : "  << (*_iter).second << std::endl;
 			if(sd > 0)  
                 FD_SET(sd , &_read_set);  
 			if(sd > _max_fd) {
 				_max_fd = sd;
-				//std::cout << "Max sd clien: " << _max_fd << std::endl;
 			}
 		}
 		_read_copy = _read_set;
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
 
-		//std::cout << std::endl << "select ret : " << ret << std::endl;
 
 		if ((ret == -1) && (errno != EINTR))
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
@@ -163,8 +158,8 @@ void	Server::process_socket(Config conf, int fd) {
 				break ;
 		}
 		getRequest req(*save_buf);
-		//std::cout << YELLOW << req.getKeyValue("Content-Length") << RESET << std::endl;
 		while (true) {
+			std::cout << *save_buf << std::endl;
 			memset(&buf, 0, sizeof(buf));
 			size_recv = recv(fd, buf, sizeof(buf), 0);
 			body_size += size_recv;
@@ -176,7 +171,6 @@ void	Server::process_socket(Config conf, int fd) {
 		req.fill_body(*save_buf);
 		getResponse response(req, conf.get_conf_by_name(get_server_host(_client_lst[fd] - 1), get_server_port(_client_lst[fd] - 1), req["Host"]));
 		this->error_code();
-		std::cout << req << response.responsetosend(_err);
 		send(fd, response.responsetosend(_err)); // check return value
 		delete save_buf;
 		std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;

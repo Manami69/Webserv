@@ -2,7 +2,6 @@
 
 getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 
-	std::cout << CYN << _req << END << std::endl;
 	std::vector<_locations> arr;
 	for (std::list<_locations>::const_iterator it = s.locations.begin(); it != s.locations.end(); it++) // first loop, get = modifiers
 	{
@@ -28,16 +27,16 @@ getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 			arr.push_back(*it);
 		}
 	}
-	for (std::vector<_locations>::const_iterator it = arr.begin(); it != arr.end(); it++) // get nomod
-	{
-		std::cout << it->modifier << " " << it->access << std::endl;
-	}
+	// for (std::vector<_locations>::const_iterator it = arr.begin(); it != arr.end(); it++) // get nomod
+	// {
+	// 	std::cout << it->modifier << " " << it->access << std::endl;
+	// }
 	int id = get_id(arr);
 	if (id < 0)
 		_infos = _returnDefault();
 	else
 		_infos = arr.at(id);
-	std::cout << _infos.access << " ID = " << id << std::endl;
+	// std::cout << _infos.access << " ID = " << id << std::endl;
 }
 
 getLocation::~getLocation() {}

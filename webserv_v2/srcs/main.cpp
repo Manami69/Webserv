@@ -23,8 +23,10 @@ int		main(int ac, char **av) {
 		remove(PHP_CONTENT);
 
 		std::cout << WHITE << "Setup server ... " << RESET;
-		for ( int i = 0; i < conf.get_config_size(); i++ )
+		for ( int i = 0; i < conf.get_config_size(); i++ ) {
 			server.setup_server(conf, i);
+			std::cout << i << "/" <<  conf.get_config_size()<< std::endl;
+		}
 		std::cout << GREEN << "READY" << RESET << std::endl;
 	}
 	catch(const std::exception& e) {

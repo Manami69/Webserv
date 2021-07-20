@@ -20,16 +20,15 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			_locInfos = new getLocation(_conf, this->_request["request-target"]);
 		}
 		else {
-			std::cout << this->_request["request-target"].substr(0, mark) << " " << mark << std::endl;
 			_locInfos = new getLocation(_conf, this->_request["request-target"].substr(0, mark));
 		}
 		isloc = true;
 
-		std::cout << RED << _locInfos->getCGIPath() << END << std::endl;
 		if (!_locInfos->getRedirection().empty()) {
 			_status_code = atoi(_locInfos->getRedirection().c_str());
 			return ;
 		}
+
 		if (!this->_request["body_size"].empty() && static_cast<size_t>(atoi(this->_request["body_size"].c_str())) > _conf.client_max_body_size)
 		{
 			this->_status_code = 413;
@@ -112,6 +111,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 		str += _get_fill_headers(""); ///???
 	else
 		str += _error_response(err);
+	std::cout << CYN<< str << END << std::endl;
 	return str;
 }
 
@@ -232,6 +232,7 @@ std::string	getResponse::_redirectError() {
 	resp += _get_date_line();
 	resp += "Connection: keep-alive\r\nLocation: ";
 	resp += reloc + CRLF + CRLF;
+	std::cout << RED << resp << END << std::endl;
 	return resp;
 }
 
@@ -281,7 +282,6 @@ std::string		getResponse::_findIndex() {
 	std::string test;
 	size_t i = 0;
 	size_t last = 0;
-	std::cout << _locInfos->getIndex() << std::endl;
 	if (_locInfos->getIndex().empty())
 		return "";
 	while ((i = _locInfos->getIndex().find(" ", last)) != NOTFOUND)
@@ -289,7 +289,6 @@ std::string		getResponse::_findIndex() {
 		test = _locInfos->getIndex().substr(last, i);
 		if (test[0] != '/')
 			test.insert(0, "/");
-		std::cout << _locInfos->getRoot() + test << std::endl;
 		if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
 			return test;
 		last = i + 1;
@@ -326,13 +325,10 @@ std::string getResponse::_method_get( void )
 
 	response_body.reserve(10000);
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
-		std::cout << "OKOK<<" << std::endl;
 		if ((index = _findIndex()).empty())
 		{	
-			std::cout << index + " isindex "  <<_locInfos->getAutoindex() << std::endl;
 			if (_locInfos->getAutoindex()) {
 				response_body += _get_autoindex(_locInfos->getRoot() + this->_request["request-target"]);
-				std::cout << "HEYHEY  " << response_body << std::endl ;
 				return _get_fill_headers(response_body);
 			}
 			else {
@@ -365,7 +361,6 @@ std::string getResponse::_method_get( void )
 	while (ifs.get(c))          // loop getting single characters
     	response_body += c;
 	ifs.close();
-	std::cout << response_body << std::endl;
 	return _get_fill_headers(response_body);
 }
 
@@ -379,7 +374,6 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 	headers += _get_serv_line();
 	headers += _get_date_line();
 	if ((_status_code >= 200 && _status_code < 300) && !_locInfos->getCGIPath().empty()) {
-		std::cout << "pouet" << std::endl;
 		headers += "Content-Length: ";
 		size_t headend = response.find("\r\n\r\n");
 		headend = headend == std::string::npos? 0 : headend + 4;
@@ -390,7 +384,6 @@ std::string	getResponse::_get_fill_headers( std::string response ) {
 		else
 			headers += "\r\n\r\n";
 		headers += response;
-		std::cout << RED << headers << END << std::endl;
 
 		return headers;
 	}
@@ -526,10 +519,26 @@ std::string	getResponse::_method_post( void ) {
 	const std::string ext = _get_extension();
 	if (!_locInfos->getCGIPath().empty() && _locInfos->isAllowedMethod(POST)) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
 	{
+		if (!_fileExists(_request["request-target"]))
+		{
+			this->_status_code = 404;
+			return "";
+		}
 		return _method_get();
 	}
+	else if (!_locInfos->isAllowedMethod(POST)) {
+		this->_status_code = 403;
+		return "";
+	}
 	else {
-		this->_status_code = 405;
+		std::string index;
+		if (*(this->_request["request-target"].end() - 1 ) == '/') {
+			index = _findIndex();
+		}
+		if (_fileExists(_request["request-target"] + index))
+			this->_status_code = 403;
+		else
+			this->_status_code = 404;
 		return "";
 	}
 	return ""; //
