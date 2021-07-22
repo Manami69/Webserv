@@ -287,17 +287,18 @@ std::string		getResponse::_findIndex() {
 	while ((i = _locInfos->getIndex().find(" ", last)) != NOTFOUND)
 	{
 		test = _locInfos->getIndex().substr(last, i);
-		if (test[0] != '/')
-			test.insert(0, "/");
-		if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
+		if (test[0] == '/')
+			test.erase(0,1);
+		if (_fileExists(_locInfos->getRoot() + _request["request-target"] + test))
 			return test;
 		last = i + 1;
 	}
 	test = _locInfos->getIndex().substr(last);
-	if (test[0] != '/')
-		test.insert(0, "/");
-	if (test.compare("/") != 0 && _fileExists(_locInfos->getRoot() + test))
-		return test;
+	if (test[0] == '/')
+			test.erase(0,1);
+	if (_fileExists(_locInfos->getRoot() + _request["request-target"] + test))
+			return test;
+		std::cout << _locInfos->getRoot() + _request["request-target"] + test << std::endl;
 	return "";
 }
 
@@ -336,6 +337,7 @@ std::string getResponse::_method_get( void )
 				return "";
 			}
 		}
+		std::cout << location + index << std::endl;
 		location += index;
 	}
 	if (!_locInfos->getCGIPath().empty())
@@ -499,7 +501,7 @@ std::string getResponse::_get_autoindex( std::string location ) {
   		closedir (dir);
 	}
 	else {
-		_status_code = 500;
+		_status_code = 404;
 		return "";
 	}
 	return _fill_index_body(files);
