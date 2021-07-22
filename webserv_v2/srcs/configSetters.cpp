@@ -205,17 +205,23 @@ size_t	Config::set_autoindex( size_t i ) {
 size_t	Config::set_return( size_t i ) {
 	if ( !_tokens.at(++i).compare(";") )
 		throw	( ErrorMsg("Error : location return.") );
-	if ( !_tokens.at(i + 1).compare(";") )
-		throw	( ErrorMsg("Error : location return.") );
 	if (is_number(_tokens.at(i)) && _tokens.at(i + 1).compare(";")) {
 		int code = std::atoi(_tokens.at(i).c_str());
 		if (code < 0 || code > 999)
 			throw	( ErrorMsg("Error : location return.") );
+		if ( _tokens.at(i + 2).compare(";") )
+			throw	( ErrorMsg("Error : location return.") );
 		_serv_config.back().locations.back().redirect.insert(std::pair<std::string, std::string>(_tokens.at(i), _tokens.at(i + 1)));
+		return (i + 2);
 	}
-	if ( _tokens.at(i + 2).compare(";") )
-		throw	( ErrorMsg("Error : location return.") );
-	i += 2;
+	else if (is_number(_tokens.at(i)) && !_tokens.at(i + 1).compare(";")){
+		int code = std::atoi(_tokens.at(i).c_str());
+		if (code < 0 || code > 999)
+			throw	( ErrorMsg("Error : location return.") );
+		_serv_config.back().locations.back().redirect.insert(std::pair<std::string, std::string>(_tokens.at(i), ""));
+		return (i + 1);
+	}
+	throw	( ErrorMsg("Error : location return.") );
 	return ( i );
 }
 

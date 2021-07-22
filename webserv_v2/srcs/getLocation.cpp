@@ -2,7 +2,6 @@
 
 getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 
-	std::cout << CYN << _req << END << std::endl;
 	std::vector<_locations> arr;
 	for (std::list<_locations>::const_iterator it = s.locations.begin(); it != s.locations.end(); it++) // first loop, get = modifiers
 	{
@@ -28,16 +27,16 @@ getLocation::getLocation(const Serv_config &s, const std::string &r) : _req(r) {
 			arr.push_back(*it);
 		}
 	}
-	for (std::vector<_locations>::const_iterator it = arr.begin(); it != arr.end(); it++) // get nomod
-	{
-		std::cout << it->modifier << " " << it->access << std::endl;
-	}
+	// for (std::vector<_locations>::const_iterator it = arr.begin(); it != arr.end(); it++) // get nomod
+	// {
+	// 	std::cout << it->modifier << " " << it->access << std::endl;
+	// }
 	int id = get_id(arr);
 	if (id < 0)
 		_infos = _returnDefault();
 	else
 		_infos = arr.at(id);
-	std::cout << _infos.access << " ID = " << id << std::endl;
+	// std::cout << _infos.access << " ID = " << id << std::endl;
 }
 
 getLocation::~getLocation() {}
@@ -62,24 +61,28 @@ int getLocation::get_id(std::vector<_locations> & arr) {
 			return i;
 		else if (it->modifier.empty() && !it->access.compare(_req))
 			return i;
+		std::cout << "HEY " << i << std::endl; 
 		i++;
 	}
+	std::cout << "fin de boucle" << std::endl;
 	// si pas de super choix, choisir le - pire
-	int best = 0;
+	size_t best = 0;
 	int iBest = -1;
 	i = 0;
 	for (std::vector<_locations>::iterator it = arr.begin(); it != arr.end(); it++)
 	{
 		if ((!it->modifier.compare("^~") || it->modifier.empty()) && _req.find(it->access) == 0)
 		{
-			if (_req.size() > static_cast<size_t>(best))
+		std::cout << i << " " << it->access << " " << it->access.size() << " " <<  best <<std::endl;
+			if (it->access.size() > best)
 			{
-				best = _req.size();
+				best = it->access.size();
 				iBest = i;
 			}
 		}
 		i++;
 	}
+	std::cout << iBest << " " << arr[iBest].access << " " << arr[iBest].index<< std::endl;
 	return (iBest);
 }
 
