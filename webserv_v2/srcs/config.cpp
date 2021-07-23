@@ -81,14 +81,14 @@ void	Config::tokenize( std::string line ) {
 			this->split(found, i, "=", 1);
 		if ((found = _tokens.at(i).find("~")) != std::string::npos && _tokens.at(i).size() != 1) {
 			size_t next;
-			if (found == 0 && (next = _tokens.at(i).find("/")) != std::string::npos && next == 1)
-				this->split(found, i, "~", 1);
 			if (found == 0 && (next = _tokens.at(i).find("*")) != std::string::npos && next == 1
 			&& _tokens.at(i).size() != 2)
 				this->split(found, i, "~*", 2);
-			if (found == 1 && (next = _tokens.at(i).find("^")) != std::string::npos && next == 0
+			else if (found == 1 && (next = _tokens.at(i).find("^")) != std::string::npos && next == 0
 			&& _tokens.at(i).size() != 2)
 				this->split(0, i, "^~", 2);
+			else if (_tokens.at(i).size() != 2)
+				this->split(found, i, "~", 1);
 		}
 	}
 	return ;
