@@ -257,7 +257,9 @@ std::map<int, std::string> Server::error_code(void) {
 
 void	Server::send(int connection, const std::string s)
 {
-	::send(connection, s.c_str(), s.size(), 0);
+	int ret;
+	if ((ret = ::send(connection, s.c_str(), s.size(), 0)) < 0)
+		throw ( ErrorMsg ("sent failed. <" + std::string(strerror(errno));
 	return ;
 }
 
