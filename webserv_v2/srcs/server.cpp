@@ -2,6 +2,8 @@
 
 Server::Server( void ) : 
 _server_size(0), _max_fd(0) {
+	FD_ZERO(&_read_set);
+    FD_ZERO(&_read_copy);
 	return ;
 }
 
@@ -80,6 +82,8 @@ void	Server::setup_server(Config conf, int idx) {
 	if (ret == -1)
 		throw ( ErrorMsg ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">"));
 	_server_lst.push_back(_listen);
+	if (_listen->sockfd > this->get_max_fd())
+		_max_fd = _listen->sockfd;
 	return ;
 }
 
@@ -92,31 +96,17 @@ bool	Server::check_listen_duplicated( short port, std::string host ) {
 }
 
 void	Server::selected(Config conf) {
+			
+	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it) {
+		FD_SET((*it)->sockfd, &_read_set);
+	}
+	
 	while (true) {
-		FD_ZERO(&_read_set);
-    	FD_ZERO(&_read_copy);
-		
-		std::vector<Listen*>::iterator it;
-		for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
-			FD_SET((*it)->sockfd, &_read_set);
-			_max_fd = (*it)->sockfd;
-		}
-
-		for (_iter = _client_lst.begin(); _iter != _client_lst.end(); ++_iter) {
-			int sd = (*_iter).first;
-			if(sd > 0)  
-                FD_SET(sd , &_read_set);  
-			if(sd > _max_fd) {
-				_max_fd = sd;
-			}
-		}
 		_read_copy = _read_set;
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
-
-
 		if ((ret == -1) && (errno != EINTR))
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
-		for (int fd = 0; fd <= _max_fd; ++fd) {
+		for (int fd = 0; fd <= this->get_max_fd(); ++fd) {
             if (FD_ISSET(fd, &_read_copy))
 				this->process_socket(conf, fd);
         }
@@ -138,8 +128,10 @@ void	Server::process_socket(Config conf, int fd) {
 			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
 		else {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
-			fcntl(comm, F_SETFL, O_NONBLOCK);
 			_client_lst.insert(std::pair<int, int>(comm, server_order));
+			FD_SET(comm , &_read_set);
+			if (comm > this->get_max_fd())
+				_max_fd = comm;
 		}
     }
 	else {
@@ -147,6 +139,7 @@ void	Server::process_socket(Config conf, int fd) {
 		size_t ret;
 		char	buf[BUFSIZE + 1];
 		std::string *save_buf = new std::string;
+		fcntl(fd, F_SETFL, O_NONBLOCK);
 		FD_SET(fd, &_read_set);
 		while(true)
 		{
@@ -169,7 +162,7 @@ void	Server::process_socket(Config conf, int fd) {
 				break ;
 		}
 		req.fill_body(*save_buf);
-		std::cout << *save_buf << std::endl;
+		//std::cout << *save_buf << std::endl;
 
 		getResponse response(req, conf.get_conf_by_name(get_server_host(_client_lst[fd] - 1), get_server_port(_client_lst[fd] - 1), req["Host"]));
 		this->error_code();
@@ -264,7 +257,9 @@ std::map<int, std::string> Server::error_code(void) {
 
 void	Server::send(int connection, const std::string s)
 {
-	::send(connection, s.c_str(), s.size(), 0);
+	int ret;
+	if ((ret = ::send(connection, s.c_str(), s.size(), 0)) < 0)
+		throw ( ErrorMsg ("sent failed. <" + std::string(strerror(errno))));
 	return ;
 }
 
@@ -292,4 +287,8 @@ std::string	Server::get_server_host(int idx) const {
 
 std::string	Server::get_servername(int idx) const {
 	return (get_server_lst().at(idx)->server_name);
+}
+
+int		Server::get_max_fd(void) const {
+	return (_max_fd);
 }

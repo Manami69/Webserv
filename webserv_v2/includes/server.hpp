@@ -52,6 +52,7 @@ public:
 	short					get_server_port(int idx) const;
 	std::string				get_server_host(int idx) const;
 	std::string				get_servername(int idx) const;
+	int						get_max_fd(void) const;
 
 };
 
