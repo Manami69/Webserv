@@ -82,7 +82,7 @@ void	Server::setup_server(Config conf, int idx) {
 	if (ret == -1)
 		throw ( ErrorMsg ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">"));
 	_server_lst.push_back(_listen);
-	if (_listen->sockfd > _max_fd)
+	if (_listen->sockfd > this->get_max_fd())
 		_max_fd = _listen->sockfd;
 	return ;
 }
@@ -106,7 +106,7 @@ void	Server::selected(Config conf) {
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
 		if ((ret == -1) && (errno != EINTR))
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
-		for (int fd = 0; fd <= _max_fd; ++fd) {
+		for (int fd = 0; fd <= this->get_max_fd(); ++fd) {
             if (FD_ISSET(fd, &_read_copy))
 				this->process_socket(conf, fd);
         }
@@ -130,7 +130,7 @@ void	Server::process_socket(Config conf, int fd) {
 			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
 			_client_lst.insert(std::pair<int, int>(comm, server_order));
 			FD_SET(comm , &_read_set);
-			if (comm > _max_fd)
+			if (comm > this->get_max_fd())
 				_max_fd = comm;
 		}
     }
@@ -259,7 +259,7 @@ void	Server::send(int connection, const std::string s)
 {
 	int ret;
 	if ((ret = ::send(connection, s.c_str(), s.size(), 0)) < 0)
-		throw ( ErrorMsg ("sent failed. <" + std::string(strerror(errno));
+		throw ( ErrorMsg ("sent failed. <" + std::string(strerror(errno))));
 	return ;
 }
 
@@ -287,4 +287,8 @@ std::string	Server::get_server_host(int idx) const {
 
 std::string	Server::get_servername(int idx) const {
 	return (get_server_lst().at(idx)->server_name);
+}
+
+int		Server::get_max_fd(void) const {
+	return (_max_fd);
 }
