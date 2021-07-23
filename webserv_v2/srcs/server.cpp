@@ -20,7 +20,7 @@ Server &Server::operator=(Server const &rhs) {
 		this->_max_fd = rhs._max_fd;
 		this->_client_lst = rhs._client_lst;
 		this->_iter = rhs._iter;
-		this->_err = rhs._err;
+		this->_status_code = rhs._status_code;
 	}
 	return (*this);
 }
@@ -85,14 +85,6 @@ void	Server::setup_server(Config conf, int idx) {
 	return ;
 }
 
-bool	Server::check_listen_duplicated( short port, std::string host ) {
-	for (int i = 0; i < this->get_server_size(); i++) {
-		if (get_server_lst().at(i)->port == port && !get_server_lst().at(i)->host.compare(host))
-			return (true);
-	}
-	return (false);
-}
-
 void	Server::selected(Config conf) {
 	
 	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it) {
@@ -134,7 +126,7 @@ void	Server::process_socket(Config conf, int fd) {
 	else {
 		ssize_t size_recv = 0;
 		ssize_t body_size = 0;
-		size_t ret;
+		size_t 	ret;
 		char	buf[BUFSIZE + 1];
 		std::string *save_buf = new std::string;
 		fcntl(fd, F_SETFL, O_NONBLOCK);
@@ -148,14 +140,14 @@ void	Server::process_socket(Config conf, int fd) {
 				empty = 0;
 			if (empty == 10000)
 			{
-				 delete save_buf;
+				delete save_buf;
 				std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 				 _iter = _client_lst.find(fd);
-				 if (_iter != _client_lst.end())
-				 _client_lst.erase(_iter);
-				 FD_CLR(fd, &_read_set);
-				 close(fd);
-				 return ;
+				if (_iter != _client_lst.end())
+					_client_lst.erase(_iter);
+				FD_CLR(fd, &_read_set);
+				close(fd);
+				return ;
 			}
 			memset(&buf, 0, sizeof(buf));
 			size_recv = recv(fd, buf, sizeof(buf), 0); // check return value
@@ -178,8 +170,8 @@ void	Server::process_socket(Config conf, int fd) {
 		//std::cout << *save_buf << std::endl;
 
 		getResponse response(req, conf.get_conf_by_name(get_server_host(_client_lst[fd] - 1), get_server_port(_client_lst[fd] - 1), req["Host"]));
-		this->error_code();
-		send(fd, response.responsetosend(_err)); // check return value
+		this->status_code();
+		send(fd, response.responsetosend(_status_code));
 		delete save_buf;
 		std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 		_iter = _client_lst.find(fd);
@@ -191,84 +183,6 @@ void	Server::process_socket(Config conf, int fd) {
 	}
 }
 
-int	Server::is_sockfd_found(int fd) {
-	int i = 1;
-	std::vector<Listen*>::iterator it;
-	for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
-		if (fd == (*it)->sockfd)
-			return (i);
-		i++;
-	}
-	return (false);
-}
-
-int		Server::get_client_socket_size() const {
-	return (_client_lst.size());
-}
-
-std::map<int, std::string> Server::error_code(void) {
-	_err[200] = "OK";
-	_err[201] = "Created";
-	_err[202] = "Accepted";
-	_err[203] = "Non-Authoritative Information";
-	_err[204] = "No Content";
-	_err[205] = "Reset Content";
-	_err[206] = "Partial Content";
-	_err[207] = "Multi-Status";
-	_err[208] = "Already Reported";
-	_err[226] = "IM Used";
-	_err[300] = "Multiple Choices";
-	_err[301] = "Moved Permanently";
-	_err[302] = "Found";
-	_err[303] = "See Other";
-	_err[304] = "Not Modified";
-	_err[305] = "Use Proxy";
-	_err[306] = "Switch Proxy";
-	_err[307] = "Temporary Redirect";
-	_err[308] = "Permanent Redirect";
-	_err[400] = "Bad Request";
-	_err[401] = "Unauthorized";
-	_err[402] = "Payment Required";
-	_err[403] = "Forbidden";
-	_err[404] = "Not Found";
-	_err[405] = "Method Not Allowed";
-	_err[406] = "Not Acceptable";
-	_err[407] = "Proxy Authentication Required";
-	_err[408] = "Request Timeout";
-	_err[409] = "Conflict";
-	_err[410] = "Gone";
-	_err[411] = "Length Required";
-	_err[412] = "Precondition Failed";
-	_err[413] = "Payload Too Large";
-	_err[414] = "URI Too Long";
-	_err[415] = "Unsupported Media Type";
-	_err[416] = "Range Not Satisfiable";
-	_err[417] = "Expectation Failed";
-	_err[418] = "I'm a teapot";
-	_err[421] = "Misdirected Reques";
-	_err[422] = "Unprocessable Entity";
-	_err[423] = "Locked";
-	_err[424] = "Failed Dependency";
-	_err[425] = "Too Early";
-	_err[426] = "Upgrade Required";
-	_err[428] = "Precondition Required";
-	_err[429] = "Too Many Requests";
-	_err[431] = "Request Header Fields Too Large";
-	_err[451] = "Unavailable For Legal Reasons";
-	_err[500] = "Internal Server Error";
-	_err[501] = "Not Implemented";
-	_err[502] = "Bad Gateway";
-	_err[503] = "Service Unavailable";
-	_err[504] = "Gateway Timeout";
-	_err[505] = "HTTP Version Not Supported";
-	_err[506] = "Variant Also Negotiates";
-	_err[507] = "Insufficient Storage";
-	_err[508] = "Loop Detected";
-	_err[510] = "Not Extended";
-	_err[511] = "Network Authentication Required";
-	return _err;
-}
-
 void	Server::send(int connection, const std::string s)
 {
 	int ret;
@@ -277,7 +191,9 @@ void	Server::send(int connection, const std::string s)
 	return ;
 }
 
+
 /* ------------------------------------------ GETTERS ------------------------------------------*/
+
 
 std::vector<Listen*>	Server::get_server_lst(void) const {
 	return (_server_lst);
@@ -303,6 +219,96 @@ std::string	Server::get_servername(int idx) const {
 	return (get_server_lst().at(idx)->server_name);
 }
 
+int		Server::get_client_socket_size() const {
+	return (_client_lst.size());
+}
+
 int		Server::get_max_fd(void) const {
 	return (_max_fd);
+}
+
+
+/* ----------------------------------------- UTILS --------------------------------------------- */
+
+
+int		Server::is_sockfd_found(int fd) {
+	int i = 1;
+	std::vector<Listen*>::iterator it;
+	for (it = _server_lst.begin(); it != _server_lst.end(); ++it) {
+		if (fd == (*it)->sockfd)
+			return (i);
+		i++;
+	}
+	return (false);
+}
+
+std::map<int, std::string> Server::status_code(void) {
+	_status_code[200] = "OK";
+	_status_code[201] = "Created";
+	_status_code[202] = "Accepted";
+	_status_code[203] = "Non-Authoritative Information";
+	_status_code[204] = "No Content";
+	_status_code[205] = "Reset Content";
+	_status_code[206] = "Partial Content";
+	_status_code[207] = "Multi-Status";
+	_status_code[208] = "Already Reported";
+	_status_code[226] = "IM Used";
+	_status_code[300] = "Multiple Choices";
+	_status_code[301] = "Moved Permanently";
+	_status_code[302] = "Found";
+	_status_code[303] = "See Other";
+	_status_code[304] = "Not Modified";
+	_status_code[305] = "Use Proxy";
+	_status_code[306] = "Switch Proxy";
+	_status_code[307] = "Temporary Redirect";
+	_status_code[308] = "Permanent Redirect";
+	_status_code[400] = "Bad Request";
+	_status_code[401] = "Unauthorized";
+	_status_code[402] = "Payment Required";
+	_status_code[403] = "Forbidden";
+	_status_code[404] = "Not Found";
+	_status_code[405] = "Method Not Allowed";
+	_status_code[406] = "Not Acceptable";
+	_status_code[407] = "Proxy Authentication Required";
+	_status_code[408] = "Request Timeout";
+	_status_code[409] = "Conflict";
+	_status_code[410] = "Gone";
+	_status_code[411] = "Length Required";
+	_status_code[412] = "Precondition Failed";
+	_status_code[413] = "Payload Too Large";
+	_status_code[414] = "URI Too Long";
+	_status_code[415] = "Unsupported Media Type";
+	_status_code[416] = "Range Not Satisfiable";
+	_status_code[417] = "Expectation Failed";
+	_status_code[418] = "I'm a teapot";
+	_status_code[421] = "Misdirected Reques";
+	_status_code[422] = "Unprocessable Entity";
+	_status_code[423] = "Locked";
+	_status_code[424] = "Failed Dependency";
+	_status_code[425] = "Too Early";
+	_status_code[426] = "Upgrade Required";
+	_status_code[428] = "Precondition Required";
+	_status_code[429] = "Too Many Requests";
+	_status_code[431] = "Request Header Fields Too Large";
+	_status_code[451] = "Unavailable For Legal Reasons";
+	_status_code[500] = "Internal Server Error";
+	_status_code[501] = "Not Implemented";
+	_status_code[502] = "Bad Gateway";
+	_status_code[503] = "Service Unavailable";
+	_status_code[504] = "Gateway Timeout";
+	_status_code[505] = "HTTP Version Not Supported";
+	_status_code[506] = "Variant Also Negotiates";
+	_status_code[507] = "Insufficient Storage";
+	_status_code[508] = "Loop Detected";
+	_status_code[510] = "Not Extended";
+	_status_code[511] = "Network Authentication Required";
+	return _status_code;
+}
+
+bool	Server::check_listen_duplicated( short port, std::string host ) {
+	for (int i = 0; i < this->get_server_size(); i++) {
+		if (get_server_lst().at(i)->port == port && !get_server_lst().at(i)->host.compare(host))
+			return (true);
+	}
+	return (false);
 }

@@ -312,12 +312,7 @@ size_t		Config::parse_location(size_t i) {
 }
 
 
-
-
 /* ---------------------------------------------- UTILS --------------------------------------------------------- */
-
-
-
 
 
 void	Config::split(size_t found, int i, std::string s, int len) {
