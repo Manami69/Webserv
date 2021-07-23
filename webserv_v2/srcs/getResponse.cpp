@@ -135,6 +135,8 @@ int getResponse::_parse_status_line( void )
 	const std::string method[] = { "GET", "POST", "DELETE", "HEAD", "PUT", "CONNECT", "OPTIONS", "TRACE" };
 	std::vector<std::string> array(method, method + sizeof(method)/ sizeof(std::string));
 	std::string http = this->_request["http-version"];
+	if (this->_request["method"].empty())
+		return 500;
 	// check method
 	if (std::find(array.begin(), array.end(), this->_request["method"]) == array.end())
 		return 400;
@@ -338,6 +340,11 @@ std::string getResponse::_method_get( void )
 	}
 	if (!_locInfos->getCGIPath().empty())
 	{
+		if (!_fileExists(_locInfos->getRoot() + _request["request-target"]))
+		{
+			this->_status_code = 404;
+			return "";
+		}
 		CGI cgi(_request, _conf.port, _locInfos->getRoot(), _locInfos->getCGIPath());
 		try {
 			cgi.cgi_exec();

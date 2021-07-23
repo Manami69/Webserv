@@ -135,14 +135,31 @@ void	Server::process_socket(Config conf, int fd) {
 		}
     }
 	else {
-		ssize_t size_recv, body_size = 0;
+		ssize_t size_recv = 0;
+		ssize_t body_size = 0;
 		size_t ret;
 		char	buf[BUFSIZE + 1];
 		std::string *save_buf = new std::string;
 		fcntl(fd, F_SETFL, O_NONBLOCK);
 		FD_SET(fd, &_read_set);
+		int empty = 0;
 		while(true)
 		{
+			if (size_recv == 0)
+				empty++;
+			else
+				empty = 0;
+			if (empty == 10000)
+			{
+				 delete save_buf;
+				std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
+				 _iter = _client_lst.find(fd);
+				 if (_iter != _client_lst.end())
+				 _client_lst.erase(_iter);
+				 FD_CLR(fd, &_read_set);
+				 close(fd);
+				 return ;
+			}
 			memset(&buf, 0, sizeof(buf));
 			size_recv = recv(fd, buf, sizeof(buf), 0); // check return value
 			for (ssize_t j = 0; j < size_recv ; j++)
@@ -152,7 +169,6 @@ void	Server::process_socket(Config conf, int fd) {
 		}
 		getRequest req(*save_buf);
 		while (true) {
-			std::cout << *save_buf << std::endl;
 			memset(&buf, 0, sizeof(buf));
 			size_recv = recv(fd, buf, sizeof(buf), 0);
 			body_size += size_recv;

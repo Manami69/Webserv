@@ -62,6 +62,10 @@ std::string&	getRequest::operator[] ( const std::string& key ) {
 
 void			getRequest::fillRequest( std::string request ) {
 	//voir et lister les conditions d'une requete valide avant meme de la tokeniser (au moins une premiere ligne)
+	if (request.empty()) {
+		this->_request_tokens["method"] = "";
+		return ;
+	}
 	size_t start = 0;
 	size_t space;
 	std::string token;

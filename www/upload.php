@@ -1,6 +1,5 @@
 <?php
-echo "hello bitches";
-phpinfo(INFO_VARIABLES);
+echo "hello bitches\n\n";
 
 $target_dir = "upload/";
 $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
