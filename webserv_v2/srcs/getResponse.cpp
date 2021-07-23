@@ -111,7 +111,6 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 		str += _get_fill_headers(""); ///???
 	else
 		str += _error_response(err);
-	std::cout << CYN<< str << END << std::endl;
 	return str;
 }
 
@@ -232,7 +231,6 @@ std::string	getResponse::_redirectError() {
 	resp += _get_date_line();
 	resp += "Connection: keep-alive\r\nLocation: ";
 	resp += reloc + CRLF + CRLF;
-	std::cout << RED << resp << END << std::endl;
 	return resp;
 }
 
@@ -298,7 +296,6 @@ std::string		getResponse::_findIndex() {
 			test.erase(0,1);
 	if (_fileExists(_locInfos->getRoot() + _request["request-target"] + test))
 			return test;
-		std::cout << _locInfos->getRoot() + _request["request-target"] + test << std::endl;
 	return "";
 }
 
@@ -337,7 +334,6 @@ std::string getResponse::_method_get( void )
 				return "";
 			}
 		}
-		std::cout << location + index << std::endl;
 		location += index;
 	}
 	if (!_locInfos->getCGIPath().empty())

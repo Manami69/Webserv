@@ -104,7 +104,15 @@ void			getRequest::fillRequest( std::string request ) {
 		this->_setKeyValueOnce(key, token);
 		start = space + 1;
 	}
+	start = 0;
+	space = 0;
+	while ((space = _request_tokens["request-target"].find("%20", start)) != NOTFOUND)
+	{
+		_request_tokens["request-target"].replace(space, 3, " ");
+		start = space;
+	}
 }
+
 void			getRequest::_setKeyValueOnce( std::string key, std::string val ) {
 	if (_is_used_key(key))
 	{
