@@ -3,7 +3,6 @@
 Server::Server( void ) : 
 _server_size(0), _max_fd(0) {
 	FD_ZERO(&_read_set);
-    FD_ZERO(&_read_copy);
 	return ;
 }
 
@@ -18,7 +17,6 @@ Server &Server::operator=(Server const &rhs) {
 		this->_server_lst = rhs._server_lst;
 		this->_server_size = rhs._server_size;
 		this->_read_set = rhs._read_set;
-		this->_read_copy = rhs._read_copy;
 		this->_max_fd = rhs._max_fd;
 		this->_client_lst = rhs._client_lst;
 		this->_iter = rhs._iter;
@@ -96,13 +94,12 @@ bool	Server::check_listen_duplicated( short port, std::string host ) {
 }
 
 void	Server::selected(Config conf) {
-			
+	
 	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it) {
 		FD_SET((*it)->sockfd, &_read_set);
 	}
-	
 	while (true) {
-		_read_copy = _read_set;
+		fd_set	_read_copy = _read_set;
 		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
 		if ((ret == -1) && (errno != EINTR))
 			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
@@ -186,8 +183,9 @@ void	Server::process_socket(Config conf, int fd) {
 		delete save_buf;
 		std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
 		_iter = _client_lst.find(fd);
-		if (_iter != _client_lst.end())
+		if (_iter != _client_lst.end()) {
 			_client_lst.erase(_iter);
+		}
 		FD_CLR(fd, &_read_set);
 		close(fd);
 	}

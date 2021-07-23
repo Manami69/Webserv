@@ -24,7 +24,6 @@ private:
 	std::vector<Listen*>			_server_lst;
 	int								_server_size;
 	fd_set							_read_set;
-	fd_set							_read_copy;
 	int								_max_fd;
 	std::map<int, int>				_client_lst;
 	std::map<int, int>::iterator	_iter;
