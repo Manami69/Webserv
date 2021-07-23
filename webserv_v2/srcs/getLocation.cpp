@@ -61,7 +61,7 @@ int getLocation::get_id(std::vector<_locations> & arr) {
 			return i;
 		else if (it->modifier.empty() && !it->access.compare(_req))
 			return i;
-		std::cout << "HEY " << i << std::endl; 
+		std::cout << "HEY " << i << " " << it->access << std::endl; 
 		i++;
 	}
 	std::cout << "fin de boucle" << std::endl;

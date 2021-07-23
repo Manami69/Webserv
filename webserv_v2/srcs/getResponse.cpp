@@ -521,7 +521,7 @@ std::string	getResponse::_method_post( void ) {
 	const std::string ext = _get_extension();
 	if (!_locInfos->getCGIPath().empty() && _locInfos->isAllowedMethod(POST)) //TODO ajouter l'extension qui recupere les CGI actifs (extensions dynamiques)
 	{
-		if (!_fileExists(_request["request-target"]))
+		if (!_fileExists(_locInfos->getRoot() + _request["request-target"]))
 		{
 			this->_status_code = 404;
 			return "";
