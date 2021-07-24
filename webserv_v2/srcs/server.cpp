@@ -19,13 +19,20 @@ Server &Server::operator=(Server const &rhs) {
 		this->_read_set = rhs._read_set;
 		this->_max_fd = rhs._max_fd;
 		this->_client_lst = rhs._client_lst;
-		this->_iter = rhs._iter;
 		this->_status_code = rhs._status_code;
 	}
 	return (*this);
 }
 
-Server::~Server( void ) { //close fd and delete
+Server::~Server( void ) {
+	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it) {
+		if (*it) {
+			close((*it)->sockfd);
+			FD_CLR((*it)->sockfd, &_read_set);
+			delete *it;
+			*it = NULL;
+		}
+	}
 	return ;
 }
 
@@ -142,11 +149,7 @@ void	Server::process_socket(Config conf, int fd) {
 			{
 				delete save_buf;
 				std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-				 _iter = _client_lst.find(fd);
-				if (_iter != _client_lst.end())
-					_client_lst.erase(_iter);
-				FD_CLR(fd, &_read_set);
-				close(fd);
+				this->close_client(fd);
 				return ;
 			}
 			memset(&buf, 0, sizeof(buf));
@@ -167,19 +170,12 @@ void	Server::process_socket(Config conf, int fd) {
 				break ;
 		}
 		req.fill_body(*save_buf);
-		//std::cout << *save_buf << std::endl;
-
 		getResponse response(req, conf.get_conf_by_name(get_server_host(_client_lst[fd] - 1), get_server_port(_client_lst[fd] - 1), req["Host"]));
 		this->status_code();
 		send(fd, response.responsetosend(_status_code));
 		delete save_buf;
 		std::cout << std::endl << GREEN << "Connection lost... (fd=" << fd << ")" << RESET << std::endl;
-		_iter = _client_lst.find(fd);
-		if (_iter != _client_lst.end()) {
-			_client_lst.erase(_iter);
-		}
-		FD_CLR(fd, &_read_set);
-		close(fd);
+		this->close_client(fd);
 	}
 }
 
@@ -311,4 +307,15 @@ bool	Server::check_listen_duplicated( short port, std::string host ) {
 			return (true);
 	}
 	return (false);
+}
+
+void	Server::close_client(int fd) {
+	std::map<int, int>::iterator	_iter;
+	
+	_iter = _client_lst.find(fd);
+	if (_iter != _client_lst.end()) {
+		FD_CLR((*_iter).first, &_read_set);
+		_client_lst.erase(_iter);
+	}
+	close(fd);
 }

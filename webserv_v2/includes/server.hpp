@@ -26,7 +26,7 @@ private:
 	fd_set							_read_set;
 	int								_max_fd;
 	std::map<int, int>				_client_lst;
-	std::map<int, int>::iterator	_iter;
+	// std::map<int, int>::iterator	_iter;
 	std::map<int, std::string>		_status_code;
 
 public:
@@ -54,6 +54,7 @@ public:
 	int							is_sockfd_found(int fd);
 	std::map<int, std::string>	status_code(void);
 	bool						check_listen_duplicated(short port, std::string host);
+	void						close_client(int fd);
 };
 
 #endif
