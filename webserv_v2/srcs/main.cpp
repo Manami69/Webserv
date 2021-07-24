@@ -28,11 +28,12 @@ int		main(int ac, char **av) {
 			std::cout << i << "/" <<  conf.get_config_size()<< std::endl;
 		}
 		std::cout << GREEN << "READY" << RESET << std::endl;
+		server.selected(conf);
 	}
 	catch(const std::exception& e) {
 		std::cerr << std::endl << RED << e.what() << RESET << std::endl;
 		return (1);
 	}
-	server.selected(conf);
+	
 	return (0);
 }
