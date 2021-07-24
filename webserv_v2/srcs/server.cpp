@@ -40,49 +40,43 @@ void	Server::setup_server(Config conf, int idx) {
 
 	int	ret;
 
-	/* ------------------------------ TCP, IPv4 ------------------------------ */
+	/* ---------------- Check before duplicated host and port ---------------- */
+	if (this->get_server_size() > 0)
+		if (check_listen_duplicated(atoi(conf.get_config(idx)->port.c_str()), conf.get_config(idx)->host))
+			return ;
+	
+	/* ------------------------------ Check IP ------------------------------- */
 	in_addr_t address = inet_addr(conf.get_config(idx)->host.c_str());
 	if (address == INADDR_NONE)
 		throw ( ErrorMsg ("Bad ip address. <" + std::string(strerror(errno)) + ">"));
-	
+
+	/* ------------------------------ TCP, IPv4 ------------------------------ */
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		close(sockfd);
+	if (sockfd == -1)
 		throw ( ErrorMsg ("Failed to create socket. <" + std::string(strerror(errno)) + ">"));
-	}
-
-	/* --------------- set socket to allow multiple connections -------------- */
-	int opt = true;
-	ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&opt), sizeof(opt));
-	if (ret == -1) {
-		close(sockfd);
-		throw ( ErrorMsg ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">"));
-	}
-
-	/* -------------------------- Check before bind -------------------------- */
-	if (this->get_server_size() > 0) {
-		if (check_listen_duplicated(atoi(conf.get_config(idx)->port.c_str()), conf.get_config(idx)->host)) {
-			close(sockfd);
-			return ;
-		}
-	}
-
-	/* --------------------------------- Bind -------------------------------- */
+	
 	_listen = new Listen();
+	
+	memset(&_listen->addr, 0, sizeof(sockaddr_in));
 	_listen->sockfd = sockfd;
 	_listen->port = atoi(conf.get_config(idx)->port.c_str());
 	_listen->host = conf.get_config(idx)->host;
 	_listen->server_name = conf.get_config(idx)->server_name;
-	
-	memset(&_listen->addr, 0, sizeof(sockaddr_in));
 	_listen->addr.sin_family = AF_INET;
 	_listen->addr.sin_addr.s_addr = address;
 	_listen->addr.sin_port = htons(_listen->port);
+
+	/* --------------- set socket discriptor to be reuseable ----------------- */
+	int opt = true;
+	ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&opt), sizeof(opt));
+	if (ret == -1)
+		throw ( ErrorMsg ("Failed to set socket reuse. <" + std::string(strerror(errno)) + ">"));
+	fcntl(_listen->sockfd, F_SETFL, O_NONBLOCK);
+	
 	ret = bind(_listen->sockfd, (const struct sockaddr*)&_listen->addr, sizeof(_listen->addr));
 	if (ret == -1)
 		throw ( ErrorMsg ("Failed to bind to port " + conf.get_config(idx)->port + "<" + std::string(strerror(errno)) + ">"));
 
-	/* -------------------------------- Listen ------------------------------- */
 	ret = listen(_listen->sockfd, 128);
 	if (ret == -1)
 		throw ( ErrorMsg ("Failed to listen on socket. <" + std::string(strerror(errno)) + ">"));
