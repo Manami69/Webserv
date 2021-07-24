@@ -23,10 +23,10 @@ private:
 	Listen							*_listen;
 	std::vector<Listen*>			_server_lst;
 	int								_server_size;
-	fd_set							_read_set;
+	fd_set							_master_set;
 	int								_max_fd;
+	int								_desc_ready;
 	std::map<int, int>				_client_lst;
-	// std::map<int, int>::iterator	_iter;
 	std::map<int, std::string>		_status_code;
 
 public:

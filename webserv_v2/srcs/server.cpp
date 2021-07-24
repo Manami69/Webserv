@@ -1,8 +1,7 @@
 #include "../includes/server.hpp"
 
 Server::Server( void ) : 
-_server_size(0), _max_fd(0) {
-	FD_ZERO(&_read_set);
+_server_size(0), _max_fd(0), _desc_ready(0) {
 	return ;
 }
 
@@ -16,7 +15,7 @@ Server &Server::operator=(Server const &rhs) {
 		this->_listen = rhs._listen;
 		this->_server_lst = rhs._server_lst;
 		this->_server_size = rhs._server_size;
-		this->_read_set = rhs._read_set;
+		this->_master_set = rhs._master_set;
 		this->_max_fd = rhs._max_fd;
 		this->_client_lst = rhs._client_lst;
 		this->_status_code = rhs._status_code;
@@ -28,7 +27,7 @@ Server::~Server( void ) {
 	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it) {
 		if (*it) {
 			close((*it)->sockfd);
-			FD_CLR((*it)->sockfd, &_read_set);
+			FD_CLR((*it)->sockfd, &_master_set);
 			delete *it;
 			*it = NULL;
 		}
@@ -40,7 +39,7 @@ void	Server::setup_server(Config conf, int idx) {
 
 	int	ret;
 
-	/* ---------------- Check before duplicated host and port ---------------- */
+	/* ------------------- Check duplicated host and port -------------------- */
 	if (this->get_server_size() > 0)
 		if (check_listen_duplicated(atoi(conf.get_config(idx)->port.c_str()), conf.get_config(idx)->host))
 			return ;
@@ -87,42 +86,52 @@ void	Server::setup_server(Config conf, int idx) {
 }
 
 void	Server::selected(Config conf) {
-	
-	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it) {
-		FD_SET((*it)->sockfd, &_read_set);
-	}
+
+	/* -------------------- Initialize the master fd_set --------------------- */
+	FD_ZERO(&_master_set);
+	for (std::vector<Listen*>::iterator it = _server_lst.begin(); it != _server_lst.end(); ++it)
+		FD_SET((*it)->sockfd, &_master_set);
+
+	/* ------ Loop waiting for incoming connects or for incoming data  ------- */
+	fd_set working_set;
+
 	while (true) {
-		fd_set	_read_copy = _read_set;
-		int ret = select((_max_fd + 1), &_read_copy, 0, 0, 0);
-		if ((ret == -1) && (errno != EINTR))
-			throw std::runtime_error ("An error occurred with select. <" + std::string(strerror(errno)) + ">");
-		for (int fd = 0; fd <= this->get_max_fd(); ++fd) {
-            if (FD_ISSET(fd, &_read_copy))
+		memcpy(&working_set, &_master_set, sizeof(_master_set));
+		int ret = select(_max_fd + 1, &working_set, NULL, NULL, 0);
+		if (ret == -1)
+			throw ( ErrorMsg ("An error occurred with select. <" + std::string(strerror(errno)) + ">"));
+	
+	/* ----------- One or more descriptors are readable. Find them. ---------- */
+		_desc_ready = ret;
+		for (int fd = 0; fd <= this->get_max_fd() && _desc_ready > 0; ++fd) {
+            if (FD_ISSET(fd, &working_set))  {
+				_desc_ready -= 1;
 				this->process_socket(conf, fd);
+			}
         }
 	}
 }
 
 void	Server::process_socket(Config conf, int fd) {
-	std::cout << std::endl << "Process_socket fd : " << fd << std::endl;
-
 	int	server_order = this->is_sockfd_found(fd);
 
-	std::cout << "server_order : " << server_order << std::endl;
-
+	/* ------------- Check to see if this is the listening socket ------------ */
 	if (server_order > 0) {
-        // listener socket is readable => accept the connection and create communication socket
-        uint32_t addrlen = sizeof(_server_lst[server_order - 1]->addr);
-		int comm = accept(fd, (struct sockaddr *)&_server_lst[server_order - 1]->addr, (socklen_t *)&addrlen);
-		if (comm == -1)
-			throw std::runtime_error ("Failed to accept. <" + std::string(strerror(errno)) + ">");
-		else {
-			std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
-			_client_lst.insert(std::pair<int, int>(comm, server_order));
-			FD_SET(comm , &_read_set);
-			if (comm > this->get_max_fd())
-				_max_fd = comm;
-		}
+		int comm = 0;
+		do {
+			comm = accept(_server_lst[server_order - 1]->sockfd, NULL, NULL);
+			if (comm < 0) {
+				if (errno != EWOULDBLOCK)
+					throw ( ErrorMsg ("Failed to accept. <" + std::string(strerror(errno)) + ">"));
+			}
+			else {
+				std::cout << std::endl << GREEN << "Server acccept new client ! (fd=" << comm << ")" << RESET << std::endl;
+				_client_lst.insert(std::pair<int, int>(comm, server_order));
+				FD_SET(comm , &_master_set);
+				if (comm > this->get_max_fd())
+					_max_fd = comm;
+			}
+		} while (comm != -1);
     }
 	else {
 		ssize_t size_recv = 0;
@@ -131,7 +140,6 @@ void	Server::process_socket(Config conf, int fd) {
 		char	buf[BUFSIZE + 1];
 		std::string *save_buf = new std::string;
 		fcntl(fd, F_SETFL, O_NONBLOCK);
-		FD_SET(fd, &_read_set);
 		int empty = 0;
 		while(true)
 		{
@@ -308,7 +316,7 @@ void	Server::close_client(int fd) {
 	
 	_iter = _client_lst.find(fd);
 	if (_iter != _client_lst.end()) {
-		FD_CLR((*_iter).first, &_read_set);
+		FD_CLR((*_iter).first, &_master_set);
 		_client_lst.erase(_iter);
 	}
 	close(fd);
