@@ -271,8 +271,6 @@ void	Config::parse_config(void)
 					throw ( ErrorMsg("Error : unknown directive [ " + _tokens.at(i) + " ]") );
 			}
 			set_default_listen();	
-			std::cout << std::endl << "host " << _serv_config.back().host << std::endl;
-			std::cout << std::endl << "port "<< _serv_config.back().port << std::endl;
 		}	
 	}
 	return ;
@@ -282,7 +280,7 @@ void	Config::set_default_listen(void){
 	if (_serv_config.back().host.empty())
 		_serv_config.back().host = "0.0.0.0";
 	if (_serv_config.back().port.empty())
-		_serv_config.back().port = 80;
+		_serv_config.back().port = "80";
 }
 
 size_t		Config::parse_location(size_t i) {

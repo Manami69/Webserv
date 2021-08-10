@@ -187,7 +187,8 @@ void	Server::send(int connection, const std::string s)
 {
 	int ret;
 	if ((ret = ::send(connection, s.c_str(), s.size(), 0)) < 0)
-		throw ( ErrorMsg ("sent failed. <" + std::string(strerror(errno))));
+		close_client(connection);
+		// throw ( ErrorMsg ("sent failed. <" + std::string(strerror(errno))));
 	return ;
 }
 

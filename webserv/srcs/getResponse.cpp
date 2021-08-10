@@ -13,7 +13,6 @@
 getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
 	this->_status_code = _parse_status_line();// verifie la status line
 	// continue checking with headers;
-	std::cout << "STATUS " << _status_code << std::endl;
 	if (this->_status_code == 200) {
 		size_t mark;
 		if ((mark = this->_request["request-target"].find("?")) == NOTFOUND) // gere les GET avec infos
@@ -35,7 +34,6 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			this->_status_code = 413;
 			return ;
 		}
-		std::cout <<  "!" <<this->_request["method"] << "!" << std::endl;
 		if (!this->_request["method"].compare("GET"))
 			_content = _method_get();
 		else if  (!this->_request["method"].compare("POST"))
@@ -103,7 +101,7 @@ std::string getResponse::responsetosend(const std::map<int, std::string> err) {
 	ss >> str;
 	str.insert(0, "HTTP/1.1 ");
 	str+= " ";
-	str += err.find(this->_status_code)->second;
+	str += std::find(errcode.begin(), errcode.end(), _status_code) == errcode.end() ? "" : err.find(this->_status_code)->second;
 	str += "\r\n";
 	if (this->_status_code >= 200 && _status_code < 204)
 		str += this->_content;
@@ -346,7 +344,8 @@ std::string getResponse::_method_get( void )
 	}
 	if (!_locInfos->getCGIPath().empty())
 	{
-		if (!_fileExists(_locInfos->getRoot() + _request["request-target"]))
+		size_t mark;
+		if (!_fileExists(_locInfos->getRoot() + ((mark = this->_request["request-target"].find("?")) == NOTFOUND ? _request["request-target"] : _request["request-target"].substr(0, mark))))
 		{
 			this->_status_code = 404;
 			return "";

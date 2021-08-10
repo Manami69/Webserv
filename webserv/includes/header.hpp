@@ -14,7 +14,7 @@
 # define GET 0
 # define POST 1
 # define DELETE 2
-# define DEFAULT_LOCATION "./../www"
+# define DEFAULT_LOCATION "./www"
 # define PHP_CONTENT "./tmp/php_content"
 
 # include <sys/socket.h> // For socket functions

@@ -34,6 +34,6 @@
 .vscode
 */tmp/body*
 */tmp/php_content
-webserv
+#webserv
 */upload/*
 */config/webserv.conf

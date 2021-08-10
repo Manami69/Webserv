@@ -61,10 +61,8 @@ int getLocation::get_id(std::vector<_locations> & arr) {
 			return i;
 		else if (it->modifier.empty() && !it->access.compare(_req))
 			return i;
-		std::cout << "HEY " << i << " " << it->access << std::endl; 
 		i++;
 	}
-	std::cout << "fin de boucle" << std::endl;
 	// si pas de super choix, choisir le - pire
 	size_t best = 0;
 	int iBest = -1;
@@ -73,7 +71,7 @@ int getLocation::get_id(std::vector<_locations> & arr) {
 	{
 		if ((!it->modifier.compare("^~") || it->modifier.empty()) && _req.find(it->access) == 0)
 		{
-		std::cout << i << " " << it->access << " " << it->access.size() << " " <<  best <<std::endl;
+//		std::cout << i << " " << it->access << " " << it->access.size() << " " <<  best <<std::endl;
 			if (it->access.size() > best)
 			{
 				best = it->access.size();
@@ -82,7 +80,7 @@ int getLocation::get_id(std::vector<_locations> & arr) {
 		}
 		i++;
 	}
-	std::cout << iBest << " " << arr[iBest].access << " " << arr[iBest].index<< std::endl;
+//	std::cout << iBest << " " << arr[iBest].access << " " << arr[iBest].index<< std::endl;
 	return (iBest);
 }
 
@@ -114,7 +112,6 @@ std::string getLocation::getRoot() {
 }
 
 bool	getLocation::isAllowedMethod(int method) {
-	std::cout << "METHOD " << _infos.allow_methods[method] << std::endl;
 	try {
 		if (method == DELETE) {
 			return _infos.allow_methods[DELETE] == 1 ? true : false;

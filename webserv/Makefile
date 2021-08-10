@@ -25,7 +25,7 @@ HEADER_LIST	=		header.hpp config.hpp server.hpp getRequest.hpp getResponse.hpp C
 HEADER		=		$(addprefix $(PATH_HEADER), $(HEADER_LIST))
 CC			=		clang++
 RM			= 		rm -rf
-FLAGS 		= 		-Wall -Wextra -Werror -std=c++98 -fsanitize=address
+FLAGS 		= 		-Wall -Wextra -Werror 
 FSANITIZE	=		-fsanitize=address
 
 ################################################################################
@@ -41,8 +41,7 @@ $(PATH_OBJS)%.o	:	$(PATH_SRCS)%.cpp $(HEADER)
 $(NAME):			$(OBJS) $(HEADER)
 					$(CC) $(FLAGS) $(OBJS) -o $(NAME)
 					@rm -f ./tmp/php_content
-					@echo "MODIFIER ICI AVANT DE PUSH POUR QUE WWW soit dans le bon dossier"
-					@mkdir -p ./../www/upload
+					@mkdir -p ./www/upload
 					@echo "$(BLUE)webserv : \t:\t$(GREEN)[OK]$(WHITE)"
 
 clean:

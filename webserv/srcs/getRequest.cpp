@@ -19,7 +19,6 @@ getRequest::getRequest( void ) {
 }
 
 getRequest::getRequest( std::string buffer ) {
-	std::cout << buffer << std::endl;
 	_construct_array();
 	_construct_empty_map();
 	//fill with informations

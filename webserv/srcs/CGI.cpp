@@ -42,6 +42,8 @@ void CGI::_fill_map_key( std::string key , std::string value) {
 
 void    CGI::_fill_values( std::string port, std::string root) {
     ////// A REFAIRE AVEC LA CONF
+	if (root.find("./") == 0)
+		root.replace(0, 1, getenv("PWD"));
 	_fill_map_key("USER", getenv("USER"));
 	_fill_map_key("HOME", getenv("HOME"));
 	_fill_map_key("HTTP_CACHE_CONTROL", HTTP_CACHE_CONTROL);
@@ -115,7 +117,6 @@ char    **CGI::_get_env() {
 			_dstrfree(env);
 			return NULL;
 		}
-		std::cout << env[i] << std::endl;
 		// MALLOC ERROR, return une erreur a envoyer au serv;
     }
 	env[sizeof(arr) / sizeof(std::string)] = NULL;
@@ -200,7 +201,7 @@ void	CGI::_exec_body( void ) {
 }
 
 void	CGI::_exec_nobody( void ) {
-	int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK);
+	int fd = open("./tmp/php_content", O_RDWR | O_TRUNC | O_CREAT | O_NONBLOCK, 0777);
 	pid_t pid;
 	char **env = _get_env();
 	if (!env)
