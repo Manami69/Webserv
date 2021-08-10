@@ -295,7 +295,7 @@ size_t		Config::parse_location(size_t i) {
 			i = set_allow_methods(i, true);
 		else if (!_tokens.at(i).compare("limit_methods")) // meme fonction mais pourquoi pas avec un int pour savoir lequel
 			i = set_allow_methods(i, false);
-		if (!_tokens.at(i).compare("root"))
+		else if (!_tokens.at(i).compare("root"))
 			i = set_root(i);
 		else if (!_tokens.at(i).compare("return"))
 			i = set_return(i);

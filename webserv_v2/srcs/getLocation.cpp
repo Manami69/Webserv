@@ -114,6 +114,7 @@ std::string getLocation::getRoot() {
 }
 
 bool	getLocation::isAllowedMethod(int method) {
+	std::cout << "METHOD " << _infos.allow_methods[method] << std::endl;
 	try {
 		if (method == DELETE) {
 			return _infos.allow_methods[DELETE] == 1 ? true : false;

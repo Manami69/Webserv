@@ -128,6 +128,8 @@ size_t	Config::set_error_page(size_t i)
 
 size_t	Config::set_allow_methods( size_t i, bool titre ) {
 	bool isalready[] = { false, false, false };
+		std::cout <<_tokens.at(i) << std::endl;
+	std::string only;
 	if ( !_tokens.at(i + 1).compare(";") )
 		throw	( ErrorMsg("Error : location allow_methods.") );
 	if (!titre) {
@@ -141,28 +143,44 @@ size_t	Config::set_allow_methods( size_t i, bool titre ) {
 		_serv_config.back().locations.back().allowm = true;
 	}
 	while (_tokens.at(++i).compare(";")) {
+		std::cout << _tokens.at(i) << std::endl;
+		if (!titre)
+			only += _tokens.at(i);
 		if (!isalready[GET] && !_tokens.at(i).compare("GET"))
 		{
-			isalready[GET] = true;
-			if (_serv_config.back().locations.back().allow_methods[GET] >= 0)
-				_serv_config.back().locations.back().allow_methods[GET] = titre ? 0 : -1;
+			isalready[GET] = titre ? false : true;
+			if (_serv_config.back().locations.back().allow_methods[GET] != -1)
+				_serv_config.back().locations.back().allow_methods[GET] = titre ? 0 : 0;
 		}
 		else if (!isalready[POST] && !_tokens.at(i).compare("POST"))
 		{
-			isalready[POST] = true;
-			if (_serv_config.back().locations.back().allow_methods[POST] >= 0)
-				_serv_config.back().locations.back().allow_methods[POST] = titre ? 0 : -1;
+			isalready[POST] = titre ? false : true;
+			if (_serv_config.back().locations.back().allow_methods[POST] != -1)
+				_serv_config.back().locations.back().allow_methods[POST] = titre ? 0 : 0;
 		}
-		else if (!isalready[DELETE] && !_tokens.at(i).compare("DELETE"))
+		else if (!_tokens.at(i).compare("DELETE"))
 		{
-			isalready[DELETE] = true;
-			if (_serv_config.back().locations.back().allow_methods[DELETE] >= 0)
-				_serv_config.back().locations.back().allow_methods[DELETE] = titre ? 1 : -1;
+			if (!titre && isalready[DELETE])
+				;
+			else {
+				isalready[DELETE] = titre ? false : true;
+				if (_serv_config.back().locations.back().allow_methods[DELETE] != -1)
+					_serv_config.back().locations.back().allow_methods[DELETE] = titre ? 1 : 0;
+			}
 		}
 		else
 			throw	( ErrorMsg("Error : location allow_methods.") );
 	}
-	++i;
+	if (!titre) {
+		std::cout <<"ONLY " <<  only << std::endl;
+		if (!isalready[GET] && only.find("GET") == NOTFOUND)
+			_serv_config.back().locations.back().allow_methods[GET] = -1;
+		if (!isalready[POST] && only.find("POST") == NOTFOUND)
+			_serv_config.back().locations.back().allow_methods[POST] = -1;
+		if (!isalready[DELETE] && only.find("DELETE") == NOTFOUND)
+			_serv_config.back().locations.back().allow_methods[DELETE] = -1;
+	}
+	std::cout <<_tokens.at(i) << std::endl;
 	return ( i );
 }
 

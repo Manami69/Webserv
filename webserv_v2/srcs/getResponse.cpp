@@ -13,6 +13,7 @@
 getResponse::getResponse( getRequest const &request, Serv_config conf) : _request(request), _conf(conf), isloc(false) {
 	this->_status_code = _parse_status_line();// verifie la status line
 	// continue checking with headers;
+	std::cout << "STATUS " << _status_code << std::endl;
 	if (this->_status_code == 200) {
 		size_t mark;
 		if ((mark = this->_request["request-target"].find("?")) == NOTFOUND) // gere les GET avec infos
@@ -34,11 +35,12 @@ getResponse::getResponse( getRequest const &request, Serv_config conf) : _reques
 			this->_status_code = 413;
 			return ;
 		}
+		std::cout <<  "!" <<this->_request["method"] << "!" << std::endl;
 		if (!this->_request["method"].compare("GET"))
 			_content = _method_get();
 		else if  (!this->_request["method"].compare("POST"))
 			_content = _method_post();
-		else if (this->_request["method"].compare("DELETE"))
+		else if (!this->_request["method"].compare("DELETE"))
 			_content = _method_delete();
 	}
 	return ;
@@ -322,7 +324,11 @@ std::string getResponse::_method_get( void )
 	std::string	index;
 	std::string response_body;
 	std::ifstream ifs;
-
+	
+	if (!this->_request["method"].compare("GET") && !_locInfos->isAllowedMethod(GET)) {
+		_status_code = 405;
+		return "";
+	}
 	response_body.reserve(10000);
 	if (*(this->_request["request-target"].end() - 1 ) == '/') {
 		if ((index = _findIndex()).empty())
@@ -373,7 +379,9 @@ std::string getResponse::_method_get( void )
 std::string	getResponse::_get_fill_headers( std::string response ) {
 	std::string headers;
 	std::stringstream ss;
-	std::string ext = _get_extension();
+	std::string ext;
+	if (this->_status_code >= 200 && this->_status_code < 300)
+		ext = _get_extension();
 	if (ext.empty() || (this->_status_code < 200 || this->_status_code > 299))
 		ext = "html";
 	headers += _get_serv_line();
@@ -581,6 +589,8 @@ std::string	getResponse::_method_post( void ) {
 
 
 int			getResponse::_delete_file( void ) {
+	if (_request["request-target"][_request["request-target"].size() - 1] == '/')
+		_request["request-target"] += _findIndex();
 	const std::string path = _locInfos->getRoot() + _request["request-target"];
 	if ( remove(path.c_str()) )
 		return 404;
