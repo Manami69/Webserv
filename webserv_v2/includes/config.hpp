@@ -80,6 +80,7 @@ public:
 	size_t								set_autoindex( size_t i );
 	size_t								set_return( size_t i );
 	size_t								set_cgi_path( size_t i );
+	void								set_default_listen();
 };
 
 #endif

@@ -155,19 +155,21 @@ void	Server::process_socket(Config conf, int fd) {
 				return ;
 			}
 			memset(&buf, 0, sizeof(buf));
-			size_recv = recv(fd, buf, sizeof(buf), 0); // check return value
-			for (ssize_t j = 0; j < size_recv ; j++)
-				save_buf->push_back(buf[j]);
+			if ((size_recv = recv(fd, buf, sizeof(buf), 0)) >= 0) {
+				for (ssize_t j = 0; j < size_recv ; j++)
+					save_buf->push_back(buf[j]);
+			}
 			if ((ret = save_buf->find("\r\n\r\n")) != std::string::npos)
 				break ;
 		}
 		getRequest req(*save_buf);
 		while (true) {
 			memset(&buf, 0, sizeof(buf));
-			size_recv = recv(fd, buf, sizeof(buf), 0);
-			body_size += size_recv;
-			for (ssize_t j = 0; j < size_recv ; j++)
-				save_buf->push_back(buf[j]);
+			if ((size_recv = recv(fd, buf, sizeof(buf), 0)) >= 0) {
+				body_size += size_recv;
+				for (ssize_t j = 0; j < size_recv ; j++)
+					save_buf->push_back(buf[j]);
+			}
 			if (save_buf->size() == std::atoi(req.getKeyValue("Content-Length").c_str()) + ret + 4)
 				break ;
 		}

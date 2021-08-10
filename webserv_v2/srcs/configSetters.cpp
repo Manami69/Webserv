@@ -2,8 +2,8 @@
 
 size_t	Config::set_listen(size_t i)
 {
-	std::string		host = _serv_config.back().host;
-	std::string		port = _serv_config.back().port;
+	std::string		host;
+	std::string		port;
 	std::string		tmp;
 	size_t 			found = 0;
 
@@ -11,43 +11,45 @@ size_t	Config::set_listen(size_t i)
 	if (!_tokens.at(i).compare(";"))
 		throw	( ErrorMsg("Error : listen.") );
 	while (_tokens.at(i).compare(";")) {
-		if ((found = _tokens.at(i).find(":")) != NOTFOUND && _tokens.at(i).find("[") == NOTFOUND)
+		if ((found = _tokens.at(i).find(":")) != NOTFOUND)
 		{
 			if (!host.empty() || !port.empty())
-				throw	( ErrorMsg("Error : listen.") );	
+				throw ( ErrorMsg("Error : listen.") );
 			host = _tokens.at(i).substr(0, found);
 			port = _tokens.at(i).substr(found + 1);
 			if (!check_host(host)){
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 			}
 			if (!is_number(port) || std::atoi(port.c_str()) > 65535)
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 			found = 0;
 		}
-		else if (is_number(_tokens.at(i))) //check 2 times ???
+		else if (is_number(_tokens.at(i)))
 		{
 			if (!port.empty())
-				throw	( ErrorMsg("Error : listen.") );	
+				throw ( ErrorMsg("Error : listen.") );	
 			port = _tokens.at(i);
-			if (!is_number(port) || std::atoi(port.c_str()) > 65535) //check 2 times ???
-				throw	( ErrorMsg("Error : listen.") );
+			if (std::atoi(port.c_str()) > 65535)
+				throw ( ErrorMsg("Error : listen.") );
 		}
-		else if (!_tokens.at(i).compare("default_server")) // [::]:80 default_server
-			;
 		else if (!_tokens.at(i).compare("localhost") || _tokens.at(i).find(".") != NOTFOUND)
 		{
 			if (!host.empty())
-				throw	( ErrorMsg("Error : listen.") );	
+				throw ( ErrorMsg("Error : listen.") );	
 			host = _tokens.at(i);
 			if (!check_host(host))
-				throw	( ErrorMsg("Error : listen.") );
+				throw ( ErrorMsg("Error : listen.") );
 		}
 		else
-			throw	( ErrorMsg("Error : listen.") );
+			throw ( ErrorMsg("Error : listen.") );
 		i++;
 	}
-	_serv_config.back().host = !host.compare("localhost") ? "127.0.0.1" : host;
-	_serv_config.back().port = port;
+	if (!_serv_config.back().host.empty() || !_serv_config.back().port.empty())
+		throw ErrorMsg ("Error : listen directive is duplicate.");
+	if (!host.empty())
+		_serv_config.back().host = !host.compare("localhost") ? "127.0.0.1" : host;
+	if  (!port.empty())
+		_serv_config.back().port = port;
 	return (i);
 }
 

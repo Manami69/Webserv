@@ -219,10 +219,8 @@ void	Config::InitConfig( void )
 {
 	Serv_config	serv_config;
 
-	// serv_config.host = "0.0.0.0";
-	// serv_config.port = "80";
 	serv_config.server_name = "";
-	serv_config.client_max_body_size = 1000000; //nginx default upload limit 1MB
+	serv_config.client_max_body_size = 1000000;
 	serv_config._nb_location = 0;
 	_serv_config.push_back(serv_config);
 	return ;
@@ -272,10 +270,19 @@ void	Config::parse_config(void)
 				else
 					throw ( ErrorMsg("Error : unknown directive [ " + _tokens.at(i) + " ]") );
 			}
-			//checker si host et port sont set et si ils ne le sont pas les mettre a default
-		}
+			set_default_listen();	
+			std::cout << std::endl << "host " << _serv_config.back().host << std::endl;
+			std::cout << std::endl << "port "<< _serv_config.back().port << std::endl;
+		}	
 	}
 	return ;
+}
+
+void	Config::set_default_listen(void){
+	if (_serv_config.back().host.empty())
+		_serv_config.back().host = "0.0.0.0";
+	if (_serv_config.back().port.empty())
+		_serv_config.back().port = 80;
 }
 
 size_t		Config::parse_location(size_t i) {
